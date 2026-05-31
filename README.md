@@ -25,6 +25,7 @@ A lightweight local homebrew equipment inventory app. Catalogue your gear with p
 - Dashboard summary — counts by category and condition
 - Export full inventory to CSV or JSON
 - Import from CSV or JSON
+- Theme selector — five built-in colour schemes (default: Oxidised Copper)
 
 ---
 
@@ -77,6 +78,7 @@ HopStock/
 | 11 | ⬜ Todo | Dashboard — cumulative stats by category and condition |
 | 12 | ⬜ Todo | Export — CSV and JSON download |
 | 13 | ⬜ Todo | Import — CSV and JSON upload with validation |
+| 14 | ⬜ Todo | Theme selector — dropdown with five schemes: Oxidised Copper (default), Bioluminescent Ferment, Chalk & Slate, Cold Side, Mash Tun |
 
 Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 
