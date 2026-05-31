@@ -3,6 +3,8 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { mkdirSync } from 'fs';
 import db from './db/index.js'; // initialises SQLite on startup
+import equipmentRouter from './routes/equipment.js';
+import metaRouter from './routes/meta.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const UPLOADS_DIR = join(__dirname, '../../uploads');
@@ -23,9 +25,8 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', project: 'hopstock' });
 });
 
-// TODO: mount route modules here as they are built
-// import itemsRouter from './routes/items.js';
-// app.use('/api/items', itemsRouter);
+app.use('/api/equipment', equipmentRouter);
+app.use('/api', metaRouter);
 
 // SPA fallback — serves built Vue client in production
 // (no-op until client is scaffolded at roadmap item #6)
