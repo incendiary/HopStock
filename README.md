@@ -32,7 +32,7 @@ A lightweight local homebrew equipment inventory app. Catalogue your gear with p
 
 ## Setup
 
-> Prerequisites: Node.js ≥ 20, npm
+> Prerequisites: Node.js ≥ 22, npm
 
 ```bash
 git clone git@github.com:incendiary/HopStock.git
@@ -67,7 +67,7 @@ HopStock/
 | # | Status | Feature |
 |---|--------|---------|
 | 1 | ✅ Done | Repo scaffold — pre-commit, gitleaks, secret-scan CI |
-| 2 | ⬜ Todo | Backend scaffold — Express server, project structure, SQLite connection |
+| 2 | ✅ Done | Backend scaffold — Express server, project structure, SQLite connection |
 | 3 | ⬜ Todo | Database schema — equipment table, categories, condition enum |
 | 4 | ⬜ Todo | REST API — CRUD endpoints for equipment |
 | 5 | ⬜ Todo | Photo upload — multer endpoint, static serving of `uploads/` |
