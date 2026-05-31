@@ -68,7 +68,7 @@ HopStock/
 |---|--------|---------|
 | 1 | ✅ Done | Repo scaffold — pre-commit, gitleaks, secret-scan CI |
 | 2 | ✅ Done | Backend scaffold — Express server, project structure, SQLite connection |
-| 3 | ⬜ Todo | Database schema — equipment table, categories, condition enum |
+| 3 | ✅ Done | Database schema — equipment table, categories, condition enum |
 | 4 | ⬜ Todo | REST API — CRUD endpoints for equipment |
 | 5 | ⬜ Todo | Photo upload — multer endpoint, static serving of `uploads/` |
 | 6 | ⬜ Todo | Frontend scaffold — Vue 3 + Vite, SPA wired to Express |
