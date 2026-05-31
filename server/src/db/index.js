@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { runMigrations } from './schema.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // DB lives at project root, two levels up from server/src/db/
@@ -13,5 +14,7 @@ db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
 console.log(`[db] connected: ${DB_PATH}`);
+
+runMigrations(db);
 
 export default db;
