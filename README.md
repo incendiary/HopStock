@@ -82,6 +82,7 @@ HopStock/
 | 14 | ⬜ Todo | Theme selector — dropdown with five schemes: Oxidised Copper (default), Bioluminescent Ferment, Chalk & Slate, Cold Side, Mash Tun |
 | 15 | ⬜ Todo | Delete Items — mark items as deleted and remove them from records |
 | 16 | ⬜ Todo | Equipment icons — per-item icon picker with homebrew-specific library: kettles, boilers, fermenters (conical/bucket/carboy), chillers (plate/counterflow/immersion), pumps, kegs, CO2 regulators, John Guest fittings (straight/elbow/tee/reducer), ball valves, tubing, hydrometers, refractometers, pH meters, auto-siphons |
+| 17 | ⬜ Todo | Branch protection — enable on `main`: force-push blocked, secret-scan CI required before merge |
 
 Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 
