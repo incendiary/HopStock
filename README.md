@@ -26,6 +26,7 @@ A lightweight local homebrew equipment inventory app. Catalogue your gear with p
 - Export full inventory to CSV or JSON
 - Import from CSV or JSON
 - Theme selector — five built-in colour schemes (default: Oxidised Copper)
+- Equipment icon picker — homebrew-specific icon library (kettles, fermenters, chillers, John Guest fittings, valves, kegs, instruments, and more)
 
 ---
 
@@ -79,6 +80,8 @@ HopStock/
 | 12 | ⬜ Todo | Export — CSV and JSON download |
 | 13 | ⬜ Todo | Import — CSV and JSON upload with validation |
 | 14 | ⬜ Todo | Theme selector — dropdown with five schemes: Oxidised Copper (default), Bioluminescent Ferment, Chalk & Slate, Cold Side, Mash Tun |
+| 15 | ⬜ Todo | Delete Items — mark items as deleted and remove them from records |
+| 16 | ⬜ Todo | Equipment icons — per-item icon picker with homebrew-specific library: kettles, boilers, fermenters (conical/bucket/carboy), chillers (plate/counterflow/immersion), pumps, kegs, CO2 regulators, John Guest fittings (straight/elbow/tee/reducer), ball valves, tubing, hydrometers, refractometers, pH meters, auto-siphons |
 
 Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 
