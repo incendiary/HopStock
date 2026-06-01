@@ -43,7 +43,7 @@
         <button
           class="btn-add"
           type="button"
-          @click="$emit('add')"
+          @click="showAddModal = true"
         >
           + Add item
         </button>
@@ -100,14 +100,32 @@
       />
     </div>
   </div>
+
+  <!-- Add modal -->
+  <AppModal
+    v-if="showAddModal"
+    title="Add equipment"
+    @close="showAddModal = false"
+  >
+    <EquipmentForm
+      :item-id="null"
+      @saved="onSaved"
+      @cancel="showAddModal = false"
+    />
+  </AppModal>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { getEquipment, getCategories, getConditions } from '../api.js';
-import EquipmentCard from '../components/EquipmentCard.vue';
+import EquipmentCard  from '../components/EquipmentCard.vue';
+import AppModal       from '../components/AppModal.vue';
+import EquipmentForm  from '../components/EquipmentForm.vue';
 
-const emit = defineEmits(['select', 'add']);
+const router = useRouter();
+
+const showAddModal = ref(false);
 
 const items      = ref([]);
 const categories = ref([]);
@@ -151,10 +169,13 @@ onMounted(async () => {
 });
 
 function onSelect(id) {
-  emit('select', id);
+  router.push(`/equipment/${id}`);
 }
 
-defineExpose({ reload: loadItems });
+function onSaved() {
+  showAddModal.value = false;
+  loadItems();
+}
 </script>
 
 <style scoped>

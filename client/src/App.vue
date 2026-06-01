@@ -2,7 +2,12 @@
   <div class="app-shell">
     <header class="navbar">
       <div class="navbar__brand">
-        🍺 <span>HopStock</span>
+        🍺 <RouterLink
+          to="/"
+          class="navbar__brand-link"
+        >
+          HopStock
+        </RouterLink>
       </div>
 
       <div class="navbar__actions">
@@ -24,32 +29,13 @@
     </header>
 
     <main class="main-content">
-      <EquipmentList
-        ref="listRef"
-        @select="openEdit"
-        @add="openAdd"
-      />
+      <RouterView />
     </main>
-
-    <AppModal
-      v-if="modal"
-      :title="modal.id ? 'Edit equipment' : 'Add equipment'"
-      @close="closeModal"
-    >
-      <EquipmentForm
-        :item-id="modal.id ?? null"
-        @saved="onSaved"
-        @cancel="closeModal"
-      />
-    </AppModal>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import EquipmentList from './views/EquipmentList.vue';
-import AppModal from './components/AppModal.vue';
-import EquipmentForm from './components/EquipmentForm.vue';
 
 const THEMES = [
   { id: '',               label: 'Oxidised Copper (default)' },
@@ -59,20 +45,8 @@ const THEMES = [
   { id: 'mash-tun',       label: 'Mash Tun'                  },
 ];
 
-const themes = THEMES;
+const themes       = THEMES;
 const currentTheme = ref(localStorage.getItem('hopstock-theme') ?? '');
-
-const listRef = ref(null);
-const modal   = ref(null); // null | { id: number|null }
-
-function openAdd()      { modal.value = { id: null };  }
-function openEdit(id)   { modal.value = { id };        }
-function closeModal()   { modal.value = null;          }
-
-function onSaved() {
-  closeModal();
-  listRef.value?.reload();
-}
 
 function setTheme(id) {
   currentTheme.value = id;
@@ -116,8 +90,14 @@ function setTheme(id) {
   gap: 0.5rem;
 }
 
-.navbar__brand span {
+.navbar__brand-link {
+  color: inherit;
+  text-decoration: none;
   letter-spacing: 0.04em;
+}
+
+.navbar__brand-link:hover {
+  color: var(--color-accent);
 }
 
 /* --- Theme selector --- */
