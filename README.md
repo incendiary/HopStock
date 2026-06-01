@@ -86,6 +86,26 @@ HopStock/
 
 Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 
+### v2 Roadmap
+
+| # | Group | Feature | Notes |
+|---|-------|---------|-------|
+| 18 | Data | Purchase info — date, price, retailer, serial/model, warranty | All optional; receipt / PDF scan to auto-populate |
+| 19 | Data | Quantity — item count for consumables and duplicates | |
+| 20 | Data | Custom tags — free-form labels, filterable on list view | |
+| 21 | Maintenance | Maintenance log — per-item event log (cleaned, serviced, repaired…) | |
+| 22 | Maintenance | Service routines — named templates with ordered steps; attach equipment; log completion against all items at once | Needs #21 |
+| 23 | Location | Storage locations — define locations, assign items, filter by location | |
+| 24 | Location | Loan tracking — lent-to with borrower, dates, overdue indicators | |
+| 25 | UX | Batch operations — multi-select, bulk condition / tag / location / delete | |
+| 26 | UX | Advanced search — FTS5 notes/name search, multi-dimensional filters | |
+| 27 | UX | Photo improvements — reorder, set primary, captions | |
+| 28 | Output | QR code labels — per-item QR, printable A4 label sheet | |
+| 29 | Output | Inventory value report — purchase totals, insurance-ready CSV export | Needs #18 |
+| 30 | Output | Auto-backup — scheduled ZIP (DB + photos) to local folder | |
+| 31 | Platform | PWA / mobile-first — service worker, offline read, native camera capture | |
+| 32 | Platform | Multi-user / sharing — optional password gate, read-only share links | |
+
 ---
 
 ## Security
