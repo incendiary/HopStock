@@ -32,13 +32,46 @@
         >
           ← Inventory
         </RouterLink>
-        <button
-          class="btn btn--primary"
-          type="button"
-          @click="showEditModal = true"
-        >
-          Edit
-        </button>
+        <div class="topbar__actions">
+          <button
+            class="btn btn--primary"
+            type="button"
+            @click="showEditModal = true"
+          >
+            Edit
+          </button>
+
+          <!-- Delete — two-step confirmation -->
+          <template v-if="!confirmDelete">
+            <button
+              class="btn btn--danger"
+              type="button"
+              :disabled="deleting"
+              @click="confirmDelete = true"
+            >
+              Delete
+            </button>
+          </template>
+          <template v-else>
+            <span class="delete-confirm-label">Delete this item?</span>
+            <button
+              class="btn btn--danger"
+              type="button"
+              :disabled="deleting"
+              @click="handleDelete"
+            >
+              {{ deleting ? 'Deleting…' : 'Yes, delete' }}
+            </button>
+            <button
+              class="btn btn--secondary"
+              type="button"
+              :disabled="deleting"
+              @click="confirmDelete = false"
+            >
+              Cancel
+            </button>
+          </template>
+        </div>
       </div>
 
       <div class="detail-layout">
@@ -166,12 +199,13 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { getEquipmentItem, getCategories, getConditions, updateEquipment } from '../api.js';
+import { useRoute, useRouter } from 'vue-router';
+import { getEquipmentItem, getCategories, getConditions, updateEquipment, deleteEquipment } from '../api.js';
 import AppModal      from '../components/AppModal.vue';
 import EquipmentForm from '../components/EquipmentForm.vue';
 
-const route = useRoute();
+const route  = useRoute();
+const router = useRouter();
 
 const item             = ref(null);
 const categories       = ref([]);
@@ -180,6 +214,8 @@ const loading          = ref(false);
 const error            = ref(null);
 const showEditModal    = ref(false);
 const activePhotoId    = ref(null);
+const confirmDelete    = ref(false);
+const deleting         = ref(false);
 const conditionSaving  = ref(false);
 const conditionSaved   = ref(false);
 
@@ -257,6 +293,18 @@ async function onConditionChange(e) {
   }
 }
 
+async function handleDelete() {
+  deleting.value = true;
+  try {
+    await deleteEquipment(item.value.id);
+    router.push('/');
+  } catch {
+    confirmDelete.value = false;
+  } finally {
+    deleting.value = false;
+  }
+}
+
 async function onSaved() {
   showEditModal.value = false;
   await load();
@@ -277,6 +325,21 @@ async function onSaved() {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.delete-confirm-label {
+  font-size: 0.875rem;
+  color: var(--color-danger);
+  font-weight: 600;
 }
 
 .back-link {
@@ -516,6 +579,25 @@ select.badge:disabled {
 
 .btn--primary:hover {
   opacity: 0.85;
+}
+
+.btn--danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn--danger:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.btn--secondary {
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  border-color: var(--color-primary);
 }
 
 /* State */
