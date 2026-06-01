@@ -71,7 +71,7 @@ HopStock/
 | 3 | ✅ Done | Database schema — equipment table, categories, condition enum |
 | 4 | ✅ Done | REST API — CRUD endpoints for equipment |
 | 5 | ✅ Done | Photo upload — multer endpoint, static serving of `uploads/` |
-| 6 | ⬜ Todo | Frontend scaffold — Vue 3 + Vite, SPA wired to Express |
+| 6 | ✅ Done | Frontend scaffold — Vue 3 + Vite, SPA wired to Express |
 | 7 | ⬜ Todo | Equipment list view — browsable inventory with filters |
 | 8 | ⬜ Todo | Add / Edit equipment form — with photo upload |
 | 9 | ⬜ Todo | Equipment detail view — photos, full metadata |

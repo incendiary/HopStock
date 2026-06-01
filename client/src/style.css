@@ -1,0 +1,105 @@
+/* ============================================================
+   HopStock — Design Tokens
+   Swap themes by setting data-theme on <html>.
+   Default (no attribute) = Oxidised Copper.
+   ============================================================ */
+
+/* === 1. Oxidised Copper (default) ========================= */
+:root {
+  --color-bg:       #1a1612;
+  --color-surface:  #2a211a;
+  --color-primary:  #b87333;
+  --color-accent:   #4a9a8a;
+  --color-text:     #e8dcc8;
+  --color-muted:    #8a7a6a;
+  --color-danger:   #c0392b;
+  --color-border:   #3a2f25;
+  --color-input-bg: #221b14;
+}
+
+/* === 2. Bioluminescent Ferment ============================ */
+[data-theme="bioluminescent"] {
+  --color-bg:       #0a0a0a;
+  --color-surface:  #111111;
+  --color-primary:  #ffb300;
+  --color-accent:   #00e5cc;
+  --color-text:     #f0f0f0;
+  --color-muted:    #666666;
+  --color-danger:   #ff4444;
+  --color-border:   #222222;
+  --color-input-bg: #0d0d0d;
+}
+
+/* === 3. Chalk & Slate ===================================== */
+[data-theme="chalk"] {
+  --color-bg:       #1c2128;
+  --color-surface:  #252d38;
+  --color-primary:  #d4841a;
+  --color-accent:   #e8c87a;
+  --color-text:     #f5f0e8;
+  --color-muted:    #7a8a9a;
+  --color-danger:   #e05252;
+  --color-border:   #2f3a47;
+  --color-input-bg: #1a2230;
+}
+
+/* === 4. Cold Side ========================================= */
+[data-theme="cold-side"] {
+  --color-bg:       #f4f6f8;
+  --color-surface:  #ffffff;
+  --color-primary:  #2563eb;
+  --color-accent:   #0ea5e9;
+  --color-text:     #1a2332;
+  --color-muted:    #8a9bb0;
+  --color-danger:   #dc2626;
+  --color-border:   #dde3ea;
+  --color-input-bg: #eef1f5;
+}
+
+/* === 5. Mash Tun ========================================== */
+[data-theme="mash-tun"] {
+  --color-bg:       #faf6ef;
+  --color-surface:  #f0e8d8;
+  --color-primary:  #5c3d1e;
+  --color-accent:   #2d6a4f;
+  --color-text:     #3a2810;
+  --color-muted:    #8a7060;
+  --color-danger:   #c0392b;
+  --color-border:   #d4c4a8;
+  --color-input-bg: #e8dcc8;
+}
+
+/* ============================================================
+   Base resets & global styles
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+input, select, textarea, button {
+  font: inherit;
+}
