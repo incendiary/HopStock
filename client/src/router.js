@@ -10,6 +10,7 @@ export default createRouter({
     { path: '/dashboard',      component: () => import('./views/Dashboard.vue')      },
     { path: '/routines',       component: () => import('./views/Routines.vue')       },
     { path: '/locations',      component: () => import('./views/Locations.vue')      },
+    { path: '/print-labels',   component: () => import('./views/PrintLabels.vue')    },
     { path: '/:pathMatch(.*)', redirect: '/'                                        },
   ],
 });
