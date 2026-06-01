@@ -64,6 +64,22 @@ export function runMigrations(db) {
     CREATE INDEX IF NOT EXISTS idx_routine_steps_routine   ON routine_steps(routine_id);
     CREATE INDEX IF NOT EXISTS idx_routine_equip_routine   ON routine_equipment(routine_id);
     CREATE INDEX IF NOT EXISTS idx_routine_equip_equipment ON routine_equipment(equipment_id);
+
+    -- Custom tags
+    CREATE TABLE IF NOT EXISTS tags (
+      id     INTEGER PRIMARY KEY AUTOINCREMENT,
+      name   TEXT    NOT NULL UNIQUE,
+      color  TEXT    NOT NULL DEFAULT '#6366f1'
+    );
+
+    CREATE TABLE IF NOT EXISTS equipment_tags (
+      equipment_id  INTEGER NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+      tag_id        INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+      PRIMARY KEY (equipment_id, tag_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_equipment_tags_equip ON equipment_tags(equipment_id);
+    CREATE INDEX IF NOT EXISTS idx_equipment_tags_tag   ON equipment_tags(tag_id);
   `);
 
   console.log('[db] migrations applied');

@@ -155,6 +155,14 @@
               class="badge badge--category"
             >{{ categoryLabel }}</span>
 
+            <!-- Tags -->
+            <span
+              v-for="tag in item.tags"
+              :key="tag.id"
+              class="badge badge--tag"
+              :style="{ '--tag-color': tag.color }"
+            >{{ tag.name }}</span>
+
             <!-- Maintenance summary chips -->
             <span
               v-if="lastCleaned"
@@ -582,6 +590,12 @@ select.badge:disabled {
 .badge--retired {
   background: color-mix(in srgb, var(--color-muted) 20%, transparent);
   color: var(--color-muted);
+}
+
+.badge--tag {
+  background: color-mix(in srgb, var(--tag-color, #6366f1) 18%, transparent);
+  color: var(--tag-color, #6366f1);
+  border: 1px solid color-mix(in srgb, var(--tag-color, #6366f1) 35%, transparent);
 }
 
 .badge--maint {

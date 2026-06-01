@@ -32,6 +32,12 @@ export const getCategories = () => request('/categories');
 export const getConditions = () => request('/conditions');
 export const getStats      = () => request('/stats');
 
+// Tags
+export const getTags      = ()           => request('/tags');
+export const createTag    = (body)       => request('/tags', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+export const updateTag    = (id, body)   => request(`/tags/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+export const deleteTag    = (id)         => request(`/tags/${id}`, { method: 'DELETE' });
+
 // Service routines
 export const getRoutines         = ()           => request('/routines');
 export const getRoutine          = (id)         => request(`/routines/${id}`);

@@ -40,6 +40,23 @@
             {{ cond }}
           </option>
         </select>
+        <select
+          v-model="filterTag"
+          class="filter-select"
+          aria-label="Filter by tag"
+        >
+          <option value="">
+            All tags
+          </option>
+          <option
+            v-for="tag in tags"
+            :key="tag.id"
+            :value="tag.name"
+          >
+            {{ tag.name }}
+          </option>
+        </select>
+
         <button
           class="btn-add"
           type="button"
@@ -73,7 +90,7 @@
     >
       <p>No equipment found.</p>
       <p
-        v-if="filterCategory || filterCondition"
+        v-if="filterCategory || filterCondition || filterTag"
         class="state-message__hint"
       >
         Try clearing the filters.
@@ -120,7 +137,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getEquipment, getCategories, getConditions } from '../api.js';
+import { getEquipment, getCategories, getConditions, getTags } from '../api.js';
 import EquipmentCard  from '../components/EquipmentCard.vue';
 import AppModal       from '../components/AppModal.vue';
 import EquipmentForm  from '../components/EquipmentForm.vue';
@@ -137,15 +154,18 @@ const error      = ref(null);
 
 const filterCategory  = ref('');
 const filterCondition = ref('');
+const filterTag       = ref('');
+const tags            = ref([]);
 
 const categoryMap = computed(() =>
   Object.fromEntries(categories.value.map((c) => [c.id, c.label])),
 );
 
 async function loadMeta() {
-  const [cats, conds] = await Promise.all([getCategories(), getConditions()]);
+  const [cats, conds, t] = await Promise.all([getCategories(), getConditions(), getTags()]);
   categories.value = cats;
   conditions.value = conds;
+  tags.value       = t;
 }
 
 async function loadItems() {
@@ -155,6 +175,7 @@ async function loadItems() {
     items.value = await getEquipment({
       category:  filterCategory.value  || undefined,
       condition: filterCondition.value || undefined,
+      tag:       filterTag.value       || undefined,
     });
   } catch (err) {
     error.value = err.message ?? 'Failed to load equipment.';
@@ -163,7 +184,7 @@ async function loadItems() {
   }
 }
 
-watch([filterCategory, filterCondition], loadItems);
+watch([filterCategory, filterCondition, filterTag], loadItems);
 
 onMounted(async () => {
   await loadMeta();

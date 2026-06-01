@@ -29,32 +29,50 @@ function withPhotos(item) {
     .prepare('SELECT id, filename, created_at FROM photos WHERE equipment_id = ? ORDER BY id')
     .all(item.id)
     .map((p) => ({ ...p, url: `/uploads/${p.filename}` }));
-  return { ...item, photos };
+  const tags = db
+    .prepare(`
+      SELECT t.id, t.name, t.color
+      FROM tags t JOIN equipment_tags et ON et.tag_id = t.id
+      WHERE et.equipment_id = ?
+      ORDER BY t.name COLLATE NOCASE
+    `)
+    .all(item.id);
+  return { ...item, photos, tags };
 }
 
 // --- routes ---
 
 // GET /api/equipment
-// Query params: ?category=&condition=
+// Query params: ?category=&condition=&tag=
 router.get('/', (req, res) => {
-  const { category, condition } = req.query;
+  const { category, condition, tag } = req.query;
 
-  let sql  = 'SELECT * FROM equipment WHERE deleted = 0';
+  let sql    = 'SELECT DISTINCT e.* FROM equipment e';
   const params = [];
 
+  if (tag) {
+    sql += ' JOIN equipment_tags et ON et.equipment_id = e.id JOIN tags t ON t.id = et.tag_id';
+  }
+
+  sql += ' WHERE e.deleted = 0';
+
   if (category) {
-    sql += ' AND category = ?';
+    sql += ' AND e.category = ?';
     params.push(category);
   }
   if (condition) {
-    sql += ' AND condition = ?';
+    sql += ' AND e.condition = ?';
     params.push(condition);
   }
+  if (tag) {
+    sql += ' AND t.name = ?';
+    params.push(tag);
+  }
 
-  sql += ' ORDER BY name COLLATE NOCASE';
+  sql += ' ORDER BY e.name COLLATE NOCASE';
 
   const items = db.prepare(sql).all(...params);
-  res.json({ items, total: items.length });
+  res.json({ items: items.map(withPhotos), total: items.length });
 });
 
 // GET /api/equipment/:id
@@ -72,20 +90,21 @@ router.post('/', (req, res) => {
   const errors = validate(req.body);
   if (errors.length) return res.status(400).json({ errors });
 
-  const { name, category, condition = 'Good', notes = null, icon = null } = req.body;
+  const { name, category, condition = 'Good', notes = null, icon = null, tag_ids = [] } = req.body;
 
-  const result = db
-    .prepare(`
-      INSERT INTO equipment (name, category, condition, notes, icon)
-      VALUES (?, ?, ?, ?, ?)
-    `)
-    .run(name.trim(), category, condition, notes, icon);
+  const create = db.transaction(() => {
+    const result = db
+      .prepare('INSERT INTO equipment (name, category, condition, notes, icon) VALUES (?, ?, ?, ?, ?)')
+      .run(name.trim(), category, condition, notes, icon);
+    const id = result.lastInsertRowid;
+    for (const tagId of tag_ids) {
+      db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)').run(id, tagId);
+    }
+    return id;
+  });
 
-  const created = db
-    .prepare('SELECT * FROM equipment WHERE id = ?')
-    .get(result.lastInsertRowid);
-
-  res.status(201).json(withPhotos(created));
+  const id = create();
+  res.status(201).json(withPhotos(db.prepare('SELECT * FROM equipment WHERE id = ?').get(id)));
 });
 
 // PUT /api/equipment/:id
@@ -101,19 +120,26 @@ router.put('/:id', (req, res) => {
   if (errors.length) return res.status(400).json({ errors });
 
   const { name, category, condition, notes = null, icon = null } = merged;
+  const tag_ids = req.body.tag_ids; // undefined = don't touch tags
 
-  db.prepare(`
-    UPDATE equipment
-    SET name = ?, category = ?, condition = ?, notes = ?, icon = ?,
-        updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
-    WHERE id = ?
-  `).run(name.trim(), category, condition, notes, icon, req.params.id);
+  const update = db.transaction(() => {
+    db.prepare(`
+      UPDATE equipment
+      SET name = ?, category = ?, condition = ?, notes = ?, icon = ?,
+          updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+      WHERE id = ?
+    `).run(name.trim(), category, condition, notes, icon, req.params.id);
 
-  const updated = db
-    .prepare('SELECT * FROM equipment WHERE id = ?')
-    .get(req.params.id);
+    if (Array.isArray(tag_ids)) {
+      db.prepare('DELETE FROM equipment_tags WHERE equipment_id = ?').run(req.params.id);
+      for (const tagId of tag_ids) {
+        db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)').run(req.params.id, tagId);
+      }
+    }
+  });
 
-  res.json(withPhotos(updated));
+  update();
+  res.json(withPhotos(db.prepare('SELECT * FROM equipment WHERE id = ?').get(req.params.id)));
 });
 
 // DELETE /api/equipment/:id  (soft delete)
