@@ -32,6 +32,10 @@ export const getCategories = () => request('/categories');
 export const getConditions = () => request('/conditions');
 export const getStats      = () => request('/stats');
 
+// Receipt scanning
+export const checkScanAvailable = ()      => request('/scan-receipt/available');
+export const scanReceipt        = (fd)    => request('/scan-receipt', { method: 'POST', body: fd });
+
 // Tags
 export const getTags      = ()           => request('/tags');
 export const createTag    = (body)       => request('/tags', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });

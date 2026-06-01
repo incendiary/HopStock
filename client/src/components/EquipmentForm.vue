@@ -91,6 +91,142 @@
       />
     </div>
 
+    <!-- Acquisition (collapsible) -->
+    <details class="acquisition-section">
+      <summary class="acquisition-section__summary">
+        <span class="field__label">Acquisition details</span>
+        <span
+          v-if="scanAvailable"
+          class="acquisition-section__scan-hint"
+        >— or <button
+          type="button"
+          class="btn-scan-link"
+          :disabled="scanning"
+          @click.stop="triggerScan"
+        >{{ scanning ? 'Scanning…' : 'scan a receipt' }}</button></span>
+      </summary>
+
+      <input
+        ref="scanFileInput"
+        type="file"
+        accept="image/*,application/pdf"
+        style="display:none"
+        @change="onScanFile"
+      >
+
+      <p
+        v-if="scanError"
+        class="scan-error"
+      >
+        {{ scanError }}
+      </p>
+
+      <div class="acquisition-grid">
+        <div class="field">
+          <label
+            class="field__label"
+            for="ef-purchase-date"
+          >Purchase date</label>
+          <input
+            id="ef-purchase-date"
+            v-model="form.purchase_date"
+            class="field__input"
+            type="date"
+            :disabled="saving"
+          >
+        </div>
+        <div class="field">
+          <label
+            class="field__label"
+            for="ef-purchase-price"
+          >Price</label>
+          <div class="price-row">
+            <select
+              v-model="form.purchase_currency"
+              class="field__input field__input--currency"
+              :disabled="saving"
+            >
+              <option value="GBP">
+                £ GBP
+              </option>
+              <option value="EUR">
+                € EUR
+              </option>
+              <option value="USD">
+                $ USD
+              </option>
+              <option value="AUD">
+                A$ AUD
+              </option>
+            </select>
+            <input
+              id="ef-purchase-price"
+              v-model.number="form.purchase_price"
+              class="field__input"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              :disabled="saving"
+            >
+          </div>
+        </div>
+        <div class="field">
+          <label
+            class="field__label"
+            for="ef-retailer"
+          >Retailer / source</label>
+          <input
+            id="ef-retailer"
+            v-model="form.retailer"
+            class="field__input"
+            type="text"
+            placeholder="e.g. Brew UK"
+            :disabled="saving"
+          >
+        </div>
+        <div class="field">
+          <label
+            class="field__label"
+            for="ef-warranty"
+          >Warranty expires</label>
+          <input
+            id="ef-warranty"
+            v-model="form.warranty_expires"
+            class="field__input"
+            type="date"
+            :disabled="saving"
+          >
+        </div>
+        <div class="field">
+          <label
+            class="field__label"
+            for="ef-model"
+          >Model number</label>
+          <input
+            id="ef-model"
+            v-model="form.model_number"
+            class="field__input"
+            type="text"
+            :disabled="saving"
+          >
+        </div>
+        <div class="field">
+          <label
+            class="field__label"
+            for="ef-serial"
+          >Serial number</label>
+          <input
+            id="ef-serial"
+            v-model="form.serial_number"
+            class="field__input"
+            type="text"
+            :disabled="saving"
+          >
+        </div>
+      </div>
+    </details>
+
     <!-- Tags -->
     <div class="field">
       <p class="field__label">
@@ -235,6 +371,8 @@ import {
   uploadPhotos,
   deletePhoto,
   getTags,
+  checkScanAvailable,
+  scanReceipt,
 } from '../api.js';
 import IconPicker from './IconPicker.vue';
 import TagInput   from './TagInput.vue';
@@ -257,13 +395,27 @@ const allTags     = ref([]);
 
 // Form state
 const form = ref({
-  name:      '',
-  category:  '',
-  condition: 'Good',
-  notes:     '',
-  icon:      null,
-  tags:      [], // array of tag objects { id, name, color }
+  name:              '',
+  category:          '',
+  condition:         'Good',
+  notes:             '',
+  icon:              null,
+  tags:              [],
+  // Purchase / acquisition
+  purchase_date:     null,
+  purchase_price:    null,
+  purchase_currency: 'GBP',
+  retailer:          null,
+  serial_number:     null,
+  model_number:      null,
+  warranty_expires:  null,
 });
+
+// Receipt scanning
+const scanAvailable  = ref(false);
+const scanning       = ref(false);
+const scanError      = ref(null);
+const scanFileInput  = ref(null);
 
 // Photo state
 const existingPhotos = ref([]);
@@ -276,20 +428,30 @@ const formError = ref(null);
 
 // ─── Mount ────────────────────────────────────────────────
 onMounted(async () => {
-  const [cats, conds, tags] = await Promise.all([getCategories(), getConditions(), getTags()]);
-  categories.value = cats;
-  conditions.value = conds;
-  allTags.value    = tags;
+  const [cats, conds, tags, scanStatus] = await Promise.all([
+    getCategories(), getConditions(), getTags(), checkScanAvailable(),
+  ]);
+  categories.value  = cats;
+  conditions.value  = conds;
+  allTags.value     = tags;
+  scanAvailable.value = scanStatus.available;
 
   if (isEditing.value) {
     const item = await getEquipmentItem(props.itemId);
     form.value = {
-      name:      item.name      ?? '',
-      category:  item.category  ?? '',
-      condition: item.condition ?? 'Good',
-      notes:     item.notes     ?? '',
-      icon:      item.icon      ?? null,
-      tags:      item.tags      ?? [],
+      name:              item.name              ?? '',
+      category:          item.category          ?? '',
+      condition:         item.condition         ?? 'Good',
+      notes:             item.notes             ?? '',
+      icon:              item.icon              ?? null,
+      tags:              item.tags              ?? [],
+      purchase_date:     item.purchase_date     ?? null,
+      purchase_price:    item.purchase_price    ?? null,
+      purchase_currency: item.purchase_currency ?? 'GBP',
+      retailer:          item.retailer          ?? null,
+      serial_number:     item.serial_number     ?? null,
+      model_number:      item.model_number      ?? null,
+      warranty_expires:  item.warranty_expires  ?? null,
     };
     existingPhotos.value = item.photos ?? [];
   }
@@ -297,6 +459,36 @@ onMounted(async () => {
 
 async function refreshTags() {
   allTags.value = await getTags();
+}
+
+function triggerScan() {
+  scanFileInput.value?.click();
+}
+
+async function onScanFile(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  e.target.value = '';
+
+  scanning.value = true;
+  scanError.value = null;
+  try {
+    const fd = new FormData();
+    fd.append('receipt', file);
+    const result = await scanReceipt(fd);
+    // Merge non-null results into form, preserving existing values
+    for (const [key, val] of Object.entries(result)) {
+      if (val !== null && val !== undefined) {
+        form.value[key] = val;
+      }
+    }
+    // Open the acquisition section if it was closed
+    document.querySelector('.acquisition-section')?.setAttribute('open', '');
+  } catch (err) {
+    scanError.value = err.message ?? 'Receipt scan failed';
+  } finally {
+    scanning.value = false;
+  }
 }
 
 onUnmounted(() => {
@@ -335,12 +527,19 @@ async function handleSubmit() {
 
   try {
     const payload = {
-      name:      form.value.name.trim(),
-      category:  form.value.category  || null,
-      condition: form.value.condition || 'Good',
-      notes:     form.value.notes.trim() || null,
-      icon:      form.value.icon || null,
-      tag_ids:   form.value.tags.map((t) => t.id),
+      name:              form.value.name.trim(),
+      category:          form.value.category  || null,
+      condition:         form.value.condition || 'Good',
+      notes:             form.value.notes.trim() || null,
+      icon:              form.value.icon || null,
+      tag_ids:           form.value.tags.map((t) => t.id),
+      purchase_date:     form.value.purchase_date     || null,
+      purchase_price:    form.value.purchase_price    ?? null,
+      purchase_currency: form.value.purchase_currency || 'GBP',
+      retailer:          form.value.retailer          || null,
+      serial_number:     form.value.serial_number     || null,
+      model_number:      form.value.model_number      || null,
+      warranty_expires:  form.value.warranty_expires  || null,
     };
 
     let item;
@@ -378,6 +577,92 @@ async function handleSubmit() {
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
+}
+
+/* Acquisition section */
+.acquisition-section {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  background: var(--color-input-bg);
+}
+
+.acquisition-section__summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  user-select: none;
+  list-style: none;
+}
+
+.acquisition-section__summary::-webkit-details-marker {
+  display: none;
+}
+
+.acquisition-section__summary::before {
+  content: '▶';
+  font-size: 0.65rem;
+  color: var(--color-muted);
+  transition: transform 0.15s;
+  display: inline-block;
+}
+
+.acquisition-section[open] .acquisition-section__summary::before {
+  transform: rotate(90deg);
+}
+
+.acquisition-section__scan-hint {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--color-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.btn-scan-link {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: inherit;
+  font-weight: 600;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.btn-scan-link:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.scan-error {
+  font-size: 0.8rem;
+  color: var(--color-danger);
+  margin: 0.5rem 0;
+}
+
+.acquisition-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .acquisition-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.price-row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.field__input--currency {
+  width: 90px;
+  flex-shrink: 0;
 }
 
 /* Fields */

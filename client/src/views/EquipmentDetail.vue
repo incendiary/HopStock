@@ -188,6 +188,63 @@
             </p>
           </div>
 
+          <!-- Acquisition info -->
+          <div
+            v-if="hasAcquisitionData"
+            class="meta__acquisition"
+          >
+            <p class="meta__notes-label">
+              Acquisition
+            </p>
+            <dl class="meta__dates">
+              <div
+                v-if="item.retailer"
+                class="meta__date-row"
+              >
+                <dt>From</dt>
+                <dd>{{ item.retailer }}</dd>
+              </div>
+              <div
+                v-if="item.purchase_price != null"
+                class="meta__date-row"
+              >
+                <dt>Paid</dt>
+                <dd>{{ formatPrice(item.purchase_price, item.purchase_currency) }}</dd>
+              </div>
+              <div
+                v-if="item.purchase_date"
+                class="meta__date-row"
+              >
+                <dt>Bought</dt>
+                <dd>{{ formatDateShort(item.purchase_date) }}</dd>
+              </div>
+              <div
+                v-if="item.model_number"
+                class="meta__date-row"
+              >
+                <dt>Model</dt>
+                <dd>{{ item.model_number }}</dd>
+              </div>
+              <div
+                v-if="item.serial_number"
+                class="meta__date-row"
+              >
+                <dt>Serial</dt>
+                <dd>{{ item.serial_number }}</dd>
+              </div>
+              <div
+                v-if="item.warranty_expires"
+                class="meta__date-row"
+              >
+                <dt>Warranty</dt>
+                <dd :class="{ 'meta__warranty--expired': warrantyExpired }">
+                  {{ formatDateShort(item.warranty_expires) }}
+                  <span v-if="warrantyExpired"> (expired)</span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
           <dl class="meta__dates">
             <div class="meta__date-row">
               <dt>Added</dt>
@@ -280,6 +337,23 @@ const conditionSlug = computed(
   () => (item.value?.condition ?? '').toLowerCase().replace(/\s+/g, '-'),
 );
 
+// Acquisition data presence
+const hasAcquisitionData = computed(() =>
+  item.value && (
+    item.value.purchase_date ||
+    item.value.purchase_price != null ||
+    item.value.retailer ||
+    item.value.model_number ||
+    item.value.serial_number ||
+    item.value.warranty_expires
+  ),
+);
+
+const warrantyExpired = computed(() => {
+  if (!item.value?.warranty_expires) return false;
+  return new Date(item.value.warranty_expires) < new Date();
+});
+
 // Last cleaned / last serviced derived from maintenance events
 const lastCleaned = computed(() => {
   const e = maintenanceEvents.value.find((ev) => ev.event_type === 'Cleaned');
@@ -333,6 +407,15 @@ function formatDate(iso) {
 function formatDateShort(iso) {
   if (!iso) return '—';
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(iso));
+}
+
+function formatPrice(price, currency) {
+  const c = currency ?? 'GBP';
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: c }).format(price);
+  } catch {
+    return `${price} ${c}`;
+  }
 }
 
 function daysAgo(iso) {
@@ -656,6 +739,19 @@ select.badge:disabled {
 
 .meta__date-row dd {
   color: var(--color-text);
+}
+
+/* Acquisition */
+.meta__acquisition {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: var(--color-input-bg);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.meta__warranty--expired {
+  color: var(--color-danger);
 }
 
 /* Maintenance section */

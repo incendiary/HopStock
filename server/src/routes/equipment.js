@@ -90,12 +90,26 @@ router.post('/', (req, res) => {
   const errors = validate(req.body);
   if (errors.length) return res.status(400).json({ errors });
 
-  const { name, category, condition = 'Good', notes = null, icon = null, tag_ids = [] } = req.body;
+  const {
+    name, category, condition = 'Good', notes = null, icon = null, tag_ids = [],
+    purchase_date = null, purchase_price = null, purchase_currency = null,
+    retailer = null, serial_number = null, model_number = null, warranty_expires = null,
+  } = req.body;
 
   const create = db.transaction(() => {
     const result = db
-      .prepare('INSERT INTO equipment (name, category, condition, notes, icon) VALUES (?, ?, ?, ?, ?)')
-      .run(name.trim(), category, condition, notes, icon);
+      .prepare(`
+        INSERT INTO equipment
+          (name, category, condition, notes, icon,
+           purchase_date, purchase_price, purchase_currency,
+           retailer, serial_number, model_number, warranty_expires)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+      .run(
+        name.trim(), category, condition, notes, icon,
+        purchase_date, purchase_price, purchase_currency || 'GBP',
+        retailer, serial_number, model_number, warranty_expires,
+      );
     const id = result.lastInsertRowid;
     for (const tagId of tag_ids) {
       db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)').run(id, tagId);
@@ -122,13 +136,29 @@ router.put('/:id', (req, res) => {
   const { name, category, condition, notes = null, icon = null } = merged;
   const tag_ids = req.body.tag_ids; // undefined = don't touch tags
 
+  // Purchase fields — only update if explicitly sent (don't wipe on partial updates)
+  const purchaseFields = [
+    'purchase_date', 'purchase_price', 'purchase_currency',
+    'retailer', 'serial_number', 'model_number', 'warranty_expires',
+  ];
+  const purchaseUpdates = purchaseFields.filter((f) => f in req.body);
+
   const update = db.transaction(() => {
-    db.prepare(`
+    let sql = `
       UPDATE equipment
       SET name = ?, category = ?, condition = ?, notes = ?, icon = ?,
           updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
-      WHERE id = ?
-    `).run(name.trim(), category, condition, notes, icon, req.params.id);
+    `;
+    const params = [name.trim(), category, condition, notes, icon];
+
+    for (const f of purchaseUpdates) {
+      sql += `, ${f} = ?`;
+      params.push(req.body[f] ?? null);
+    }
+    sql += ' WHERE id = ?';
+    params.push(req.params.id);
+
+    db.prepare(sql).run(...params);
 
     if (Array.isArray(tag_ids)) {
       db.prepare('DELETE FROM equipment_tags WHERE equipment_id = ?').run(req.params.id);
