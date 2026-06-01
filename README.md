@@ -99,7 +99,7 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 | 24 | ✅ Done | Loan tracking — lent-to with borrower, dates, overdue indicators | |
 | 25 | ✅ Done | Batch operations — multi-select, bulk condition / tag / location / delete | |
 | 26 | ✅ Done | Advanced search — FTS5 notes/name search, multi-dimensional filters | |
-| 27 | UX | Photo improvements — reorder, set primary, captions | |
+| 27 | ✅ Done | Photo improvements — reorder, set primary, captions | |
 | 28 | Output | QR code labels — per-item QR, printable A4 label sheet | |
 | 29 | Output | Inventory value report — purchase totals, insurance-ready CSV export | Needs #18 |
 | 30 | Output | Auto-backup — scheduled ZIP (DB + photos) to local folder | |

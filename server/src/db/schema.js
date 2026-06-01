@@ -137,6 +137,11 @@ export function runMigrations(db) {
   // so we check PRAGMA table_info first.
   const equipCols = new Set(db.pragma('table_info(equipment)').map((c) => c.name));
 
+  // Idempotent photo column additions
+  const photoCols = new Set(db.pragma('table_info(photos)').map((c) => c.name));
+  if (!photoCols.has('sort_order')) db.exec('ALTER TABLE photos ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0');
+  if (!photoCols.has('caption'))    db.exec('ALTER TABLE photos ADD COLUMN caption TEXT');
+
   const purchaseCols = [
     ['purchase_date',     'TEXT'],
     ['purchase_price',    'REAL'],
