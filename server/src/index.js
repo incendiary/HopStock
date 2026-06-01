@@ -14,8 +14,9 @@ import scanRouter        from './routes/scan.js';
 import metaRouter        from './routes/meta.js';
 import exportRouter      from './routes/export.js';
 import importRouter      from './routes/import.js';
-import locationsRouter   from './routes/locations.js';
-import loansRouter       from './routes/loans.js';
+import locationsRouter         from './routes/locations.js';
+import loansRouter             from './routes/loans.js';
+import { startBackupScheduler, triggerBackupNow } from './backup.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -47,6 +48,16 @@ app.use('/api/import', importRouter);
 app.use('/api/locations', locationsRouter);
 app.use('/api', metaRouter);
 
+// On-demand backup endpoint
+app.post('/api/backup/now', async (_req, res) => {
+  try {
+    await triggerBackupNow();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message ?? 'Backup failed' });
+  }
+});
+
 // SPA fallback — serves built Vue client in production
 // (no-op until client is scaffolded at roadmap item #6)
 app.use(express.static(join(__dirname, '../public')));
@@ -59,4 +70,5 @@ app.get('*', (_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`[hopstock] server running on http://localhost:${PORT}`);
+  startBackupScheduler();
 });

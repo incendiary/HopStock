@@ -192,6 +192,32 @@
         </div>
       </section>
 
+      <!-- ── Backup ────────────────────────────────── -->
+      <section class="section">
+        <h3 class="section__title">
+          Backup
+        </h3>
+        <p class="import-hint">
+          Creates a <code>.tar.gz</code> of the database and all uploaded photos in the configured
+          backup directory. Scheduled backups run automatically if <code>BACKUP_INTERVAL_HOURS</code>
+          is set in <code>.env</code>.
+        </p>
+        <div class="export-buttons">
+          <button
+            class="btn btn--secondary"
+            :disabled="backingUp"
+            @click="doBackup"
+          >
+            {{ backingUp ? 'Backing up…' : '💾 Backup now' }}
+          </button>
+          <span
+            v-if="backupMessage"
+            class="backup-message"
+            :class="{ 'backup-message--error': backupError }"
+          >{{ backupMessage }}</span>
+        </div>
+      </section>
+
       <!-- ── Import ─────────────────────────────────── -->
       <section class="section">
         <h3 class="section__title">
@@ -279,7 +305,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { getStats, getCategories, importFile as apiImportFile } from '../api.js';
+import { getStats, getCategories, importFile as apiImportFile, triggerBackup } from '../api.js';
 
 const stats      = ref(null);
 const categories = ref([]);
@@ -315,6 +341,27 @@ onMounted(async () => {
 });
 
 // ─── Import state ─────────────────────────────────────────
+// ─── Backup ──────────────────────────────────────────────
+const backingUp      = ref(false);
+const backupMessage  = ref('');
+const backupError    = ref(false);
+
+async function doBackup() {
+  backingUp.value    = true;
+  backupMessage.value = '';
+  backupError.value  = false;
+  try {
+    await triggerBackup();
+    backupMessage.value = 'Backup created ✓';
+  } catch (err) {
+    backupMessage.value = err.message ?? 'Backup failed';
+    backupError.value   = true;
+  } finally {
+    backingUp.value = false;
+  }
+}
+
+// ─── Import ───────────────────────────────────────────────
 const importFile   = ref(null);
 const importing    = ref(false);
 const importResult = ref(null);
@@ -548,6 +595,16 @@ function pct(count, total) {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.backup-message {
+  font-size: 0.82rem;
+  color: var(--color-accent);
+}
+
+.backup-message--error {
+  color: var(--color-danger);
 }
 
 /* Import */
