@@ -88,6 +88,15 @@
         </button>
 
         <button
+          class="filter-toggle"
+          :class="{ 'filter-toggle--active': selectMode }"
+          type="button"
+          @click="toggleSelectMode"
+        >
+          ☑ Select
+        </button>
+
+        <button
           class="btn-add"
           type="button"
           @click="showAddModal = true"
@@ -138,16 +147,132 @@
       v-else
       class="grid"
     >
-      <EquipmentCard
+      <div
         v-for="item in items"
         :key="item.id"
-        :item="item"
-        :category-map="categoryMap"
-        :conditions="conditions"
-        @select="onSelect"
-        @updated="onItemUpdated"
-      />
+        class="card-wrapper"
+        :class="{ 'card-wrapper--selected': selectMode && selected.has(item.id) }"
+        @click="selectMode ? toggleSelect(item.id) : null"
+      >
+        <!-- Selection checkbox overlay -->
+        <label
+          v-if="selectMode"
+          class="card-checkbox"
+          @click.stop
+        >
+          <input
+            type="checkbox"
+            :checked="selected.has(item.id)"
+            @change="toggleSelect(item.id)"
+          >
+        </label>
+
+        <EquipmentCard
+          :item="item"
+          :category-map="categoryMap"
+          :conditions="conditions"
+          @select="selectMode ? toggleSelect(item.id) : onSelect(item.id)"
+          @updated="onItemUpdated"
+        />
+      </div>
     </div>
+
+    <!-- Floating batch action bar -->
+    <Transition name="batch-bar">
+      <div
+        v-if="selectMode && selected.size > 0"
+        class="batch-bar"
+      >
+        <div class="batch-bar__count">
+          <button
+            class="batch-bar__select-all"
+            @click="selected.size === items.length ? clearSelection() : selectAll()"
+          >
+            {{ selected.size === items.length ? 'Deselect all' : 'Select all' }}
+          </button>
+          <span>{{ selected.size }} selected</span>
+        </div>
+
+        <div class="batch-bar__actions">
+          <!-- Set condition -->
+          <select
+            v-model="batchValue"
+            class="batch-select"
+            :disabled="batching"
+            @change="batchAction = 'condition'"
+          >
+            <option :value="null">
+              Set condition…
+            </option>
+            <option
+              v-for="c in conditions"
+              :key="c"
+              :value="c"
+            >
+              {{ c }}
+            </option>
+          </select>
+
+          <!-- Add tag -->
+          <select
+            v-model="batchValue"
+            class="batch-select"
+            :disabled="batching"
+            @change="batchAction = 'tag'"
+          >
+            <option :value="null">
+              Add tag…
+            </option>
+            <option
+              v-for="tag in tags"
+              :key="tag.id"
+              :value="tag.id"
+            >
+              {{ tag.name }}
+            </option>
+          </select>
+
+          <!-- Move to location -->
+          <select
+            v-if="locations.length"
+            v-model="batchValue"
+            class="batch-select"
+            :disabled="batching"
+            @change="batchAction = 'location'"
+          >
+            <option :value="null">
+              Move to location…
+            </option>
+            <option :value="null">
+              — None —
+            </option>
+            <option
+              v-for="loc in locations"
+              :key="loc.id"
+              :value="loc.id"
+            >
+              {{ loc.name }}
+            </option>
+          </select>
+
+          <button
+            class="batch-bar__apply"
+            :disabled="batching || !batchAction || batchValue === null"
+            @click="runBatch"
+          >
+            {{ batching ? 'Working…' : 'Apply' }}
+          </button>
+
+          <button
+            class="batch-bar__delete"
+            :disabled="batching"
+            @click="batchAction = 'delete'; batchValue = null; runBatch()"
+          >
+            🗑 Delete ({{ selected.size }})
+          </button>
+        </div>
+      </div>
+    </Transition>
   </div>
 
   <!-- Add modal -->
@@ -167,7 +292,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getEquipment, getCategories, getConditions, getTags, getLocations } from '../api.js';
+import { getEquipment, getCategories, getConditions, getTags, getLocations, batchEquipment } from '../api.js';
 import EquipmentCard  from '../components/EquipmentCard.vue';
 import AppModal       from '../components/AppModal.vue';
 import EquipmentForm  from '../components/EquipmentForm.vue';
@@ -175,6 +300,57 @@ import EquipmentForm  from '../components/EquipmentForm.vue';
 const router = useRouter();
 
 const showAddModal = ref(false);
+
+// Batch select
+const selectMode   = ref(false);
+const selected     = ref(new Set()); // Set<number>
+const batchAction  = ref('');        // 'condition'|'tag'|'location'|'delete'
+const batchValue   = ref(null);
+const batching     = ref(false);
+
+function toggleSelectMode() {
+  selectMode.value = !selectMode.value;
+  if (!selectMode.value) {
+    selected.value  = new Set();
+    batchAction.value = '';
+  }
+}
+
+function toggleSelect(id) {
+  const s = new Set(selected.value);
+  if (s.has(id)) s.delete(id);
+  else s.add(id);
+  selected.value = s;
+}
+
+function selectAll() {
+  selected.value = new Set(items.value.map((i) => i.id));
+}
+
+function clearSelection() {
+  selected.value = new Set();
+}
+
+async function runBatch() {
+  if (selected.value.size === 0 || !batchAction.value) return;
+  if (batchAction.value === 'delete') {
+    if (!confirm(`Delete ${selected.value.size} item(s)? This cannot be undone.`)) return;
+  }
+  batching.value = true;
+  try {
+    await batchEquipment({
+      ids:    [...selected.value],
+      action: batchAction.value,
+      value:  batchValue.value,
+    });
+    selected.value    = new Set();
+    batchAction.value = '';
+    batchValue.value  = null;
+    await loadItems();
+  } finally {
+    batching.value = false;
+  }
+}
 
 const items      = ref([]);
 const categories = ref([]);
@@ -344,5 +520,119 @@ function onSaved() {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.25rem;
+}
+
+/* Batch select */
+.card-wrapper {
+  position: relative;
+}
+
+.card-wrapper--selected {
+  outline: 2px solid var(--color-primary);
+  border-radius: 10px;
+}
+
+.card-checkbox {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+  }
+}
+
+/* Floating batch bar */
+.batch-bar {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  z-index: 100;
+  flex-wrap: wrap;
+  max-width: 90vw;
+}
+
+.batch-bar__count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.batch-bar__select-all {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.batch-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.batch-select {
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  &:disabled { opacity: 0.5; }
+}
+
+.batch-bar__apply {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.batch-bar__delete {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
+  border-radius: 6px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+/* Transition for batch bar */
+.batch-bar-enter-active,
+.batch-bar-leave-active { transition: opacity 0.2s, transform 0.2s; }
+.batch-bar-enter-from,
+.batch-bar-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(1rem);
 }
 </style>

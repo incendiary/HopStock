@@ -194,6 +194,49 @@ router.put('/:id', (req, res) => {
   res.json(withPhotos(db.prepare('SELECT * FROM equipment WHERE id = ?').get(req.params.id)));
 });
 
+// POST /api/equipment/batch — bulk operations
+// Body: { ids: number[], action: 'condition'|'tag'|'location'|'delete', value?: any }
+router.post('/batch', (req, res) => {
+  const { ids, action, value } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'ids must be a non-empty array' });
+  }
+  if (!['condition', 'tag', 'location', 'delete'].includes(action)) {
+    return res.status(400).json({ error: 'invalid action' });
+  }
+
+  const placeholders = ids.map(() => '?').join(',');
+
+  db.transaction(() => {
+    if (action === 'delete') {
+      db.prepare(`
+        UPDATE equipment SET deleted = 1, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+        WHERE id IN (${placeholders}) AND deleted = 0
+      `).run(...ids);
+    } else if (action === 'condition') {
+      if (!VALID_CONDITIONS.has(value)) throw Object.assign(new Error('invalid condition'), { status: 400 });
+      db.prepare(`
+        UPDATE equipment SET condition = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+        WHERE id IN (${placeholders}) AND deleted = 0
+      `).run(value, ...ids);
+    } else if (action === 'location') {
+      // value = location id (number) or null to unassign
+      db.prepare(`
+        UPDATE equipment SET location_id = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+        WHERE id IN (${placeholders}) AND deleted = 0
+      `).run(value ?? null, ...ids);
+    } else if (action === 'tag') {
+      // value = tag id to add to all selected items
+      if (!value) throw Object.assign(new Error('tag id required'), { status: 400 });
+      for (const id of ids) {
+        db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)').run(id, value);
+      }
+    }
+  })();
+
+  res.json({ success: true, affected: ids.length });
+});
+
 // DELETE /api/equipment/:id  (soft delete)
 router.delete('/:id', (req, res) => {
   const existing = db
