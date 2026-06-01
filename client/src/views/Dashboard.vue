@@ -26,6 +26,10 @@
         <div class="stat-tile">
           <span class="stat-tile__value">{{ stats.total }}</span>
           <span class="stat-tile__label">{{ stats.total === 1 ? 'item' : 'items' }}</span>
+          <span
+            v-if="stats.totalUnits && stats.totalUnits !== stats.total"
+            class="stat-tile__sub"
+          >{{ stats.totalUnits }} units</span>
         </div>
         <div class="stat-tile">
           <span class="stat-tile__value">{{ stats.photos }}</span>
@@ -327,6 +331,11 @@ function pct(count, total) {
   color: var(--color-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.stat-tile__sub {
+  font-size: 0.72rem;
+  color: var(--color-muted);
 }
 
 /* Sections */

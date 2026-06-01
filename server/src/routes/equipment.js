@@ -94,6 +94,7 @@ router.post('/', (req, res) => {
     name, category, condition = 'Good', notes = null, icon = null, tag_ids = [],
     purchase_date = null, purchase_price = null, purchase_currency = null,
     retailer = null, serial_number = null, model_number = null, warranty_expires = null,
+    quantity = 1,
   } = req.body;
 
   const create = db.transaction(() => {
@@ -102,13 +103,14 @@ router.post('/', (req, res) => {
         INSERT INTO equipment
           (name, category, condition, notes, icon,
            purchase_date, purchase_price, purchase_currency,
-           retailer, serial_number, model_number, warranty_expires)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           retailer, serial_number, model_number, warranty_expires, quantity)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(
         name.trim(), category, condition, notes, icon,
         purchase_date, purchase_price, purchase_currency || 'GBP',
         retailer, serial_number, model_number, warranty_expires,
+        Math.max(1, parseInt(quantity, 10) || 1),
       );
     const id = result.lastInsertRowid;
     for (const tagId of tag_ids) {
@@ -136,10 +138,11 @@ router.put('/:id', (req, res) => {
   const { name, category, condition, notes = null, icon = null } = merged;
   const tag_ids = req.body.tag_ids; // undefined = don't touch tags
 
-  // Purchase fields — only update if explicitly sent (don't wipe on partial updates)
+  // Purchase fields + quantity — only update if explicitly sent (don't wipe on partial updates)
   const purchaseFields = [
     'purchase_date', 'purchase_price', 'purchase_currency',
     'retailer', 'serial_number', 'model_number', 'warranty_expires',
+    'quantity',
   ];
   const purchaseUpdates = purchaseFields.filter((f) => f in req.body);
 
@@ -153,7 +156,8 @@ router.put('/:id', (req, res) => {
 
     for (const f of purchaseUpdates) {
       sql += `, ${f} = ?`;
-      params.push(req.body[f] ?? null);
+      const val = req.body[f] ?? null;
+      params.push(f === 'quantity' ? Math.max(1, parseInt(val, 10) || 1) : val);
     }
     sql += ' WHERE id = ?';
     params.push(req.params.id);
