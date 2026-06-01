@@ -36,6 +36,34 @@ export function runMigrations(db) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_maintenance_equipment ON maintenance_events(equipment_id);
+
+    -- Service routines: named checklists that can be run against attached equipment
+    CREATE TABLE IF NOT EXISTS service_routines (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      name           TEXT    NOT NULL,
+      description    TEXT,
+      interval_days  INTEGER,
+      created_at     TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+      updated_at     TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS routine_steps (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      routine_id   INTEGER NOT NULL REFERENCES service_routines(id) ON DELETE CASCADE,
+      sort_order   INTEGER NOT NULL DEFAULT 0,
+      instruction  TEXT    NOT NULL,
+      is_check     INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS routine_equipment (
+      routine_id    INTEGER NOT NULL REFERENCES service_routines(id) ON DELETE CASCADE,
+      equipment_id  INTEGER NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+      PRIMARY KEY (routine_id, equipment_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_routine_steps_routine   ON routine_steps(routine_id);
+    CREATE INDEX IF NOT EXISTS idx_routine_equip_routine   ON routine_equipment(routine_id);
+    CREATE INDEX IF NOT EXISTS idx_routine_equip_equipment ON routine_equipment(equipment_id);
   `);
 
   console.log('[db] migrations applied');

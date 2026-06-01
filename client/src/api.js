@@ -32,6 +32,16 @@ export const getCategories = () => request('/categories');
 export const getConditions = () => request('/conditions');
 export const getStats      = () => request('/stats');
 
+// Service routines
+export const getRoutines         = ()           => request('/routines');
+export const getRoutine          = (id)         => request(`/routines/${id}`);
+export const createRoutine       = (body)       => request('/routines', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+export const updateRoutine       = (id, body)   => request(`/routines/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+export const deleteRoutine       = (id)         => request(`/routines/${id}`, { method: 'DELETE' });
+export const attachEquipment     = (id, equipId) => request(`/routines/${id}/equipment`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ equipment_id: equipId }) });
+export const detachEquipment     = (id, equipId) => request(`/routines/${id}/equipment/${equipId}`, { method: 'DELETE' });
+export const runRoutine          = (id, body)   => request(`/routines/${id}/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
 // Maintenance events
 export const getMaintenanceEvents  = (equipmentId)        => request(`/equipment/${equipmentId}/maintenance`);
 export const addMaintenanceEvent   = (equipmentId, body)  => request(`/equipment/${equipmentId}/maintenance`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });

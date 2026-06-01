@@ -8,6 +8,7 @@ import { UPLOADS_DIR } from './config.js';
 import equipmentRouter   from './routes/equipment.js';
 import photosRouter      from './routes/photos.js';
 import maintenanceRouter from './routes/maintenance.js';
+import routinesRouter    from './routes/routines.js';
 import metaRouter        from './routes/meta.js';
 import exportRouter      from './routes/export.js';
 import importRouter      from './routes/import.js';
@@ -33,6 +34,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/equipment', equipmentRouter);
 app.use('/api/equipment/:equipmentId/photos', photosRouter);
 app.use('/api/equipment/:equipmentId/maintenance', maintenanceRouter);
+app.use('/api/routines', routinesRouter);
 app.use('/api/export', exportRouter);
 app.use('/api/import', importRouter);
 app.use('/api', metaRouter);

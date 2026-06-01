@@ -23,6 +23,12 @@
         >
           Dashboard
         </RouterLink>
+        <RouterLink
+          to="/routines"
+          class="nav-link"
+        >
+          Routines
+        </RouterLink>
       </nav>
 
       <div class="navbar__actions">
