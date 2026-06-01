@@ -1,13 +1,15 @@
 import express from 'express';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { join } from 'path';
 import { mkdirSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import db from './db/index.js'; // initialises SQLite on startup
+import { UPLOADS_DIR } from './config.js';
 import equipmentRouter from './routes/equipment.js';
+import photosRouter from './routes/photos.js';
 import metaRouter from './routes/meta.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const UPLOADS_DIR = join(__dirname, '../../uploads');
 
 // Ensure uploads directory exists (self-healing on fresh clone)
 mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -26,6 +28,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/equipment', equipmentRouter);
+app.use('/api/equipment/:equipmentId/photos', photosRouter);
 app.use('/api', metaRouter);
 
 // SPA fallback — serves built Vue client in production
