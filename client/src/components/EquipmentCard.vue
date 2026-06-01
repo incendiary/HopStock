@@ -30,6 +30,23 @@
         {{ categoryLabel }}
       </p>
 
+      <!-- Tags -->
+      <div
+        v-if="item.tags && item.tags.length"
+        class="card__tags"
+      >
+        <span
+          v-for="tag in item.tags.slice(0, 3)"
+          :key="tag.id"
+          class="card__tag"
+          :style="{ '--tag-color': tag.color }"
+        >{{ tag.name }}</span>
+        <span
+          v-if="item.tags.length > 3"
+          class="card__tag card__tag--more"
+        >+{{ item.tags.length - 3 }}</span>
+      </div>
+
       <!-- Inline condition select — click stops card navigation -->
       <div
         class="card__condition-wrap"
@@ -222,6 +239,27 @@ async function onConditionChange(e) {
 
 .card__condition--retired {
   background: color-mix(in srgb, var(--color-muted) 20%, transparent);
+  color: var(--color-muted);
+}
+
+.card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.card__tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tag-color, #6366f1) 18%, transparent);
+  color: var(--tag-color, #6366f1);
+}
+
+.card__tag--more {
+  background: color-mix(in srgb, var(--color-muted) 15%, transparent);
   color: var(--color-muted);
 }
 

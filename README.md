@@ -92,7 +92,7 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 |---|-------|---------|-------|
 | 18 | Data | Purchase info — date, price, retailer, serial/model, warranty | All optional; receipt / PDF scan to auto-populate |
 | 19 | Data | Quantity — item count for consumables and duplicates | |
-| 20 | Data | Custom tags — free-form labels, filterable on list view | |
+| 20 | ✅ Done | Custom tags — free-form labels, filterable on list view | |
 | 21 | ✅ Done | Maintenance log — per-item event log (cleaned, serviced, repaired…) | |
 | 22 | ✅ Done | Service routines — named templates with ordered steps; attach equipment; log completion against all items at once | Needs #21 |
 | 23 | Location | Storage locations — define locations, assign items, filter by location | |

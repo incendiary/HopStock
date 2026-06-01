@@ -91,6 +91,18 @@
       />
     </div>
 
+    <!-- Tags -->
+    <div class="field">
+      <p class="field__label">
+        Tags
+      </p>
+      <TagInput
+        v-model="form.tags"
+        :all-tags="allTags"
+        @tag-created="refreshTags"
+      />
+    </div>
+
     <!-- Icon -->
     <div class="field">
       <p class="field__label">
@@ -222,8 +234,10 @@ import {
   getConditions,
   uploadPhotos,
   deletePhoto,
+  getTags,
 } from '../api.js';
 import IconPicker from './IconPicker.vue';
+import TagInput   from './TagInput.vue';
 
 const props = defineProps({
   itemId: {
@@ -239,6 +253,7 @@ const isEditing = computed(() => props.itemId !== null);
 // Meta
 const categories = ref([]);
 const conditions  = ref([]);
+const allTags     = ref([]);
 
 // Form state
 const form = ref({
@@ -247,6 +262,7 @@ const form = ref({
   condition: 'Good',
   notes:     '',
   icon:      null,
+  tags:      [], // array of tag objects { id, name, color }
 });
 
 // Photo state
@@ -260,9 +276,10 @@ const formError = ref(null);
 
 // ─── Mount ────────────────────────────────────────────────
 onMounted(async () => {
-  const [cats, conds] = await Promise.all([getCategories(), getConditions()]);
+  const [cats, conds, tags] = await Promise.all([getCategories(), getConditions(), getTags()]);
   categories.value = cats;
   conditions.value = conds;
+  allTags.value    = tags;
 
   if (isEditing.value) {
     const item = await getEquipmentItem(props.itemId);
@@ -272,10 +289,15 @@ onMounted(async () => {
       condition: item.condition ?? 'Good',
       notes:     item.notes     ?? '',
       icon:      item.icon      ?? null,
+      tags:      item.tags      ?? [],
     };
     existingPhotos.value = item.photos ?? [];
   }
 });
+
+async function refreshTags() {
+  allTags.value = await getTags();
+}
 
 onUnmounted(() => {
   // revoke object URLs to free memory
@@ -318,6 +340,7 @@ async function handleSubmit() {
       condition: form.value.condition || 'Good',
       notes:     form.value.notes.trim() || null,
       icon:      form.value.icon || null,
+      tag_ids:   form.value.tags.map((t) => t.id),
     };
 
     let item;
