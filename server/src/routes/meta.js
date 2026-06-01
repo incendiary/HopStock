@@ -52,6 +52,15 @@ router.get('/stats', (_req, res) => {
     `)
     .all();
 
+  // Value summary for inventory report
+  const valueSummary = db.prepare(`
+    SELECT
+      COUNT(CASE WHEN purchase_price IS NOT NULL THEN 1 END)  as priced_count,
+      COUNT(CASE WHEN purchase_price IS NULL     THEN 1 END)  as unpriced_count,
+      COALESCE(SUM(purchase_price),  0)                       as total_value
+    FROM equipment WHERE deleted = 0
+  `).get();
+
   const { onLoan } = db.prepare(`
     SELECT COUNT(DISTINCT l.equipment_id) as onLoan
     FROM loans l
@@ -68,7 +77,7 @@ router.get('/stats', (_req, res) => {
     ORDER BY count DESC
   `).all();
 
-  res.json({ total, totalUnits, photos, onLoan, byCondition, byCategory, byLocation });
+  res.json({ total, totalUnits, photos, onLoan, byCondition, byCategory, byLocation, valueSummary });
 });
 
 export default router;

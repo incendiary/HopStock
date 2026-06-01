@@ -139,6 +139,40 @@
         </section>
       </template>
 
+      <!-- ── Reports ───────────────────────────────── -->
+      <section
+        v-if="stats.valueSummary && stats.valueSummary.priced_count > 0"
+        class="section"
+      >
+        <h3 class="section__title">
+          Inventory value
+        </h3>
+        <div class="value-tiles">
+          <div class="value-tile">
+            <span class="value-tile__val">{{ formatCurrency(stats.valueSummary.total_value) }}</span>
+            <span class="value-tile__label">total recorded value</span>
+          </div>
+          <div class="value-tile">
+            <span class="value-tile__val">{{ stats.valueSummary.priced_count }}</span>
+            <span class="value-tile__label">items with price</span>
+          </div>
+          <div
+            v-if="stats.valueSummary.unpriced_count > 0"
+            class="value-tile value-tile--muted"
+          >
+            <span class="value-tile__val">{{ stats.valueSummary.unpriced_count }}</span>
+            <span class="value-tile__label">items without price</span>
+          </div>
+        </div>
+        <div class="export-buttons">
+          <a
+            href="/api/export/insurance-csv"
+            class="btn btn--secondary"
+            download
+          >↓ Insurance report (CSV)</a>
+        </div>
+      </section>
+
       <!-- ── Export ─────────────────────────────────── -->
       <section class="section">
         <h3 class="section__title">
@@ -313,6 +347,11 @@ function slug(str) {
   return str.toLowerCase().replace(/\s+/g, '-');
 }
 
+function formatCurrency(val) {
+  if (val == null) return '—';
+  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(val);
+}
+
 function pct(count, total) {
   if (!total) return '0%';
   return `${Math.round((count / total) * 100)}%`;
@@ -375,6 +414,42 @@ function pct(count, total) {
 
 .stat-tile--warning .stat-tile__value {
   color: var(--color-danger);
+}
+
+.value-tiles {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.value-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  min-width: 120px;
+}
+
+.value-tile__val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  line-height: 1;
+}
+
+.value-tile__label {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.value-tile--muted .value-tile__val {
+  color: var(--color-muted);
 }
 
 /* Sections */
