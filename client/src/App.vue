@@ -24,14 +24,32 @@
     </header>
 
     <main class="main-content">
-      <EquipmentList @select="onSelectItem" />
+      <EquipmentList
+        ref="listRef"
+        @select="openEdit"
+        @add="openAdd"
+      />
     </main>
+
+    <AppModal
+      v-if="modal"
+      :title="modal.id ? 'Edit equipment' : 'Add equipment'"
+      @close="closeModal"
+    >
+      <EquipmentForm
+        :item-id="modal.id ?? null"
+        @saved="onSaved"
+        @cancel="closeModal"
+      />
+    </AppModal>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import EquipmentList from './views/EquipmentList.vue';
+import AppModal from './components/AppModal.vue';
+import EquipmentForm from './components/EquipmentForm.vue';
 
 const THEMES = [
   { id: '',               label: 'Oxidised Copper (default)' },
@@ -44,8 +62,17 @@ const THEMES = [
 const themes = THEMES;
 const currentTheme = ref(localStorage.getItem('hopstock-theme') ?? '');
 
-// placeholder — detail view wired in #9
-function onSelectItem(_id) {}
+const listRef = ref(null);
+const modal   = ref(null); // null | { id: number|null }
+
+function openAdd()      { modal.value = { id: null };  }
+function openEdit(id)   { modal.value = { id };        }
+function closeModal()   { modal.value = null;          }
+
+function onSaved() {
+  closeModal();
+  listRef.value?.reload();
+}
 
 function setTheme(id) {
   currentTheme.value = id;
