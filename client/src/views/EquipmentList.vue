@@ -96,7 +96,9 @@
         :key="item.id"
         :item="item"
         :category-map="categoryMap"
+        :conditions="conditions"
         @select="onSelect"
+        @updated="onItemUpdated"
       />
     </div>
   </div>
@@ -170,6 +172,11 @@ onMounted(async () => {
 
 function onSelect(id) {
   router.push(`/equipment/${id}`);
+}
+
+function onItemUpdated(updated) {
+  const idx = items.value.findIndex((i) => i.id === updated.id);
+  if (idx !== -1) items.value[idx] = updated;
 }
 
 function onSaved() {

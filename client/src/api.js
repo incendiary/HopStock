@@ -14,7 +14,7 @@ export const getEquipment  = (params = {}) => {
   const qs = new URLSearchParams(
     Object.fromEntries(Object.entries(params).filter(([, v]) => v))
   ).toString();
-  return request(`/equipment${qs ? `?${qs}` : ''}`);
+  return request(`/equipment${qs ? `?${qs}` : ''}`).then((r) => r.items);
 };
 export const getEquipmentItem = (id)       => request(`/equipment/${id}`);
 export const createEquipment  = (body)     => request('/equipment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
