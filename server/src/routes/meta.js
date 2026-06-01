@@ -52,7 +52,16 @@ router.get('/stats', (_req, res) => {
     `)
     .all();
 
-  res.json({ total, totalUnits, photos, byCondition, byCategory });
+  const byLocation = db.prepare(`
+    SELECT COALESCE(l.name, 'Unassigned') as name, l.id, COUNT(e.id) as count
+    FROM equipment e
+    LEFT JOIN locations l ON l.id = e.location_id
+    WHERE e.deleted = 0
+    GROUP BY e.location_id
+    ORDER BY count DESC
+  `).all();
+
+  res.json({ total, totalUnits, photos, byCondition, byCategory, byLocation });
 });
 
 export default router;

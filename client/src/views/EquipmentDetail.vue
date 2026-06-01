@@ -163,6 +163,12 @@
               :style="{ '--tag-color': tag.color }"
             >{{ tag.name }}</span>
 
+            <!-- Location badge -->
+            <span
+              v-if="item.location"
+              class="badge badge--location"
+            >📍 {{ item.location.name }}</span>
+
             <!-- Maintenance summary chips -->
             <span
               v-if="lastCleaned"
@@ -679,6 +685,11 @@ select.badge:disabled {
   background: color-mix(in srgb, var(--tag-color, #6366f1) 18%, transparent);
   color: var(--tag-color, #6366f1);
   border: 1px solid color-mix(in srgb, var(--tag-color, #6366f1) 35%, transparent);
+}
+
+.badge--location {
+  background: color-mix(in srgb, var(--color-muted) 12%, transparent);
+  color: var(--color-muted);
 }
 
 .badge--maint {

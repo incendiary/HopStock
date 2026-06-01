@@ -60,6 +60,12 @@ export const deleteMaintenanceEvent = (equipmentId, eventId) => request(`/equipm
 // Meta — event types
 export const getMaintenanceEventTypes = () => request('/maintenance-event-types');
 
+// Locations
+export const getLocations    = ()           => request('/locations');
+export const createLocation  = (body)       => request('/locations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+export const updateLocation  = (id, body)   => request(`/locations/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+export const deleteLocation  = (id)         => request(`/locations/${id}`, { method: 'DELETE' });
+
 // Import
 export const importFile = (formData) =>
   request('/import', { method: 'POST', body: formData });

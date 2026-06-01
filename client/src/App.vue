@@ -29,6 +29,12 @@
         >
           Routines
         </RouterLink>
+        <RouterLink
+          to="/locations"
+          class="nav-link"
+        >
+          Locations
+        </RouterLink>
       </nav>
 
       <div class="navbar__actions">

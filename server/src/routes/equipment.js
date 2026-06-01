@@ -37,15 +37,18 @@ function withPhotos(item) {
       ORDER BY t.name COLLATE NOCASE
     `)
     .all(item.id);
-  return { ...item, photos, tags };
+  const location = item.location_id
+    ? db.prepare('SELECT id, name FROM locations WHERE id = ?').get(item.location_id)
+    : null;
+  return { ...item, photos, tags, location };
 }
 
 // --- routes ---
 
 // GET /api/equipment
-// Query params: ?category=&condition=&tag=
+// Query params: ?category=&condition=&tag=&location=
 router.get('/', (req, res) => {
-  const { category, condition, tag } = req.query;
+  const { category, condition, tag, location } = req.query;
 
   let sql    = 'SELECT DISTINCT e.* FROM equipment e';
   const params = [];
@@ -67,6 +70,12 @@ router.get('/', (req, res) => {
   if (tag) {
     sql += ' AND t.name = ?';
     params.push(tag);
+  }
+  if (location === 'none') {
+    sql += ' AND e.location_id IS NULL';
+  } else if (location) {
+    sql += ' AND e.location_id = ?';
+    params.push(location);
   }
 
   sql += ' ORDER BY e.name COLLATE NOCASE';
@@ -94,7 +103,7 @@ router.post('/', (req, res) => {
     name, category, condition = 'Good', notes = null, icon = null, tag_ids = [],
     purchase_date = null, purchase_price = null, purchase_currency = null,
     retailer = null, serial_number = null, model_number = null, warranty_expires = null,
-    quantity = 1,
+    quantity = 1, location_id = null,
   } = req.body;
 
   const create = db.transaction(() => {
@@ -103,14 +112,15 @@ router.post('/', (req, res) => {
         INSERT INTO equipment
           (name, category, condition, notes, icon,
            purchase_date, purchase_price, purchase_currency,
-           retailer, serial_number, model_number, warranty_expires, quantity)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           retailer, serial_number, model_number, warranty_expires, quantity, location_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(
         name.trim(), category, condition, notes, icon,
         purchase_date, purchase_price, purchase_currency || 'GBP',
         retailer, serial_number, model_number, warranty_expires,
         Math.max(1, parseInt(quantity, 10) || 1),
+        location_id ?? null,
       );
     const id = result.lastInsertRowid;
     for (const tagId of tag_ids) {
@@ -138,11 +148,11 @@ router.put('/:id', (req, res) => {
   const { name, category, condition, notes = null, icon = null } = merged;
   const tag_ids = req.body.tag_ids; // undefined = don't touch tags
 
-  // Purchase fields + quantity — only update if explicitly sent (don't wipe on partial updates)
+  // Purchase fields + quantity + location — only update if explicitly sent (don't wipe on partial updates)
   const purchaseFields = [
     'purchase_date', 'purchase_price', 'purchase_currency',
     'retailer', 'serial_number', 'model_number', 'warranty_expires',
-    'quantity',
+    'quantity', 'location_id',
   ];
   const purchaseUpdates = purchaseFields.filter((f) => f in req.body);
 

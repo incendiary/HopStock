@@ -53,6 +53,12 @@
         class="card__qty"
       >×{{ item.quantity }}</span>
 
+      <!-- Location badge -->
+      <span
+        v-if="item.location"
+        class="card__location"
+      >📍 {{ item.location.name }}</span>
+
       <!-- Inline condition select — click stops card navigation -->
       <div
         class="card__condition-wrap"
@@ -277,6 +283,11 @@ async function onConditionChange(e) {
   background: color-mix(in srgb, var(--color-primary) 18%, transparent);
   color: var(--color-primary);
   align-self: flex-start;
+}
+
+.card__location {
+  font-size: 0.72rem;
+  color: var(--color-muted);
 }
 
 .card__saving {
