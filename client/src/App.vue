@@ -24,22 +24,14 @@
     </header>
 
     <main class="main-content">
-      <div class="placeholder">
-        <h1>Your homebrew inventory</h1>
-        <p class="placeholder__sub">
-          Equipment views are coming. Backend is live —
-          <a
-            href="/api/health"
-            target="_blank"
-          >/api/health</a> ✓
-        </p>
-      </div>
+      <EquipmentList @select="onSelectItem" />
     </main>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import EquipmentList from './views/EquipmentList.vue';
 
 const THEMES = [
   { id: '',               label: 'Oxidised Copper (default)' },
@@ -51,6 +43,9 @@ const THEMES = [
 
 const themes = THEMES;
 const currentTheme = ref(localStorage.getItem('hopstock-theme') ?? '');
+
+// placeholder — detail view wired in #9
+function onSelectItem(_id) {}
 
 function setTheme(id) {
   currentTheme.value = id;
@@ -114,28 +109,8 @@ function setTheme(id) {
   outline-offset: 2px;
 }
 
-/* --- Placeholder content --- */
 .main-content {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.placeholder {
-  text-align: center;
-}
-
-.placeholder h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  margin-bottom: 0.75rem;
-}
-
-.placeholder__sub {
-  color: var(--color-muted);
-  font-size: 0.95rem;
+  overflow-y: auto;
 }
 </style>
