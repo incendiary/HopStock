@@ -104,6 +104,33 @@ export function runMigrations(db) {
       created_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
     );
 
+    -- FTS5 external-content table for full-text search on equipment
+    CREATE VIRTUAL TABLE IF NOT EXISTS equipment_fts USING fts5(
+      name, notes, serial_number,
+      content='equipment', content_rowid='id'
+    );
+
+    -- Keep FTS in sync with equipment changes
+    CREATE TRIGGER IF NOT EXISTS equipment_fts_ai
+      AFTER INSERT ON equipment BEGIN
+        INSERT INTO equipment_fts(rowid, name, notes, serial_number)
+        VALUES (new.id, new.name, new.notes, new.serial_number);
+      END;
+
+    CREATE TRIGGER IF NOT EXISTS equipment_fts_ad
+      AFTER DELETE ON equipment BEGIN
+        INSERT INTO equipment_fts(equipment_fts, rowid, name, notes, serial_number)
+        VALUES('delete', old.id, old.name, old.notes, old.serial_number);
+      END;
+
+    CREATE TRIGGER IF NOT EXISTS equipment_fts_au
+      AFTER UPDATE ON equipment BEGIN
+        INSERT INTO equipment_fts(equipment_fts, rowid, name, notes, serial_number)
+        VALUES('delete', old.id, old.name, old.notes, old.serial_number);
+        INSERT INTO equipment_fts(rowid, name, notes, serial_number)
+        VALUES (new.id, new.name, new.notes, new.serial_number);
+      END;
+
   `);
 
   // Idempotent column additions — ALTER TABLE fails if column already exists in SQLite,
@@ -126,6 +153,13 @@ export function runMigrations(db) {
     if (!equipCols.has(col)) {
       db.exec(`ALTER TABLE equipment ADD COLUMN ${col} ${def}`);
     }
+  }
+
+  // Rebuild FTS index to cover existing rows (safe to call repeatedly — it's a no-op if in sync)
+  try {
+    db.exec("INSERT INTO equipment_fts(equipment_fts) VALUES('rebuild')");
+  } catch {
+    // Ignore if already populated (external content rebuild is idempotent)
   }
 
   console.log('[db] migrations applied');

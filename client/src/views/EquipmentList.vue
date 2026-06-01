@@ -7,6 +7,26 @@
       </h2>
 
       <div class="toolbar__right">
+        <div class="search-box">
+          <span class="search-box__icon">🔍</span>
+          <input
+            v-model="searchQuery"
+            class="search-box__input"
+            type="search"
+            placeholder="Search name, notes, serial…"
+            aria-label="Search equipment"
+          >
+          <button
+            v-if="searchQuery"
+            class="search-box__clear"
+            type="button"
+            aria-label="Clear search"
+            @click="searchQuery = ''"
+          >
+            ×
+          </button>
+        </div>
+
         <select
           v-model="filterCategory"
           class="filter-select"
@@ -129,7 +149,7 @@
     >
       <p>No equipment found.</p>
       <p
-        v-if="filterCategory || filterCondition || filterTag || filterLocation || filterOnLoan"
+        v-if="filterCategory || filterCondition || filterTag || filterLocation || filterOnLoan || searchQuery"
         class="state-message__hint"
       >
         Try clearing the filters.
@@ -291,13 +311,14 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { getEquipment, getCategories, getConditions, getTags, getLocations, batchEquipment } from '../api.js';
 import EquipmentCard  from '../components/EquipmentCard.vue';
 import AppModal       from '../components/AppModal.vue';
 import EquipmentForm  from '../components/EquipmentForm.vue';
 
 const router = useRouter();
+const route  = useRoute();
 
 const showAddModal = ref(false);
 
@@ -363,6 +384,7 @@ const filterCondition = ref('');
 const filterTag       = ref('');
 const filterLocation  = ref('');
 const filterOnLoan    = ref(false);
+const searchQuery     = ref('');
 const tags            = ref([]);
 const locations       = ref([]);
 
@@ -388,6 +410,7 @@ async function loadItems() {
       tag:       filterTag.value       || undefined,
       location:  filterLocation.value  || undefined,
       onLoan:    filterOnLoan.value    ? '1' : undefined,
+      q:         searchQuery.value.trim() || undefined,
     });
   } catch (err) {
     error.value = err.message ?? 'Failed to load equipment.';
@@ -396,9 +419,29 @@ async function loadItems() {
   }
 }
 
-watch([filterCategory, filterCondition, filterTag, filterLocation, filterOnLoan], loadItems);
+// Sync filter changes to URL query params (for bookmarkable filtered views)
+watch([filterCategory, filterCondition, filterTag, filterLocation, filterOnLoan, searchQuery], () => {
+  const q = {};
+  if (filterCategory.value)  q.category  = filterCategory.value;
+  if (filterCondition.value) q.condition = filterCondition.value;
+  if (filterTag.value)       q.tag       = filterTag.value;
+  if (filterLocation.value)  q.location  = filterLocation.value;
+  if (filterOnLoan.value)    q.onLoan    = '1';
+  if (searchQuery.value)     q.q         = searchQuery.value;
+  router.replace({ query: q });
+  loadItems();
+});
 
 onMounted(async () => {
+  // Restore filter state from URL on initial load
+  const q = route.query;
+  if (q.category)  filterCategory.value  = q.category;
+  if (q.condition) filterCondition.value = q.condition;
+  if (q.tag)       filterTag.value       = q.tag;
+  if (q.location)  filterLocation.value  = q.location;
+  if (q.onLoan)    filterOnLoan.value    = true;
+  if (q.q)         searchQuery.value     = q.q;
+
   await loadMeta();
   await loadItems();
 });
@@ -464,6 +507,47 @@ function onSaved() {
 
 .btn-add:hover {
   opacity: 0.85;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-box__icon {
+  position: absolute;
+  left: 0.5rem;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.search-box__input {
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.35rem 2rem 0.35rem 1.9rem;
+  font-size: 0.875rem;
+  width: 220px;
+
+  &:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+
+  /* Remove browser default clear button */
+  &::-webkit-search-cancel-button { -webkit-appearance: none; }
+}
+
+.search-box__clear {
+  position: absolute;
+  right: 0.4rem;
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  &:hover { color: var(--color-text); }
 }
 
 .filter-select {
