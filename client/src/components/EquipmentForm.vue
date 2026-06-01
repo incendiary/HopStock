@@ -91,6 +91,17 @@
       />
     </div>
 
+    <!-- Icon -->
+    <div class="field">
+      <p class="field__label">
+        Icon
+      </p>
+      <IconPicker
+        v-model="form.icon"
+        :disabled="saving"
+      />
+    </div>
+
     <!-- Existing photos (edit mode) -->
     <div
       v-if="existingPhotos.length"
@@ -212,6 +223,7 @@ import {
   uploadPhotos,
   deletePhoto,
 } from '../api.js';
+import IconPicker from './IconPicker.vue';
 
 const props = defineProps({
   itemId: {
@@ -234,6 +246,7 @@ const form = ref({
   category:  '',
   condition: 'Good',
   notes:     '',
+  icon:      null,
 });
 
 // Photo state
@@ -258,6 +271,7 @@ onMounted(async () => {
       category:  item.category  ?? '',
       condition: item.condition ?? 'Good',
       notes:     item.notes     ?? '',
+      icon:      item.icon      ?? null,
     };
     existingPhotos.value = item.photos ?? [];
   }
@@ -303,6 +317,7 @@ async function handleSubmit() {
       category:  form.value.category  || null,
       condition: form.value.condition || 'Good',
       notes:     form.value.notes.trim() || null,
+      icon:      form.value.icon || null,
     };
 
     let item;

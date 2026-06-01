@@ -18,7 +18,7 @@
         v-else
         class="card__thumb-placeholder"
       >
-        📦
+        {{ item.icon || '📦' }}
       </div>
     </div>
 

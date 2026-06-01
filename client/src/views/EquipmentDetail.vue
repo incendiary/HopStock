@@ -91,7 +91,7 @@
             v-else
             class="gallery__placeholder"
           >
-            📦
+            {{ item.icon || '📦' }}
           </div>
 
           <div
@@ -118,7 +118,10 @@
         <!-- Metadata -->
         <section class="meta">
           <h1 class="meta__name">
-            {{ item.name }}
+            <span
+              v-if="item.icon"
+              class="meta__icon"
+            >{{ item.icon }}</span>{{ item.name }}
           </h1>
 
           <div class="meta__badges">
@@ -433,6 +436,10 @@ async function onSaved() {
   color: var(--color-text);
   margin-bottom: 0.75rem;
   line-height: 1.2;
+}
+
+.meta__icon {
+  margin-right: 0.4rem;
 }
 
 .meta__badges {
