@@ -103,20 +103,24 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 | 28 | ✅ Done | QR code labels — per-item QR, printable A4 label sheet | |
 | 29 | ✅ Done | Inventory value report — purchase totals, insurance-ready CSV export | Needs #18 |
 | 30 | ✅ Done | Auto-backup — scheduled tar.gz (DB + photos) to local folder | |
-| 31 | Platform | PWA / mobile-first — service worker, offline read, native camera capture | |
-| 32 | Platform | Multi-user / sharing — optional password gate, read-only share links | |
+| 31 | ✅ Done | Code quality checks — ESLint pre-commit hook + CI lint/build pipeline | |
+| 32 | Platform | PWA / mobile-first — service worker, offline read, native camera capture | |
+| 33 | Platform | Multi-user / sharing — optional password gate, read-only share links | |
 
 ---
 
 ## Security
 
-This project uses a layered pre-commit secret-scanning pipeline:
+This project uses a layered pre-commit pipeline covering both secret detection and code quality:
 
-- **gitleaks** — fast pattern-based detection
+- **gitleaks** — fast pattern-based secret detection
 - **TruffleHog** — verified credential detection (live API checks)
 - **detect-secrets** — entropy-based scanning with a committed baseline
+- **ESLint** — Vue 3 + JS code quality (client source files)
 
-Scans also run in CI on every push and pull request via `.github/workflows/secret-scan.yml`.
+CI runs on every push and pull request:
+- `.github/workflows/secret-scan.yml` — gitleaks + TruffleHog scans
+- `.github/workflows/ci.yml` — ESLint lint check, then Vite production build
 
 To install the pre-commit hooks locally:
 
