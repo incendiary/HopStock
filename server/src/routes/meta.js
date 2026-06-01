@@ -21,8 +21,8 @@ router.get('/maintenance-event-types', (_req, res) => {
 
 // GET /api/stats
 router.get('/stats', (_req, res) => {
-  const { total } = db
-    .prepare('SELECT COUNT(*) as total FROM equipment WHERE deleted = 0')
+  const { total, totalUnits } = db
+    .prepare('SELECT COUNT(*) as total, COALESCE(SUM(quantity), COUNT(*)) as totalUnits FROM equipment WHERE deleted = 0')
     .get();
 
   const { photos } = db
@@ -52,7 +52,7 @@ router.get('/stats', (_req, res) => {
     `)
     .all();
 
-  res.json({ total, photos, byCondition, byCategory });
+  res.json({ total, totalUnits, photos, byCondition, byCategory });
 });
 
 export default router;

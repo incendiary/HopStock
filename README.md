@@ -91,7 +91,7 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 | # | Group | Feature | Notes |
 |---|-------|---------|-------|
 | 18 | ✅ Done | Purchase info — date, price, retailer, serial/model, warranty | All optional; receipt / PDF scan to auto-populate |
-| 19 | Data | Quantity — item count for consumables and duplicates | |
+| 19 | ✅ Done | Quantity — item count for consumables and duplicates | |
 | 20 | ✅ Done | Custom tags — free-form labels, filterable on list view | |
 | 21 | ✅ Done | Maintenance log — per-item event log (cleaned, serviced, repaired…) | |
 | 22 | ✅ Done | Service routines — named templates with ordered steps; attach equipment; log completion against all items at once | Needs #21 |

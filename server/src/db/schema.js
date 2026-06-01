@@ -95,6 +95,7 @@ export function runMigrations(db) {
     ['serial_number',     'TEXT'],
     ['model_number',      'TEXT'],
     ['warranty_expires',  'TEXT'],
+    ['quantity',          'INTEGER NOT NULL DEFAULT 1'],
   ];
 
   for (const [col, def] of purchaseCols) {

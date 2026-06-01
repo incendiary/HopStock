@@ -227,6 +227,40 @@
       </div>
     </details>
 
+    <!-- Quantity -->
+    <div class="field">
+      <label
+        class="field__label"
+        for="ef-quantity"
+      >Quantity</label>
+      <div class="quantity-stepper">
+        <button
+          type="button"
+          class="quantity-stepper__btn"
+          :disabled="saving || form.quantity <= 1"
+          @click="form.quantity = Math.max(1, form.quantity - 1)"
+        >
+          −
+        </button>
+        <input
+          id="ef-quantity"
+          v-model.number="form.quantity"
+          class="quantity-stepper__input"
+          type="number"
+          min="1"
+          :disabled="saving"
+        >
+        <button
+          type="button"
+          class="quantity-stepper__btn"
+          :disabled="saving"
+          @click="form.quantity += 1"
+        >
+          +
+        </button>
+      </div>
+    </div>
+
     <!-- Tags -->
     <div class="field">
       <p class="field__label">
@@ -409,6 +443,7 @@ const form = ref({
   serial_number:     null,
   model_number:      null,
   warranty_expires:  null,
+  quantity:          1,
 });
 
 // Receipt scanning
@@ -452,6 +487,7 @@ onMounted(async () => {
       serial_number:     item.serial_number     ?? null,
       model_number:      item.model_number      ?? null,
       warranty_expires:  item.warranty_expires  ?? null,
+      quantity:          item.quantity          ?? 1,
     };
     existingPhotos.value = item.photos ?? [];
   }
@@ -540,6 +576,7 @@ async function handleSubmit() {
       serial_number:     form.value.serial_number     || null,
       model_number:      form.value.model_number      || null,
       warranty_expires:  form.value.warranty_expires  || null,
+      quantity:          Math.max(1, form.value.quantity || 1),
     };
 
     let item;
@@ -653,6 +690,46 @@ async function handleSubmit() {
   .acquisition-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.quantity-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: fit-content;
+}
+
+.quantity-stepper__btn {
+  width: 2rem;
+  height: 2rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+
+  &:first-child { border-radius: 6px 0 0 6px; }
+  &:last-child  { border-radius: 0 6px 6px 0; }
+  &:hover:not(:disabled) { background: var(--color-surface-3); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.quantity-stepper__input {
+  width: 3.5rem;
+  height: 2rem;
+  text-align: center;
+  border: 1px solid var(--color-border);
+  border-left: none;
+  border-right: none;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.95rem;
+
+  /* hide spin buttons */
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button { -webkit-appearance: none; }
+  -moz-appearance: textfield;
 }
 
 .price-row {

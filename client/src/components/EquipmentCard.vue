@@ -47,6 +47,12 @@
         >+{{ item.tags.length - 3 }}</span>
       </div>
 
+      <!-- Quantity badge (shown when > 1) -->
+      <span
+        v-if="item.quantity && item.quantity > 1"
+        class="card__qty"
+      >×{{ item.quantity }}</span>
+
       <!-- Inline condition select — click stops card navigation -->
       <div
         class="card__condition-wrap"
@@ -261,6 +267,16 @@ async function onConditionChange(e) {
 .card__tag--more {
   background: color-mix(in srgb, var(--color-muted) 15%, transparent);
   color: var(--color-muted);
+}
+
+.card__qty {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  color: var(--color-primary);
+  align-self: flex-start;
 }
 
 .card__saving {
