@@ -80,7 +80,28 @@ export function runMigrations(db) {
 
     CREATE INDEX IF NOT EXISTS idx_equipment_tags_equip ON equipment_tags(equipment_id);
     CREATE INDEX IF NOT EXISTS idx_equipment_tags_tag   ON equipment_tags(tag_id);
+
   `);
+
+  // Idempotent column additions — ALTER TABLE fails if column already exists in SQLite,
+  // so we check PRAGMA table_info first.
+  const equipCols = new Set(db.pragma('table_info(equipment)').map((c) => c.name));
+
+  const purchaseCols = [
+    ['purchase_date',     'TEXT'],
+    ['purchase_price',    'REAL'],
+    ['purchase_currency', "TEXT DEFAULT 'GBP'"],
+    ['retailer',          'TEXT'],
+    ['serial_number',     'TEXT'],
+    ['model_number',      'TEXT'],
+    ['warranty_expires',  'TEXT'],
+  ];
+
+  for (const [col, def] of purchaseCols) {
+    if (!equipCols.has(col)) {
+      db.exec(`ALTER TABLE equipment ADD COLUMN ${col} ${def}`);
+    }
+  }
 
   console.log('[db] migrations applied');
 }
