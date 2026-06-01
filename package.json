@@ -2,9 +2,13 @@
   "name": "hopstock",
   "version": "0.1.0",
   "private": true,
-  "workspaces": ["server"],
+  "workspaces": ["server", "client"],
   "scripts": {
-    "dev": "npm run dev -w server",
+    "dev": "concurrently -n server,client -c cyan,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
     "start": "npm run start -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
   }
 }
