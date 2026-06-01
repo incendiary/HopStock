@@ -89,10 +89,31 @@
           </h1>
 
           <div class="meta__badges">
-            <span
-              class="badge badge--condition"
-              :class="`badge--${conditionSlug}`"
-            >{{ item.condition }}</span>
+            <!-- Inline condition selector -->
+            <div class="condition-wrap">
+              <select
+                class="badge badge--condition"
+                :class="`badge--${conditionSlug}`"
+                :value="item.condition"
+                :disabled="conditionSaving"
+                aria-label="Condition"
+                @change="onConditionChange"
+              >
+                <option
+                  v-for="c in conditions"
+                  :key="c"
+                  :value="c"
+                >
+                  {{ c }}
+                </option>
+              </select>
+              <Transition name="fade">
+                <span
+                  v-if="conditionSaved"
+                  class="condition-saved"
+                >Saved ✓</span>
+              </Transition>
+            </div>
             <span
               v-if="categoryLabel"
               class="badge badge--category"
@@ -146,18 +167,21 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { getEquipmentItem, getCategories } from '../api.js';
+import { getEquipmentItem, getCategories, getConditions, updateEquipment } from '../api.js';
 import AppModal      from '../components/AppModal.vue';
 import EquipmentForm from '../components/EquipmentForm.vue';
 
 const route = useRoute();
 
-const item          = ref(null);
-const categories    = ref([]);
-const loading       = ref(false);
-const error         = ref(null);
-const showEditModal = ref(false);
-const activePhotoId = ref(null);
+const item             = ref(null);
+const categories       = ref([]);
+const conditions       = ref([]);
+const loading          = ref(false);
+const error            = ref(null);
+const showEditModal    = ref(false);
+const activePhotoId    = ref(null);
+const conditionSaving  = ref(false);
+const conditionSaved   = ref(false);
 
 // ─── Computed ─────────────────────────────────────────────
 const itemId = computed(() => Number(route.params.id));
@@ -186,11 +210,13 @@ async function load() {
   error.value   = null;
   item.value    = null;
   try {
-    const [fetched, cats] = await Promise.all([
+    const [fetched, cats, conds] = await Promise.all([
       getEquipmentItem(itemId.value),
       getCategories(),
+      getConditions(),
     ]);
     categories.value = cats;
+    conditions.value = conds;
     item.value       = fetched;
     activePhotoId.value = fetched.photos?.[0]?.id ?? null;
   } catch (err) {
@@ -211,6 +237,24 @@ function formatDate(iso) {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(iso));
+}
+
+async function onConditionChange(e) {
+  const newCondition = e.target.value;
+  const previous     = item.value.condition;
+  item.value = { ...item.value, condition: newCondition }; // optimistic
+  conditionSaving.value = true;
+  conditionSaved.value  = false;
+  try {
+    const updated = await updateEquipment(item.value.id, { condition: newCondition });
+    item.value = updated;
+    conditionSaved.value = true;
+    setTimeout(() => { conditionSaved.value = false; }, 2000);
+  } catch {
+    item.value = { ...item.value, condition: previous }; // revert
+  } finally {
+    conditionSaving.value = false;
+  }
 }
 
 async function onSaved() {
@@ -335,12 +379,52 @@ async function onSaved() {
   margin-bottom: 1.25rem;
 }
 
+.condition-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.condition-saved {
+  font-size: 0.75rem;
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 .badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+/* condition select uses badge styling; strip default select appearance */
+select.badge {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+select.badge:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+select.badge:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .badge--category {

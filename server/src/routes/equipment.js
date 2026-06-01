@@ -27,7 +27,8 @@ function withPhotos(item) {
   if (!item) return null;
   const photos = db
     .prepare('SELECT id, filename, created_at FROM photos WHERE equipment_id = ? ORDER BY id')
-    .all(item.id);
+    .all(item.id)
+    .map((p) => ({ ...p, url: `/uploads/${p.filename}` }));
   return { ...item, photos };
 }
 

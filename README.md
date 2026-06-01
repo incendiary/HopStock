@@ -75,7 +75,7 @@ HopStock/
 | 7 | ✅ Done | Equipment list view — browsable inventory with filters |
 | 8 | ✅ Done | Add / Edit equipment form — with photo upload |
 | 9 | ✅ Done | Equipment detail view — photos, full metadata |
-| 10 | ⬜ Todo | Condition tracking — Good / Fair / Needs Repair / Retired |
+| 10 | ✅ Done | Condition tracking — Good / Fair / Needs Repair / Retired |
 | 11 | ⬜ Todo | Dashboard — cumulative stats by category and condition |
 | 12 | ⬜ Todo | Export — CSV and JSON download |
 | 13 | ⬜ Todo | Import — CSV and JSON upload with validation |
