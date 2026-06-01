@@ -72,14 +72,14 @@ HopStock/
 | 4 | ✅ Done | REST API — CRUD endpoints for equipment |
 | 5 | ✅ Done | Photo upload — multer endpoint, static serving of `uploads/` |
 | 6 | ✅ Done | Frontend scaffold — Vue 3 + Vite, SPA wired to Express |
-| 7 | ⬜ Todo | Equipment list view — browsable inventory with filters |
+| 7 | ✅ Done | Equipment list view — browsable inventory with filters |
 | 8 | ⬜ Todo | Add / Edit equipment form — with photo upload |
 | 9 | ⬜ Todo | Equipment detail view — photos, full metadata |
 | 10 | ⬜ Todo | Condition tracking — Good / Fair / Needs Repair / Retired |
 | 11 | ⬜ Todo | Dashboard — cumulative stats by category and condition |
 | 12 | ⬜ Todo | Export — CSV and JSON download |
 | 13 | ⬜ Todo | Import — CSV and JSON upload with validation |
-| 14 | ⬜ Todo | Theme selector — dropdown with five schemes: Oxidised Copper (default), Bioluminescent Ferment, Chalk & Slate, Cold Side, Mash Tun |
+| 14 | ✅ Done | Theme selector — dropdown with five schemes: Oxidised Copper (default), Bioluminescent Ferment, Chalk & Slate, Cold Side, Mash Tun |
 | 15 | ⬜ Todo | Delete Items — mark items as deleted and remove them from records |
 | 16 | ⬜ Todo | Equipment icons — per-item icon picker with homebrew-specific library: kettles, boilers, fermenters (conical/bucket/carboy), chillers (plate/counterflow/immersion), pumps, kegs, CO2 regulators, John Guest fittings (straight/elbow/tee/reducer), ball valves, tubing, hydrometers, refractometers, pH meters, auto-siphons |
 | 17 | ⬜ Todo | Branch protection — enable on `main`: force-push blocked, secret-scan CI required before merge |
