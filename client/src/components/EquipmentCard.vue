@@ -59,6 +59,12 @@
         class="card__location"
       >📍 {{ item.location.name }}</span>
 
+      <!-- On Loan badge -->
+      <span
+        v-if="item.activeLoan"
+        class="card__on-loan"
+      >📤 On loan — {{ item.activeLoan.borrower }}</span>
+
       <!-- Inline condition select — click stops card navigation -->
       <div
         class="card__condition-wrap"
@@ -288,6 +294,12 @@ async function onConditionChange(e) {
 .card__location {
   font-size: 0.72rem;
   color: var(--color-muted);
+}
+
+.card__on-loan {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-danger);
 }
 
 .card__saving {

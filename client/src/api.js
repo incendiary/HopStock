@@ -60,6 +60,12 @@ export const deleteMaintenanceEvent = (equipmentId, eventId) => request(`/equipm
 // Meta — event types
 export const getMaintenanceEventTypes = () => request('/maintenance-event-types');
 
+// Loans
+export const getLoans      = (equipmentId)         => request(`/equipment/${equipmentId}/loans`);
+export const recordLoan    = (equipmentId, body)    => request(`/equipment/${equipmentId}/loans`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+export const returnLoan    = (equipmentId, loanId, body = {}) => request(`/equipment/${equipmentId}/loans/${loanId}/return`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+export const deleteLoan    = (equipmentId, loanId)  => request(`/equipment/${equipmentId}/loans/${loanId}`, { method: 'DELETE' });
+
 // Locations
 export const getLocations    = ()           => request('/locations');
 export const createLocation  = (body)       => request('/locations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });

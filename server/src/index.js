@@ -15,6 +15,7 @@ import metaRouter        from './routes/meta.js';
 import exportRouter      from './routes/export.js';
 import importRouter      from './routes/import.js';
 import locationsRouter   from './routes/locations.js';
+import loansRouter       from './routes/loans.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -37,6 +38,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/equipment', equipmentRouter);
 app.use('/api/equipment/:equipmentId/photos', photosRouter);
 app.use('/api/equipment/:equipmentId/maintenance', maintenanceRouter);
+app.use('/api/equipment/:equipmentId/loans', loansRouter);
 app.use('/api/routines', routinesRouter);
 app.use('/api/tags', tagsRouter);
 app.use('/api/scan-receipt', scanRouter);

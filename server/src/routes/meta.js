@@ -52,6 +52,13 @@ router.get('/stats', (_req, res) => {
     `)
     .all();
 
+  const { onLoan } = db.prepare(`
+    SELECT COUNT(DISTINCT l.equipment_id) as onLoan
+    FROM loans l
+    JOIN equipment e ON e.id = l.equipment_id
+    WHERE l.returned_at IS NULL AND e.deleted = 0
+  `).get();
+
   const byLocation = db.prepare(`
     SELECT COALESCE(l.name, 'Unassigned') as name, l.id, COUNT(e.id) as count
     FROM equipment e
@@ -61,7 +68,7 @@ router.get('/stats', (_req, res) => {
     ORDER BY count DESC
   `).all();
 
-  res.json({ total, totalUnits, photos, byCondition, byCategory, byLocation });
+  res.json({ total, totalUnits, photos, onLoan, byCondition, byCategory, byLocation });
 });
 
 export default router;

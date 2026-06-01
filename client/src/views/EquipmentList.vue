@@ -79,6 +79,15 @@
         </select>
 
         <button
+          class="filter-toggle"
+          :class="{ 'filter-toggle--active': filterOnLoan }"
+          type="button"
+          @click="filterOnLoan = !filterOnLoan"
+        >
+          📤 On loan
+        </button>
+
+        <button
           class="btn-add"
           type="button"
           @click="showAddModal = true"
@@ -111,7 +120,7 @@
     >
       <p>No equipment found.</p>
       <p
-        v-if="filterCategory || filterCondition || filterTag || filterLocation"
+        v-if="filterCategory || filterCondition || filterTag || filterLocation || filterOnLoan"
         class="state-message__hint"
       >
         Try clearing the filters.
@@ -177,6 +186,7 @@ const filterCategory  = ref('');
 const filterCondition = ref('');
 const filterTag       = ref('');
 const filterLocation  = ref('');
+const filterOnLoan    = ref(false);
 const tags            = ref([]);
 const locations       = ref([]);
 
@@ -201,6 +211,7 @@ async function loadItems() {
       condition: filterCondition.value || undefined,
       tag:       filterTag.value       || undefined,
       location:  filterLocation.value  || undefined,
+      onLoan:    filterOnLoan.value    ? '1' : undefined,
     });
   } catch (err) {
     error.value = err.message ?? 'Failed to load equipment.';
@@ -209,7 +220,7 @@ async function loadItems() {
   }
 }
 
-watch([filterCategory, filterCondition, filterTag, filterLocation], loadItems);
+watch([filterCategory, filterCondition, filterTag, filterLocation, filterOnLoan], loadItems);
 
 onMounted(async () => {
   await loadMeta();
@@ -292,6 +303,23 @@ function onSaved() {
 .filter-select:focus {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+
+.filter-toggle {
+  background: var(--color-input-bg);
+  color: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.filter-toggle--active {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
+  font-weight: 600;
 }
 
 /* State messages */

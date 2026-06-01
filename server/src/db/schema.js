@@ -81,6 +81,21 @@ export function runMigrations(db) {
     CREATE INDEX IF NOT EXISTS idx_equipment_tags_equip ON equipment_tags(equipment_id);
     CREATE INDEX IF NOT EXISTS idx_equipment_tags_tag   ON equipment_tags(tag_id);
 
+    -- Loan tracking
+    CREATE TABLE IF NOT EXISTS loans (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      equipment_id    INTEGER NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+      borrower        TEXT    NOT NULL,
+      loaned_at       TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+      expected_return TEXT,
+      returned_at     TEXT,
+      notes           TEXT,
+      created_at      TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_loans_equipment ON loans(equipment_id);
+    CREATE INDEX IF NOT EXISTS idx_loans_active    ON loans(equipment_id, returned_at);
+
     -- Storage locations
     CREATE TABLE IF NOT EXISTS locations (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
