@@ -6,8 +6,10 @@ import { dirname } from 'path';
 import db from './db/index.js'; // initialises SQLite on startup
 import { UPLOADS_DIR } from './config.js';
 import equipmentRouter from './routes/equipment.js';
-import photosRouter from './routes/photos.js';
-import metaRouter from './routes/meta.js';
+import photosRouter    from './routes/photos.js';
+import metaRouter      from './routes/meta.js';
+import exportRouter    from './routes/export.js';
+import importRouter    from './routes/import.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -29,6 +31,8 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/equipment', equipmentRouter);
 app.use('/api/equipment/:equipmentId/photos', photosRouter);
+app.use('/api/export', exportRouter);
+app.use('/api/import', importRouter);
 app.use('/api', metaRouter);
 
 // SPA fallback — serves built Vue client in production

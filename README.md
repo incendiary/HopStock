@@ -77,8 +77,8 @@ HopStock/
 | 9 | ✅ Done | Equipment detail view — photos, full metadata |
 | 10 | ✅ Done | Condition tracking — Good / Fair / Needs Repair / Retired |
 | 11 | ✅ Done | Dashboard — cumulative stats by category and condition |
-| 12 | ⬜ Todo | Export — CSV and JSON download |
-| 13 | ⬜ Todo | Import — CSV and JSON upload with validation |
+| 12 | ✅ Done | Export — CSV and JSON download |
+| 13 | ✅ Done | Import — CSV and JSON upload with validation |
 | 14 | ✅ Done | Theme selector — dropdown with five schemes: Oxidised Copper (default), Bioluminescent Ferment, Chalk & Slate, Cold Side, Mash Tun |
 | 15 | ⬜ Todo | Delete Items — mark items as deleted and remove them from records |
 | 16 | ⬜ Todo | Equipment icons — per-item icon picker with homebrew-specific library: kettles, boilers, fermenters (conical/bucket/carboy), chillers (plate/counterflow/immersion), pumps, kegs, CO2 regulators, John Guest fittings (straight/elbow/tee/reducer), ball valves, tubing, hydrometers, refractometers, pH meters, auto-siphons |
