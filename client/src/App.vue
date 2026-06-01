@@ -10,6 +10,21 @@
         </RouterLink>
       </div>
 
+      <nav class="navbar__nav">
+        <RouterLink
+          to="/"
+          class="nav-link"
+        >
+          Inventory
+        </RouterLink>
+        <RouterLink
+          to="/dashboard"
+          class="nav-link"
+        >
+          Dashboard
+        </RouterLink>
+      </nav>
+
       <div class="navbar__actions">
         <select
           class="theme-select"
@@ -98,6 +113,33 @@ function setTheme(id) {
 
 .navbar__brand-link:hover {
   color: var(--color-accent);
+}
+
+/* --- Nav links --- */
+.navbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nav-link {
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.nav-link:hover {
+  color: var(--color-text);
+  background: var(--color-input-bg);
+}
+
+.nav-link.router-link-active {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 
 /* --- Theme selector --- */
