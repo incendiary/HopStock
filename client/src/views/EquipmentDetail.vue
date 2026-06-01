@@ -34,6 +34,15 @@
         </RouterLink>
         <div class="topbar__actions">
           <button
+            class="btn btn--secondary"
+            type="button"
+            title="Show QR code"
+            @click="showQrModal = !showQrModal"
+          >
+            📷 QR
+          </button>
+
+          <button
             class="btn btn--primary"
             type="button"
             @click="showEditModal = true"
@@ -71,6 +80,32 @@
               Cancel
             </button>
           </template>
+        </div>
+      </div>
+
+      <!-- Inline QR panel -->
+      <div
+        v-if="showQrModal"
+        class="qr-panel"
+      >
+        <div class="qr-panel__inner">
+          <p class="qr-panel__label">
+            Scan to open <strong>{{ item.name }}</strong> on any device
+          </p>
+          <QrCode
+            :value="itemQrUrl"
+            :size="200"
+          />
+          <p class="qr-panel__url">
+            {{ itemQrUrl }}
+          </p>
+          <RouterLink
+            to="/print-labels"
+            class="btn btn--secondary"
+            style="font-size:0.82rem"
+          >
+            Print all labels →
+          </RouterLink>
         </div>
       </div>
 
@@ -538,6 +573,7 @@ import {
 import AppModal      from '../components/AppModal.vue';
 import EquipmentForm from '../components/EquipmentForm.vue';
 import MaintenanceLog from '../components/MaintenanceLog.vue';
+import QrCode        from '../components/QrCode.vue';
 
 const route  = useRoute();
 const router = useRouter();
@@ -549,6 +585,7 @@ const maintenanceEvents  = ref([]);
 const loading            = ref(false);
 const error              = ref(null);
 const showEditModal      = ref(false);
+const showQrModal        = ref(false);
 const activePhotoId      = ref(null);
 const confirmDelete      = ref(false);
 const deleting           = ref(false);
@@ -581,6 +618,10 @@ const categoryLabel = computed(
 
 const conditionSlug = computed(
   () => (item.value?.condition ?? '').toLowerCase().replace(/\s+/g, '-'),
+);
+
+const itemQrUrl = computed(
+  () => item.value ? `${window.location.origin}/equipment/${item.value.id}` : '',
 );
 
 // Acquisition data presence
@@ -833,6 +874,33 @@ async function saveCaption(photo, caption) {
   font-size: 0.875rem;
   color: var(--color-danger);
   font-weight: 600;
+}
+
+.qr-panel {
+  margin-bottom: 1.5rem;
+}
+
+.qr-panel__inner {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+}
+
+.qr-panel__label {
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.qr-panel__url {
+  font-size: 0.72rem;
+  color: var(--color-muted);
+  word-break: break-all;
 }
 
 .back-link {
