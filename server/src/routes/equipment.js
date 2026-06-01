@@ -51,9 +51,9 @@ function withPhotos(item) {
 // --- routes ---
 
 // GET /api/equipment
-// Query params: ?category=&condition=&tag=&location=&onLoan=1
+// Query params: ?category=&condition=&tag=&location=&onLoan=1&q=
 router.get('/', (req, res) => {
-  const { category, condition, tag, location, onLoan } = req.query;
+  const { category, condition, tag, location, onLoan, q } = req.query;
 
   let sql    = 'SELECT DISTINCT e.* FROM equipment e';
   const params = [];
@@ -63,6 +63,10 @@ router.get('/', (req, res) => {
   }
   if (onLoan === '1') {
     sql += ' JOIN loans ln ON ln.equipment_id = e.id AND ln.returned_at IS NULL';
+  }
+  if (q) {
+    // FTS5 MATCH — use prefix matching (* suffix) and escape special chars
+    sql += ' JOIN equipment_fts fts ON fts.rowid = e.id';
   }
 
   sql += ' WHERE e.deleted = 0';
@@ -84,6 +88,14 @@ router.get('/', (req, res) => {
   } else if (location) {
     sql += ' AND e.location_id = ?';
     params.push(location);
+  }
+  if (q) {
+    // Sanitise query: strip FTS5 special chars, add prefix wildcard
+    const safeQ = q.replace(/["'*^]/g, ' ').trim();
+    if (safeQ) {
+      sql += ' AND fts.equipment_fts MATCH ?';
+      params.push(`"${safeQ}"*`);
+    }
   }
 
   sql += ' ORDER BY e.name COLLATE NOCASE';

@@ -98,7 +98,7 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 | 23 | ✅ Done | Storage locations — define locations, assign items, filter by location | |
 | 24 | ✅ Done | Loan tracking — lent-to with borrower, dates, overdue indicators | |
 | 25 | ✅ Done | Batch operations — multi-select, bulk condition / tag / location / delete | |
-| 26 | UX | Advanced search — FTS5 notes/name search, multi-dimensional filters | |
+| 26 | ✅ Done | Advanced search — FTS5 notes/name search, multi-dimensional filters | |
 | 27 | UX | Photo improvements — reorder, set primary, captions | |
 | 28 | Output | QR code labels — per-item QR, printable A4 label sheet | |
 | 29 | Output | Inventory value report — purchase totals, insurance-ready CSV export | Needs #18 |
