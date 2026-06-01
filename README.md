@@ -76,7 +76,7 @@ HopStock/
 | 8 | ✅ Done | Add / Edit equipment form — with photo upload |
 | 9 | ✅ Done | Equipment detail view — photos, full metadata |
 | 10 | ✅ Done | Condition tracking — Good / Fair / Needs Repair / Retired |
-| 11 | ⬜ Todo | Dashboard — cumulative stats by category and condition |
+| 11 | ✅ Done | Dashboard — cumulative stats by category and condition |
 | 12 | ⬜ Todo | Export — CSV and JSON download |
 | 13 | ⬜ Todo | Import — CSV and JSON upload with validation |
 | 14 | ✅ Done | Theme selector — dropdown with five schemes: Oxidised Copper (default), Bioluminescent Ferment, Chalk & Slate, Cold Side, Mash Tun |

@@ -30,3 +30,4 @@ export const deletePhoto  = (equipmentId, photoId)  =>
 // Meta
 export const getCategories = () => request('/categories');
 export const getConditions = () => request('/conditions');
+export const getStats      = () => request('/stats');

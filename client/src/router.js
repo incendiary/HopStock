@@ -5,8 +5,9 @@ import EquipmentDetail from './views/EquipmentDetail.vue';
 export default createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/',               component: EquipmentList   },
-    { path: '/equipment/:id',  component: EquipmentDetail },
-    { path: '/:pathMatch(.*)', redirect: '/'              },
+    { path: '/',               component: EquipmentList                              },
+    { path: '/equipment/:id',  component: EquipmentDetail                           },
+    { path: '/dashboard',      component: () => import('./views/Dashboard.vue')      },
+    { path: '/:pathMatch(.*)', redirect: '/'                                        },
   ],
 });
