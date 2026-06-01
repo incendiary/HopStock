@@ -6,7 +6,7 @@
         Inventory
       </h2>
 
-      <div class="toolbar__filters">
+      <div class="toolbar__right">
         <select
           v-model="filterCategory"
           class="filter-select"
@@ -40,6 +40,13 @@
             {{ cond }}
           </option>
         </select>
+        <button
+          class="btn-add"
+          type="button"
+          @click="$emit('add')"
+        >
+          + Add item
+        </button>
       </div>
     </div>
 
@@ -100,7 +107,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { getEquipment, getCategories, getConditions } from '../api.js';
 import EquipmentCard from '../components/EquipmentCard.vue';
 
-const emit = defineEmits(['select']);
+const emit = defineEmits(['select', 'add']);
 
 const items      = ref([]);
 const categories = ref([]);
@@ -146,6 +153,8 @@ onMounted(async () => {
 function onSelect(id) {
   emit('select', id);
 }
+
+defineExpose({ reload: loadItems });
 </script>
 
 <style scoped>
@@ -172,10 +181,28 @@ function onSelect(id) {
   color: var(--color-primary);
 }
 
-.toolbar__filters {
+.toolbar__right {
   display: flex;
+  align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.btn-add {
+  padding: 0.4rem 1rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+
+.btn-add:hover {
+  opacity: 0.85;
 }
 
 .filter-select {

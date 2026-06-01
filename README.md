@@ -73,7 +73,7 @@ HopStock/
 | 5 | ✅ Done | Photo upload — multer endpoint, static serving of `uploads/` |
 | 6 | ✅ Done | Frontend scaffold — Vue 3 + Vite, SPA wired to Express |
 | 7 | ✅ Done | Equipment list view — browsable inventory with filters |
-| 8 | ⬜ Todo | Add / Edit equipment form — with photo upload |
+| 8 | ✅ Done | Add / Edit equipment form — with photo upload |
 | 9 | ⬜ Todo | Equipment detail view — photos, full metadata |
 | 10 | ⬜ Todo | Condition tracking — Good / Fair / Needs Repair / Retired |
 | 11 | ⬜ Todo | Dashboard — cumulative stats by category and condition |
