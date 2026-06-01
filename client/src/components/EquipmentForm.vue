@@ -261,6 +261,34 @@
       </div>
     </div>
 
+    <!-- Location -->
+    <div
+      v-if="locations.length"
+      class="field"
+    >
+      <label
+        class="field__label"
+        for="ef-location"
+      >Location</label>
+      <select
+        id="ef-location"
+        v-model="form.location_id"
+        class="field__input"
+        :disabled="saving"
+      >
+        <option :value="null">
+          — none —
+        </option>
+        <option
+          v-for="loc in locations"
+          :key="loc.id"
+          :value="loc.id"
+        >
+          {{ loc.name }}
+        </option>
+      </select>
+    </div>
+
     <!-- Tags -->
     <div class="field">
       <p class="field__label">
@@ -407,6 +435,7 @@ import {
   getTags,
   checkScanAvailable,
   scanReceipt,
+  getLocations,
 } from '../api.js';
 import IconPicker from './IconPicker.vue';
 import TagInput   from './TagInput.vue';
@@ -426,6 +455,7 @@ const isEditing = computed(() => props.itemId !== null);
 const categories = ref([]);
 const conditions  = ref([]);
 const allTags     = ref([]);
+const locations   = ref([]);
 
 // Form state
 const form = ref({
@@ -444,6 +474,7 @@ const form = ref({
   model_number:      null,
   warranty_expires:  null,
   quantity:          1,
+  location_id:       null,
 });
 
 // Receipt scanning
@@ -463,13 +494,14 @@ const formError = ref(null);
 
 // ─── Mount ────────────────────────────────────────────────
 onMounted(async () => {
-  const [cats, conds, tags, scanStatus] = await Promise.all([
-    getCategories(), getConditions(), getTags(), checkScanAvailable(),
+  const [cats, conds, tags, scanStatus, locs] = await Promise.all([
+    getCategories(), getConditions(), getTags(), checkScanAvailable(), getLocations(),
   ]);
   categories.value  = cats;
   conditions.value  = conds;
   allTags.value     = tags;
   scanAvailable.value = scanStatus.available;
+  locations.value   = locs;
 
   if (isEditing.value) {
     const item = await getEquipmentItem(props.itemId);
@@ -488,6 +520,7 @@ onMounted(async () => {
       model_number:      item.model_number      ?? null,
       warranty_expires:  item.warranty_expires  ?? null,
       quantity:          item.quantity          ?? 1,
+      location_id:       item.location_id       ?? null,
     };
     existingPhotos.value = item.photos ?? [];
   }
@@ -577,6 +610,7 @@ async function handleSubmit() {
       model_number:      form.value.model_number      || null,
       warranty_expires:  form.value.warranty_expires  || null,
       quantity:          Math.max(1, form.value.quantity || 1),
+      location_id:       form.value.location_id       || null,
     };
 
     let item;

@@ -9,6 +9,7 @@ export default createRouter({
     { path: '/equipment/:id',  component: EquipmentDetail                           },
     { path: '/dashboard',      component: () => import('./views/Dashboard.vue')      },
     { path: '/routines',       component: () => import('./views/Routines.vue')       },
+    { path: '/locations',      component: () => import('./views/Locations.vue')      },
     { path: '/:pathMatch(.*)', redirect: '/'                                        },
   ],
 });

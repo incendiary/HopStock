@@ -14,6 +14,7 @@ import scanRouter        from './routes/scan.js';
 import metaRouter        from './routes/meta.js';
 import exportRouter      from './routes/export.js';
 import importRouter      from './routes/import.js';
+import locationsRouter   from './routes/locations.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -41,6 +42,7 @@ app.use('/api/tags', tagsRouter);
 app.use('/api/scan-receipt', scanRouter);
 app.use('/api/export', exportRouter);
 app.use('/api/import', importRouter);
+app.use('/api/locations', locationsRouter);
 app.use('/api', metaRouter);
 
 // SPA fallback — serves built Vue client in production

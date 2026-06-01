@@ -81,6 +81,14 @@ export function runMigrations(db) {
     CREATE INDEX IF NOT EXISTS idx_equipment_tags_equip ON equipment_tags(equipment_id);
     CREATE INDEX IF NOT EXISTS idx_equipment_tags_tag   ON equipment_tags(tag_id);
 
+    -- Storage locations
+    CREATE TABLE IF NOT EXISTS locations (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      name       TEXT    NOT NULL UNIQUE,
+      notes      TEXT,
+      created_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
+
   `);
 
   // Idempotent column additions — ALTER TABLE fails if column already exists in SQLite,
@@ -96,6 +104,7 @@ export function runMigrations(db) {
     ['model_number',      'TEXT'],
     ['warranty_expires',  'TEXT'],
     ['quantity',          'INTEGER NOT NULL DEFAULT 1'],
+    ['location_id',       'INTEGER REFERENCES locations(id)'],
   ];
 
   for (const [col, def] of purchaseCols) {

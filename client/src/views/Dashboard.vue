@@ -104,6 +104,32 @@
             </li>
           </ul>
         </section>
+
+        <!-- By location -->
+        <section
+          v-if="byLocation.length > 1 || (byLocation.length === 1 && byLocation[0].id)"
+          class="section"
+        >
+          <h3 class="section__title">
+            By location
+          </h3>
+          <ul class="bar-list">
+            <li
+              v-for="row in byLocation"
+              :key="row.id ?? 'unassigned'"
+              class="bar-row"
+            >
+              <span class="bar-row__label bar-row__label--location">{{ row.name }}</span>
+              <div class="bar-row__track">
+                <div
+                  class="bar-row__fill bar-row__fill--location"
+                  :style="{ width: pct(row.count, stats.total) }"
+                />
+              </div>
+              <span class="bar-row__count">{{ row.count }}</span>
+            </li>
+          </ul>
+        </section>
       </template>
 
       <!-- ── Export ─────────────────────────────────── -->
@@ -230,6 +256,8 @@ const byCategory = computed(() => {
     group: catMap[row.category]?.group ?? '',
   }));
 });
+
+const byLocation = computed(() => stats.value?.byLocation ?? []);
 
 onMounted(async () => {
   loading.value = true;
@@ -403,6 +431,9 @@ function pct(count, total) {
 .bar-row__fill--needs-repair { background: var(--color-danger);  }
 .bar-row__fill--retired      { background: var(--color-muted);   }
 .bar-row__fill--category     { background: var(--color-primary); opacity: 0.6; }
+.bar-row__fill--location     { background: var(--color-accent);  opacity: 0.6; }
+.bar-row__label--location    { min-width: 140px; }
+
 
 .bar-row__count {
   font-size: 0.85rem;

@@ -57,6 +57,27 @@
           </option>
         </select>
 
+        <select
+          v-if="locations.length"
+          v-model="filterLocation"
+          class="filter-select"
+          aria-label="Filter by location"
+        >
+          <option value="">
+            All locations
+          </option>
+          <option value="none">
+            No location
+          </option>
+          <option
+            v-for="loc in locations"
+            :key="loc.id"
+            :value="loc.id"
+          >
+            {{ loc.name }}
+          </option>
+        </select>
+
         <button
           class="btn-add"
           type="button"
@@ -90,7 +111,7 @@
     >
       <p>No equipment found.</p>
       <p
-        v-if="filterCategory || filterCondition || filterTag"
+        v-if="filterCategory || filterCondition || filterTag || filterLocation"
         class="state-message__hint"
       >
         Try clearing the filters.
@@ -137,7 +158,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getEquipment, getCategories, getConditions, getTags } from '../api.js';
+import { getEquipment, getCategories, getConditions, getTags, getLocations } from '../api.js';
 import EquipmentCard  from '../components/EquipmentCard.vue';
 import AppModal       from '../components/AppModal.vue';
 import EquipmentForm  from '../components/EquipmentForm.vue';
@@ -155,17 +176,20 @@ const error      = ref(null);
 const filterCategory  = ref('');
 const filterCondition = ref('');
 const filterTag       = ref('');
+const filterLocation  = ref('');
 const tags            = ref([]);
+const locations       = ref([]);
 
 const categoryMap = computed(() =>
   Object.fromEntries(categories.value.map((c) => [c.id, c.label])),
 );
 
 async function loadMeta() {
-  const [cats, conds, t] = await Promise.all([getCategories(), getConditions(), getTags()]);
+  const [cats, conds, t, locs] = await Promise.all([getCategories(), getConditions(), getTags(), getLocations()]);
   categories.value = cats;
   conditions.value = conds;
   tags.value       = t;
+  locations.value  = locs;
 }
 
 async function loadItems() {
@@ -176,6 +200,7 @@ async function loadItems() {
       category:  filterCategory.value  || undefined,
       condition: filterCondition.value || undefined,
       tag:       filterTag.value       || undefined,
+      location:  filterLocation.value  || undefined,
     });
   } catch (err) {
     error.value = err.message ?? 'Failed to load equipment.';
@@ -184,7 +209,7 @@ async function loadItems() {
   }
 }
 
-watch([filterCategory, filterCondition, filterTag], loadItems);
+watch([filterCategory, filterCondition, filterTag, filterLocation], loadItems);
 
 onMounted(async () => {
   await loadMeta();
