@@ -32,3 +32,13 @@ repos:
     hooks:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
+
+  # Layer 4: ESLint — Vue 3 + JS code quality
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint (client)
+        language: node
+        entry: npm run lint -w client --
+        pass_filenames: false
+        files: ^client/src/.*\.(js|vue)$
