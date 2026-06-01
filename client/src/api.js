@@ -32,6 +32,14 @@ export const getCategories = () => request('/categories');
 export const getConditions = () => request('/conditions');
 export const getStats      = () => request('/stats');
 
+// Maintenance events
+export const getMaintenanceEvents  = (equipmentId)        => request(`/equipment/${equipmentId}/maintenance`);
+export const addMaintenanceEvent   = (equipmentId, body)  => request(`/equipment/${equipmentId}/maintenance`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+export const deleteMaintenanceEvent = (equipmentId, eventId) => request(`/equipment/${equipmentId}/maintenance/${eventId}`, { method: 'DELETE' });
+
+// Meta — event types
+export const getMaintenanceEventTypes = () => request('/maintenance-event-types');
+
 // Import
 export const importFile = (formData) =>
   request('/import', { method: 'POST', body: formData });
