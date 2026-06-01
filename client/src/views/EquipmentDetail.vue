@@ -169,6 +169,12 @@
               class="badge badge--location"
             >📍 {{ item.location.name }}</span>
 
+            <!-- On Loan badge -->
+            <span
+              v-if="item.activeLoan"
+              class="badge badge--loan"
+            >📤 On loan — {{ item.activeLoan.borrower }}</span>
+
             <!-- Maintenance summary chips -->
             <span
               v-if="lastCleaned"
@@ -274,6 +280,158 @@
           @updated="onMaintenanceUpdated"
         />
       </div>
+
+      <!-- Loan history -->
+      <div class="loans-section">
+        <h3 class="section-title">
+          Loans
+        </h3>
+
+        <!-- Record loan form -->
+        <form
+          v-if="showLoanForm"
+          class="loan-form"
+          @submit.prevent="submitLoan"
+        >
+          <div class="loan-form__fields">
+            <div class="field">
+              <label
+                class="field__label"
+                for="loan-borrower"
+              >Borrower <span class="field__required">*</span></label>
+              <input
+                id="loan-borrower"
+                ref="borrowerInput"
+                v-model="loanForm.borrower"
+                class="field__input"
+                type="text"
+                placeholder="Name"
+                required
+                :disabled="loanSaving"
+              >
+            </div>
+            <div class="field">
+              <label
+                class="field__label"
+                for="loan-date"
+              >Loaned on</label>
+              <input
+                id="loan-date"
+                v-model="loanForm.loaned_at"
+                class="field__input"
+                type="date"
+                :disabled="loanSaving"
+              >
+            </div>
+            <div class="field">
+              <label
+                class="field__label"
+                for="loan-return"
+              >Expected return</label>
+              <input
+                id="loan-return"
+                v-model="loanForm.expected_return"
+                class="field__input"
+                type="date"
+                :disabled="loanSaving"
+              >
+            </div>
+            <div class="field field--full">
+              <label
+                class="field__label"
+                for="loan-notes"
+              >Notes</label>
+              <input
+                id="loan-notes"
+                v-model="loanForm.notes"
+                class="field__input"
+                type="text"
+                :disabled="loanSaving"
+              >
+            </div>
+          </div>
+          <div class="loan-form__actions">
+            <button
+              type="button"
+              class="btn btn--secondary"
+              :disabled="loanSaving"
+              @click="showLoanForm = false"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="btn btn--primary"
+              :disabled="loanSaving || !loanForm.borrower.trim()"
+            >
+              {{ loanSaving ? 'Saving…' : 'Record loan' }}
+            </button>
+          </div>
+        </form>
+
+        <button
+          v-else
+          class="btn btn--secondary"
+          @click="openLoanForm"
+        >
+          + Record loan
+        </button>
+
+        <!-- Loans list -->
+        <ul
+          v-if="loans.length"
+          class="loan-list"
+        >
+          <li
+            v-for="loan in loans"
+            :key="loan.id"
+            class="loan-row"
+            :class="{ 'loan-row--active': !loan.returned_at }"
+          >
+            <div class="loan-row__info">
+              <span class="loan-row__borrower">{{ loan.borrower }}</span>
+              <span class="loan-row__dates">
+                {{ formatDateShort(loan.loaned_at) }}
+                <span v-if="loan.expected_return">→ due {{ formatDateShort(loan.expected_return) }}</span>
+                <span
+                  v-if="loan.returned_at"
+                  class="loan-row__returned"
+                > — returned {{ formatDateShort(loan.returned_at) }}</span>
+                <span
+                  v-else-if="isOverdue(loan)"
+                  class="loan-row__overdue"
+                > — OVERDUE</span>
+              </span>
+              <span
+                v-if="loan.notes"
+                class="loan-row__notes"
+              >{{ loan.notes }}</span>
+            </div>
+            <div class="loan-row__actions">
+              <button
+                v-if="!loan.returned_at"
+                class="btn btn--accent"
+                @click="markReturned(loan)"
+              >
+                Mark returned
+              </button>
+              <button
+                class="btn-icon btn-icon--danger"
+                title="Delete loan record"
+                @click="removeLoan(loan)"
+              >
+                🗑
+              </button>
+            </div>
+          </li>
+        </ul>
+        <p
+          v-else-if="!showLoanForm"
+          class="loans-empty"
+        >
+          No loan history.
+        </p>
+      </div>
     </template>
 
     <!-- Edit modal -->
@@ -301,6 +459,10 @@ import {
   updateEquipment,
   deleteEquipment,
   getMaintenanceEvents,
+  getLoans,
+  recordLoan,
+  returnLoan,
+  deleteLoan,
 } from '../api.js';
 import AppModal      from '../components/AppModal.vue';
 import EquipmentForm from '../components/EquipmentForm.vue';
@@ -321,6 +483,13 @@ const confirmDelete      = ref(false);
 const deleting           = ref(false);
 const conditionSaving    = ref(false);
 const conditionSaved     = ref(false);
+
+// Loans
+const loans          = ref([]);
+const showLoanForm   = ref(false);
+const loanForm       = ref({ borrower: '', loaned_at: '', expected_return: '', notes: '' });
+const loanSaving     = ref(false);
+const borrowerInput  = ref(null);
 
 // ─── Computed ─────────────────────────────────────────────
 const itemId = computed(() => Number(route.params.id));
@@ -379,16 +548,18 @@ async function load() {
   error.value   = null;
   item.value    = null;
   try {
-    const [fetched, cats, conds, events] = await Promise.all([
+    const [fetched, cats, conds, events, loanList] = await Promise.all([
       getEquipmentItem(itemId.value),
       getCategories(),
       getConditions(),
       getMaintenanceEvents(itemId.value),
+      getLoans(itemId.value),
     ]);
     categories.value        = cats;
     conditions.value        = conds;
     item.value              = fetched;
     maintenanceEvents.value = events;
+    loans.value             = loanList;
     activePhotoId.value     = fetched.photos?.[0]?.id ?? null;
   } catch (err) {
     error.value = err.status === 404
@@ -470,6 +641,62 @@ async function onSaved() {
 async function onMaintenanceUpdated() {
   // Refresh events to update the summary chips
   maintenanceEvents.value = await getMaintenanceEvents(itemId.value);
+}
+
+// ─── Loan helpers ──────────────────────────────────────────
+function openLoanForm() {
+  loanForm.value = { borrower: '', loaned_at: '', expected_return: '', notes: '' };
+  showLoanForm.value = true;
+  // focus handled via nextTick would require import; rely on template ref autofocus
+}
+
+async function submitLoan() {
+  if (!loanForm.value.borrower.trim()) return;
+  loanSaving.value = true;
+  try {
+    const body = {
+      borrower:        loanForm.value.borrower.trim(),
+      loaned_at:       loanForm.value.loaned_at       || null,
+      expected_return: loanForm.value.expected_return || null,
+      notes:           loanForm.value.notes           || null,
+    };
+    await recordLoan(itemId.value, body);
+    showLoanForm.value = false;
+    const [loanList, fetched] = await Promise.all([
+      getLoans(itemId.value),
+      getEquipmentItem(itemId.value),
+    ]);
+    loans.value = loanList;
+    item.value  = fetched;
+  } finally {
+    loanSaving.value = false;
+  }
+}
+
+async function markReturned(loan) {
+  await returnLoan(itemId.value, loan.id);
+  const [loanList, fetched] = await Promise.all([
+    getLoans(itemId.value),
+    getEquipmentItem(itemId.value),
+  ]);
+  loans.value = loanList;
+  item.value  = fetched;
+}
+
+async function removeLoan(loan) {
+  if (!confirm('Delete this loan record?')) return;
+  await deleteLoan(itemId.value, loan.id);
+  const [loanList, fetched] = await Promise.all([
+    getLoans(itemId.value),
+    getEquipmentItem(itemId.value),
+  ]);
+  loans.value = loanList;
+  item.value  = fetched;
+}
+
+function isOverdue(loan) {
+  if (!loan.expected_return || loan.returned_at) return false;
+  return new Date(loan.expected_return) < new Date();
 }
 </script>
 
@@ -692,6 +919,12 @@ select.badge:disabled {
   color: var(--color-muted);
 }
 
+.badge--loan {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
 .badge--maint {
   cursor: default;
 }
@@ -826,5 +1059,160 @@ select.badge:disabled {
   display: inline-block;
   margin-top: 1rem;
   color: var(--color-muted);
+}
+
+/* Loans section */
+.loans-section {
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 1.5rem;
+}
+
+.section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
+  margin-bottom: 1rem;
+}
+
+.loan-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.loan-form__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.field--full { grid-column: 1 / -1; }
+
+.loan-form__actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field__required { color: var(--color-danger); }
+
+.field__input {
+  padding: 0.4rem 0.65rem;
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  &:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+}
+
+.loan-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.loan-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.loan-row--active {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 5%, var(--color-surface));
+}
+
+.loan-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.loan-row__borrower { font-weight: 600; color: var(--color-text); }
+
+.loan-row__dates {
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+
+.loan-row__returned { color: var(--color-accent); }
+.loan-row__overdue  { color: var(--color-danger); font-weight: 700; }
+
+.loan-row__notes {
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.loan-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  opacity: 0.7;
+  &:hover { opacity: 1; background: var(--color-surface-2); }
+}
+
+.btn-icon--danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+}
+
+.loans-empty {
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  margin-top: 0.5rem;
+}
+
+.btn--accent {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  color: var(--color-accent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  border-radius: 6px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
 }
 </style>

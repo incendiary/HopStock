@@ -35,6 +35,13 @@
           <span class="stat-tile__value">{{ stats.photos }}</span>
           <span class="stat-tile__label">{{ stats.photos === 1 ? 'photo' : 'photos' }}</span>
         </div>
+        <div
+          v-if="stats.onLoan"
+          class="stat-tile stat-tile--warning"
+        >
+          <span class="stat-tile__value">{{ stats.onLoan }}</span>
+          <span class="stat-tile__label">on loan</span>
+        </div>
       </div>
 
       <!-- Empty state -->
@@ -364,6 +371,10 @@ function pct(count, total) {
 .stat-tile__sub {
   font-size: 0.72rem;
   color: var(--color-muted);
+}
+
+.stat-tile--warning .stat-tile__value {
+  color: var(--color-danger);
 }
 
 /* Sections */

@@ -40,21 +40,29 @@ function withPhotos(item) {
   const location = item.location_id
     ? db.prepare('SELECT id, name FROM locations WHERE id = ?').get(item.location_id)
     : null;
-  return { ...item, photos, tags, location };
+  const activeLoan = db.prepare(`
+    SELECT id, borrower, loaned_at, expected_return
+    FROM loans WHERE equipment_id = ? AND returned_at IS NULL
+    ORDER BY loaned_at DESC LIMIT 1
+  `).get(item.id) ?? null;
+  return { ...item, photos, tags, location, activeLoan };
 }
 
 // --- routes ---
 
 // GET /api/equipment
-// Query params: ?category=&condition=&tag=&location=
+// Query params: ?category=&condition=&tag=&location=&onLoan=1
 router.get('/', (req, res) => {
-  const { category, condition, tag, location } = req.query;
+  const { category, condition, tag, location, onLoan } = req.query;
 
   let sql    = 'SELECT DISTINCT e.* FROM equipment e';
   const params = [];
 
   if (tag) {
     sql += ' JOIN equipment_tags et ON et.equipment_id = e.id JOIN tags t ON t.id = et.tag_id';
+  }
+  if (onLoan === '1') {
+    sql += ' JOIN loans ln ON ln.equipment_id = e.id AND ln.returned_at IS NULL';
   }
 
   sql += ' WHERE e.deleted = 0';
