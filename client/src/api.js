@@ -31,3 +31,7 @@ export const deletePhoto  = (equipmentId, photoId)  =>
 export const getCategories = () => request('/categories');
 export const getConditions = () => request('/conditions');
 export const getStats      = () => request('/stats');
+
+// Import
+export const importFile = (formData) =>
+  request('/import', { method: 'POST', body: formData });
