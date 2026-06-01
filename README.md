@@ -101,7 +101,7 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 | 26 | ✅ Done | Advanced search — FTS5 notes/name search, multi-dimensional filters | |
 | 27 | ✅ Done | Photo improvements — reorder, set primary, captions | |
 | 28 | ✅ Done | QR code labels — per-item QR, printable A4 label sheet | |
-| 29 | Output | Inventory value report — purchase totals, insurance-ready CSV export | Needs #18 |
+| 29 | ✅ Done | Inventory value report — purchase totals, insurance-ready CSV export | Needs #18 |
 | 30 | Output | Auto-backup — scheduled ZIP (DB + photos) to local folder | |
 | 31 | Platform | PWA / mobile-first — service worker, offline read, native camera capture | |
 | 32 | Platform | Multi-user / sharing — optional password gate, read-only share links | |

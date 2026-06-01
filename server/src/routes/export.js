@@ -61,4 +61,39 @@ router.get('/json', (_req, res) => {
   res.json(full);
 });
 
+// GET /api/export/insurance-csv
+// Insurance-ready report: items with purchase info only (or all, for completeness)
+router.get('/insurance-csv', (_req, res) => {
+  const items = db
+    .prepare('SELECT * FROM equipment WHERE deleted = 0 ORDER BY name COLLATE NOCASE')
+    .all();
+
+  const header = csvRow([
+    'name', 'category', 'condition',
+    'purchase_date', 'purchase_price', 'purchase_currency',
+    'retailer', 'serial_number', 'model_number',
+    'warranty_expires', 'quantity',
+  ]);
+
+  const rows = items.map((item) => csvRow([
+    item.name,
+    catLabelMap[item.category] ?? item.category ?? '',
+    item.condition              ?? 'Good',
+    item.purchase_date          ?? '',
+    item.purchase_price != null ? item.purchase_price : '',
+    item.purchase_currency      ?? 'GBP',
+    item.retailer               ?? '',
+    item.serial_number          ?? '',
+    item.model_number           ?? '',
+    item.warranty_expires       ?? '',
+    item.quantity               ?? 1,
+  ]));
+
+  const csv = [header, ...rows].join('\r\n') + '\r\n';
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="hopstock-insurance-report.csv"');
+  res.send(csv);
+});
+
 export default router;
