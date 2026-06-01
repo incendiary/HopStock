@@ -97,7 +97,7 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 | 22 | ✅ Done | Service routines — named templates with ordered steps; attach equipment; log completion against all items at once | Needs #21 |
 | 23 | ✅ Done | Storage locations — define locations, assign items, filter by location | |
 | 24 | ✅ Done | Loan tracking — lent-to with borrower, dates, overdue indicators | |
-| 25 | UX | Batch operations — multi-select, bulk condition / tag / location / delete | |
+| 25 | ✅ Done | Batch operations — multi-select, bulk condition / tag / location / delete | |
 | 26 | UX | Advanced search — FTS5 notes/name search, multi-dimensional filters | |
 | 27 | UX | Photo improvements — reorder, set primary, captions | |
 | 28 | Output | QR code labels — per-item QR, printable A4 label sheet | |

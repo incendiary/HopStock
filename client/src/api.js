@@ -20,6 +20,7 @@ export const getEquipmentItem = (id)       => request(`/equipment/${id}`);
 export const createEquipment  = (body)     => request('/equipment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 export const updateEquipment  = (id, body) => request(`/equipment/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 export const deleteEquipment  = (id)       => request(`/equipment/${id}`, { method: 'DELETE' });
+export const batchEquipment   = (body)     => request('/equipment/batch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
 // Photos
 export const uploadPhotos = (equipmentId, formData) =>
