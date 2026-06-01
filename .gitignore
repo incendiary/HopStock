@@ -27,6 +27,9 @@ client/dist/
 # Uploaded photos (local data — not committed)
 uploads/
 
+# Auto-backups (local data — not committed)
+backups/
+
 # Editor
 .vscode/
 .idea/

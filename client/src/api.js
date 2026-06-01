@@ -75,6 +75,9 @@ export const createLocation  = (body)       => request('/locations', { method: '
 export const updateLocation  = (id, body)   => request(`/locations/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 export const deleteLocation  = (id)         => request(`/locations/${id}`, { method: 'DELETE' });
 
+// Backup
+export const triggerBackup = () => request('/backup/now', { method: 'POST' });
+
 // Import
 export const importFile = (formData) =>
   request('/import', { method: 'POST', body: formData });
