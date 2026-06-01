@@ -27,6 +27,8 @@ export const uploadPhotos = (equipmentId, formData) =>
   request(`/equipment/${equipmentId}/photos`, { method: 'POST', body: formData });
 export const deletePhoto  = (equipmentId, photoId)  =>
   request(`/equipment/${equipmentId}/photos/${photoId}`, { method: 'DELETE' });
+export const patchPhoto   = (equipmentId, photoId, body) =>
+  request(`/equipment/${equipmentId}/photos/${photoId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
 // Meta
 export const getCategories = () => request('/categories');

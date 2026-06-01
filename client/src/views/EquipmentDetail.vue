@@ -113,6 +113,76 @@
               >
             </button>
           </div>
+
+          <!-- Photo caption -->
+          <p
+            v-if="activePhoto && activePhoto.caption"
+            class="gallery__caption"
+          >
+            {{ activePhoto.caption }}
+          </p>
+
+          <!-- Photo management (edit controls) -->
+          <div
+            v-if="item.photos && item.photos.length"
+            class="gallery__manage"
+          >
+            <details class="photo-manage-details">
+              <summary class="photo-manage-details__summary">
+                Manage photos
+              </summary>
+              <ul class="photo-manage-list">
+                <li
+                  v-for="(photo, idx) in item.photos"
+                  :key="photo.id"
+                  class="photo-manage-row"
+                >
+                  <img
+                    :src="photo.url"
+                    :alt="item.name"
+                    class="photo-manage-row__thumb"
+                  >
+                  <div class="photo-manage-row__controls">
+                    <button
+                      class="btn-icon"
+                      title="Move up"
+                      :disabled="idx === 0"
+                      @click="movePhoto(photo, idx, -1)"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      class="btn-icon"
+                      title="Move down"
+                      :disabled="idx === item.photos.length - 1"
+                      @click="movePhoto(photo, idx, 1)"
+                    >
+                      ↓
+                    </button>
+                    <button
+                      v-if="idx !== 0"
+                      class="btn-icon"
+                      title="Set as primary"
+                      @click="setPhotoAsPrimary(photo)"
+                    >
+                      ⭐
+                    </button>
+                    <span
+                      v-else
+                      class="photo-manage-row__primary"
+                    >Primary</span>
+                  </div>
+                  <input
+                    class="photo-manage-row__caption"
+                    type="text"
+                    :placeholder="`Caption…`"
+                    :value="photo.caption || ''"
+                    @change="saveCaption(photo, $event.target.value)"
+                  >
+                </li>
+              </ul>
+            </details>
+          </div>
         </section>
 
         <!-- Metadata -->
@@ -463,6 +533,7 @@ import {
   recordLoan,
   returnLoan,
   deleteLoan,
+  patchPhoto,
 } from '../api.js';
 import AppModal      from '../components/AppModal.vue';
 import EquipmentForm from '../components/EquipmentForm.vue';
@@ -698,6 +769,39 @@ function isOverdue(loan) {
   if (!loan.expected_return || loan.returned_at) return false;
   return new Date(loan.expected_return) < new Date();
 }
+
+// ─── Photo management ──────────────────────────────────────
+async function reloadPhotos() {
+  const fetched = await getEquipmentItem(itemId.value);
+  item.value = fetched;
+  // Keep activePhotoId pointing to the same photo if it still exists
+  if (!fetched.photos.find((p) => p.id === activePhotoId.value)) {
+    activePhotoId.value = fetched.photos[0]?.id ?? null;
+  }
+}
+
+async function movePhoto(photo, idx, direction) {
+  const photos = item.value.photos;
+  const swapIdx = idx + direction;
+  if (swapIdx < 0 || swapIdx >= photos.length) return;
+  const swapPhoto = photos[swapIdx];
+  // Swap sort_order values
+  await Promise.all([
+    patchPhoto(item.value.id, photo.id, { sort_order: swapPhoto.sort_order }),
+    patchPhoto(item.value.id, swapPhoto.id, { sort_order: photo.sort_order }),
+  ]);
+  await reloadPhotos();
+}
+
+async function setPhotoAsPrimary(photo) {
+  await patchPhoto(item.value.id, photo.id, { set_primary: true });
+  await reloadPhotos();
+}
+
+async function saveCaption(photo, caption) {
+  await patchPhoto(item.value.id, photo.id, { caption: caption || null });
+  await reloadPhotos();
+}
 </script>
 
 <style scoped>
@@ -813,6 +917,79 @@ function isOverdue(loan) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.gallery__caption {
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  font-style: italic;
+  margin-top: 0.4rem;
+  text-align: center;
+}
+
+.gallery__manage {
+  margin-top: 0.75rem;
+}
+
+.photo-manage-details__summary {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  user-select: none;
+  &:hover { color: var(--color-text); }
+}
+
+.photo-manage-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.photo-manage-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+}
+
+.photo-manage-row__thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.photo-manage-row__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.photo-manage-row__primary {
+  font-size: 0.72rem;
+  color: var(--color-accent);
+  font-weight: 600;
+  padding: 0 0.3rem;
+}
+
+.photo-manage-row__caption {
+  flex: 1;
+  min-width: 0;
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  font-size: 0.82rem;
+  padding: 0.25rem 0.5rem;
+  &:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
 }
 
 /* Metadata */

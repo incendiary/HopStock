@@ -26,7 +26,7 @@ function validate(body) {
 function withPhotos(item) {
   if (!item) return null;
   const photos = db
-    .prepare('SELECT id, filename, created_at FROM photos WHERE equipment_id = ? ORDER BY id')
+    .prepare('SELECT id, filename, sort_order, caption, created_at FROM photos WHERE equipment_id = ? ORDER BY sort_order, id')
     .all(item.id)
     .map((p) => ({ ...p, url: `/uploads/${p.filename}` }));
   const tags = db
