@@ -154,6 +154,18 @@
               v-if="categoryLabel"
               class="badge badge--category"
             >{{ categoryLabel }}</span>
+
+            <!-- Maintenance summary chips -->
+            <span
+              v-if="lastCleaned"
+              class="badge badge--maint badge--cleaned"
+              :title="`Last cleaned ${formatDateShort(lastCleaned)}`"
+            >🧽 {{ daysAgo(lastCleaned) }}</span>
+            <span
+              v-if="lastServiced"
+              class="badge badge--maint badge--serviced"
+              :title="`Last serviced ${formatDateShort(lastServiced)}`"
+            >🔧 {{ daysAgo(lastServiced) }}</span>
           </div>
 
           <div
@@ -183,6 +195,14 @@
           </dl>
         </section>
       </div>
+
+      <!-- Maintenance log — full width below the two-column layout -->
+      <div class="maintenance-section">
+        <MaintenanceLog
+          :equipment-id="item.id"
+          @updated="onMaintenanceUpdated"
+        />
+      </div>
     </template>
 
     <!-- Edit modal -->
@@ -203,24 +223,33 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getEquipmentItem, getCategories, getConditions, updateEquipment, deleteEquipment } from '../api.js';
+import {
+  getEquipmentItem,
+  getCategories,
+  getConditions,
+  updateEquipment,
+  deleteEquipment,
+  getMaintenanceEvents,
+} from '../api.js';
 import AppModal      from '../components/AppModal.vue';
 import EquipmentForm from '../components/EquipmentForm.vue';
+import MaintenanceLog from '../components/MaintenanceLog.vue';
 
 const route  = useRoute();
 const router = useRouter();
 
-const item             = ref(null);
-const categories       = ref([]);
-const conditions       = ref([]);
-const loading          = ref(false);
-const error            = ref(null);
-const showEditModal    = ref(false);
-const activePhotoId    = ref(null);
-const confirmDelete    = ref(false);
-const deleting         = ref(false);
-const conditionSaving  = ref(false);
-const conditionSaved   = ref(false);
+const item               = ref(null);
+const categories         = ref([]);
+const conditions         = ref([]);
+const maintenanceEvents  = ref([]);
+const loading            = ref(false);
+const error              = ref(null);
+const showEditModal      = ref(false);
+const activePhotoId      = ref(null);
+const confirmDelete      = ref(false);
+const deleting           = ref(false);
+const conditionSaving    = ref(false);
+const conditionSaved     = ref(false);
 
 // ─── Computed ─────────────────────────────────────────────
 const itemId = computed(() => Number(route.params.id));
@@ -243,21 +272,36 @@ const conditionSlug = computed(
   () => (item.value?.condition ?? '').toLowerCase().replace(/\s+/g, '-'),
 );
 
+// Last cleaned / last serviced derived from maintenance events
+const lastCleaned = computed(() => {
+  const e = maintenanceEvents.value.find((ev) => ev.event_type === 'Cleaned');
+  return e?.performed_at ?? null;
+});
+
+const lastServiced = computed(() => {
+  const e = maintenanceEvents.value.find(
+    (ev) => ev.event_type === 'Serviced' || ev.event_type === 'Replaced Part',
+  );
+  return e?.performed_at ?? null;
+});
+
 // ─── Load ─────────────────────────────────────────────────
 async function load() {
   loading.value = true;
   error.value   = null;
   item.value    = null;
   try {
-    const [fetched, cats, conds] = await Promise.all([
+    const [fetched, cats, conds, events] = await Promise.all([
       getEquipmentItem(itemId.value),
       getCategories(),
       getConditions(),
+      getMaintenanceEvents(itemId.value),
     ]);
-    categories.value = cats;
-    conditions.value = conds;
-    item.value       = fetched;
-    activePhotoId.value = fetched.photos?.[0]?.id ?? null;
+    categories.value        = cats;
+    conditions.value        = conds;
+    item.value              = fetched;
+    maintenanceEvents.value = events;
+    activePhotoId.value     = fetched.photos?.[0]?.id ?? null;
   } catch (err) {
     error.value = err.status === 404
       ? 'Item not found.'
@@ -276,6 +320,19 @@ function formatDate(iso) {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(iso));
+}
+
+function formatDateShort(iso) {
+  if (!iso) return '—';
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(iso));
+}
+
+function daysAgo(iso) {
+  if (!iso) return '';
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days === 0) return 'today';
+  if (days === 1) return '1d ago';
+  return `${days}d ago`;
 }
 
 async function onConditionChange(e) {
@@ -311,6 +368,11 @@ async function handleDelete() {
 async function onSaved() {
   showEditModal.value = false;
   await load();
+}
+
+async function onMaintenanceUpdated() {
+  // Refresh events to update the summary chips
+  maintenanceEvents.value = await getMaintenanceEvents(itemId.value);
 }
 </script>
 
@@ -522,6 +584,20 @@ select.badge:disabled {
   color: var(--color-muted);
 }
 
+.badge--maint {
+  cursor: default;
+}
+
+.badge--cleaned {
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  color: var(--color-accent);
+}
+
+.badge--serviced {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+}
+
 /* Notes */
 .meta__notes {
   margin-bottom: 1.25rem;
@@ -566,6 +642,13 @@ select.badge:disabled {
 
 .meta__date-row dd {
   color: var(--color-text);
+}
+
+/* Maintenance section */
+.maintenance-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border);
 }
 
 /* Buttons */

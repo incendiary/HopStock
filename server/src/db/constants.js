@@ -1,3 +1,11 @@
+export const MAINTENANCE_EVENT_TYPES = [
+  'Cleaned',
+  'Serviced',
+  'Repaired',
+  'Replaced Part',
+  'Inspected',
+];
+
 export const CONDITIONS = [
   'Good',
   'Fair',

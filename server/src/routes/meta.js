@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import db from '../db/index.js';
-import { CATEGORIES, CONDITIONS } from '../db/constants.js';
+import { CATEGORIES, CONDITIONS, MAINTENANCE_EVENT_TYPES } from '../db/constants.js';
 
 const router = Router();
 
@@ -12,6 +12,11 @@ router.get('/categories', (_req, res) => {
 // GET /api/conditions
 router.get('/conditions', (_req, res) => {
   res.json(CONDITIONS);
+});
+
+// GET /api/maintenance-event-types
+router.get('/maintenance-event-types', (_req, res) => {
+  res.json(MAINTENANCE_EVENT_TYPES);
 });
 
 // GET /api/stats

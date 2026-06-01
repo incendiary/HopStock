@@ -25,6 +25,17 @@ export function runMigrations(db) {
 
     CREATE INDEX IF NOT EXISTS idx_equipment_deleted  ON equipment(deleted);
     CREATE INDEX IF NOT EXISTS idx_photos_equipment   ON photos(equipment_id);
+
+    CREATE TABLE IF NOT EXISTS maintenance_events (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      equipment_id  INTEGER NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+      event_type    TEXT    NOT NULL,
+      notes         TEXT,
+      performed_at  TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+      created_at    TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_maintenance_equipment ON maintenance_events(equipment_id);
   `);
 
   console.log('[db] migrations applied');
