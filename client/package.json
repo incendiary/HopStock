@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "vitest run"
   },
   "dependencies": {
     "qrcode": "^1.5.4",
@@ -15,8 +16,11 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/test-utils": "^2.4.10",
     "eslint": "^9.0.0",
     "eslint-plugin-vue": "^9.0.0",
-    "vite": "^6.0.0"
+    "jsdom": "^29.1.1",
+    "vite": "^6.0.0",
+    "vitest": "^4.1.8"
   }
 }

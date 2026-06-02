@@ -44,6 +44,12 @@ npm run dev
 
 The app runs on `http://localhost:3000` by default. The SQLite database and uploaded photos are stored locally and are not tracked by git.
 
+```bash
+npm test   # run the full test suite (server + client)
+npm run lint   # ESLint
+npm run build  # production build
+```
+
 ### Running from source
 
 If you want the latest unreleased changes instead:
@@ -122,8 +128,10 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 | # | Status | Feature | Notes |
 |---|--------|---------|-------|
 | 32 | ✅ Done | Mobile-responsive layout — nav collapse, filter toolbar wrap, 44px touch targets | |
-| 33 | Platform | PWA / mobile-first — service worker, offline read, native camera capture | |
-| 34 | Platform | Multi-user / sharing — optional password gate, read-only share links | |
+| 33 | ✅ Done | Server API tests — Vitest + supertest, in-memory SQLite, 38 tests across 6 route groups | |
+| 34 | ✅ Done | Client component tests — Vitest + @vue/test-utils, EquipmentCard and EquipmentForm | |
+| 35 | Platform | PWA / mobile-first — service worker, offline read, native camera capture | |
+| 36 | Platform | Multi-user / sharing — optional password gate, read-only share links | |
 
 ---
 
