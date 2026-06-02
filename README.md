@@ -34,14 +34,26 @@ A lightweight local homebrew equipment inventory app. Catalogue your gear with p
 
 > Prerequisites: Node.js ≥ 22, npm
 
+Download the [latest release](https://github.com/incendiary/HopStock/releases/latest), extract it, then:
+
+```bash
+cd HopStock-v2.0.0   # or whatever the extracted folder is named
+npm install
+npm run dev
+```
+
+The app runs on `http://localhost:3000` by default. The SQLite database and uploaded photos are stored locally and are not tracked by git.
+
+### Running from source
+
+If you want the latest unreleased changes instead:
+
 ```bash
 git clone git@github.com:incendiary/HopStock.git
 cd HopStock
 npm install
 npm run dev
 ```
-
-The app runs on `http://localhost:3000` by default. The SQLite database and uploaded photos are stored locally and are not tracked by git.
 
 ---
 
