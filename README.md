@@ -104,8 +104,14 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 | 29 | ✅ Done | Inventory value report — purchase totals, insurance-ready CSV export | Needs #18 |
 | 30 | ✅ Done | Auto-backup — scheduled tar.gz (DB + photos) to local folder | |
 | 31 | ✅ Done | Code quality checks — ESLint pre-commit hook + CI lint/build pipeline | |
-| 32 | Platform | PWA / mobile-first — service worker, offline read, native camera capture | |
-| 33 | Platform | Multi-user / sharing — optional password gate, read-only share links | |
+
+### v2.1 Roadmap
+
+| # | Status | Feature | Notes |
+|---|--------|---------|-------|
+| 32 | ✅ Done | Mobile-responsive layout — nav collapse, filter toolbar wrap, 44px touch targets | |
+| 33 | Platform | PWA / mobile-first — service worker, offline read, native camera capture | |
+| 34 | Platform | Multi-user / sharing — optional password gate, read-only share links | |
 
 ---
 

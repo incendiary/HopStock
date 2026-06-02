@@ -103,3 +103,26 @@ a:hover {
 input, select, textarea, button {
   font: inherit;
 }
+
+/* ============================================================
+   Mobile baseline
+   ============================================================ */
+
+/* 44px touch target floor — applies to main interactive controls.
+   Badge-style elements (card condition select, tag pills) are
+   excluded via component-level overrides where needed. */
+@media (max-width: 768px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea,
+  button {
+    min-height: 44px;
+  }
+}
+
+/* Reduce page padding on small screens */
+@media (max-width: 640px) {
+  body {
+    font-size: 15px;
+  }
+}
