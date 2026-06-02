@@ -100,7 +100,7 @@ function setTheme(id) {
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
-  height: 56px;
+  min-height: 56px;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
@@ -173,5 +173,48 @@ function setTheme(id) {
 .main-content {
   flex: 1;
   overflow-y: auto;
+}
+
+/* --- Mobile nav --- */
+@media (max-width: 640px) {
+  .navbar {
+    flex-wrap: wrap;
+    padding: 0.5rem 1rem;
+    gap: 0;
+  }
+
+  /* Brand stays left, theme selector stays right — first row */
+  .navbar__brand {
+    flex: 1 1 auto;
+  }
+
+  .navbar__actions {
+    flex: 0 0 auto;
+  }
+
+  /* Nav links drop to second row, scrollable if they overflow */
+  .navbar__nav {
+    flex: 0 0 100%;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    gap: 0.1rem;
+    /* hide scrollbar but keep functionality */
+    scrollbar-width: none;
+  }
+
+  .navbar__nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-link {
+    flex-shrink: 0;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .theme-select {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.5rem;
+  }
 }
 </style>

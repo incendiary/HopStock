@@ -719,4 +719,62 @@ function onSaved() {
   opacity: 0;
   transform: translateX(-50%) translateY(1rem);
 }
+
+/* ============================================================
+   Mobile layout
+   ============================================================ */
+@media (max-width: 640px) {
+  .equipment-list {
+    padding: 1rem;
+  }
+
+  /* Search box goes full-width on its own row */
+  .search-box {
+    flex: 1 1 100%;
+    order: -1;
+  }
+
+  .search-box__input {
+    width: 100%;
+  }
+
+  /* Filter selects pair up: two per row */
+  .filter-select {
+    flex: 1 1 calc(50% - 0.375rem);
+    min-width: 0;
+  }
+
+  /* Toggle buttons and Add sit on their own row, full-width */
+  .filter-toggle,
+  .btn-add {
+    flex: 1 1 calc(50% - 0.375rem);
+    text-align: center;
+  }
+
+  /* Touch targets — meet 44px minimum */
+  .filter-select,
+  .filter-toggle,
+  .btn-add {
+    min-height: 44px;
+  }
+
+  /* Batch bar — pin to bottom edge, full width on mobile */
+  .batch-bar {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    transform: none;
+    max-width: none;
+  }
+
+  .batch-bar-enter-from,
+  .batch-bar-leave-to {
+    transform: translateY(1rem);
+  }
+
+  /* Grid — single column on very narrow screens */
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
 </style>

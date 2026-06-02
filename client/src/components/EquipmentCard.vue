@@ -228,6 +228,8 @@ async function onConditionChange(e) {
   cursor: pointer;
   outline: none;
   max-width: 100%;
+  /* intentionally compact — override global mobile touch-target floor */
+  min-height: unset;
 }
 
 .card__condition:focus-visible {
