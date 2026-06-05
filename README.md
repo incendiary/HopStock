@@ -44,12 +44,6 @@ npm run dev
 
 The app runs on `http://localhost:3000` by default. The SQLite database and uploaded photos are stored locally and are not tracked by git.
 
-```bash
-npm test   # run the full test suite (server + client)
-npm run lint   # ESLint
-npm run build  # production build
-```
-
 ### Running from source
 
 If you want the latest unreleased changes instead:
@@ -61,21 +55,46 @@ npm install
 npm run dev
 ```
 
+### Development commands
+
+All commands run from the repo root:
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start server + client in watch mode (hot reload) |
+| `npm test` | Run the full test suite — server (Vitest + supertest) and client (Vitest + @vue/test-utils) |
+| `npm run lint` | ESLint across all client source files |
+| `npm run build` | Production Vite build (output → `server/public/`) |
+| `npm test -w server` | Server tests only |
+| `npm test -w client` | Client tests only |
+
 ---
 
 ## Project Structure
 
 ```
 HopStock/
-├── server/          # Express backend
-│   ├── db/          # SQLite schema + migrations
-│   ├── routes/      # API route handlers
-│   └── index.js     # Entry point
-├── client/          # Vue 3 + Vite frontend
+├── server/
 │   ├── src/
+│   │   ├── db/              # SQLite schema, migrations, constants
+│   │   ├── routes/          # API route handlers (one file per resource)
+│   │   ├── __tests__/       # Server integration tests (Vitest + supertest)
+│   │   ├── app.js           # Express app factory
+│   │   ├── backup.js        # Auto-backup scheduler
+│   │   └── index.js         # Entry point (listen)
+│   └── public/              # Built Vue client served by Express (gitignored)
+├── client/
+│   ├── src/
+│   │   ├── components/      # Shared Vue components
+│   │   ├── views/           # Page-level Vue components
+│   │   ├── __tests__/       # Client component tests (Vitest + @vue/test-utils)
+│   │   ├── api.js           # Fetch wrappers for all API endpoints
+│   │   └── router.js        # Vue Router configuration
 │   └── vite.config.js
-├── uploads/         # Photo storage (gitignored)
-└── hopstock.db      # SQLite database (gitignored)
+├── uploads/                 # Photo storage (gitignored)
+├── backups/                 # Auto-backup archives (gitignored)
+├── .env.example             # Environment variable reference
+└── hopstock.db              # SQLite database (gitignored)
 ```
 
 ---
@@ -146,7 +165,7 @@ This project uses a layered pre-commit pipeline covering both secret detection a
 
 CI runs on every push and pull request:
 - `.github/workflows/secret-scan.yml` — gitleaks + TruffleHog scans
-- `.github/workflows/ci.yml` — ESLint lint check, then Vite production build
+- `.github/workflows/ci.yml` — ESLint → tests (server + client) → production build (each stage gates the next)
 
 To install the pre-commit hooks locally:
 
