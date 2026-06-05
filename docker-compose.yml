@@ -1,0 +1,18 @@
+services:
+  hopstock:
+    image: ghcr.io/incendiary/hopstock:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - hopstock_data:/data
+    environment:
+      PORT: "3000"
+      # Uncomment to enable receipt scanning:
+      # ANTHROPIC_API_KEY: "sk-ant-..."
+      # Backup settings (defaults shown):
+      # BACKUP_INTERVAL_HOURS: "24"
+      # BACKUP_KEEP: "7"
+    restart: unless-stopped
+
+volumes:
+  hopstock_data:

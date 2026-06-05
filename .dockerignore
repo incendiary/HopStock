@@ -1,0 +1,14 @@
+node_modules
+.git
+.github
+.claude
+uploads
+backups
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+server/public
+client/node_modules
+server/node_modules
