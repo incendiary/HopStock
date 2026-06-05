@@ -32,7 +32,16 @@ A lightweight local homebrew equipment inventory app. Catalogue your gear with p
 
 ## Setup
 
-> Prerequisites: Node.js ≥ 22, npm
+> **Prerequisites: Node.js ≥ 22, npm**
+>
+> Check your version: `node --version`
+>
+> **Recommended:** use [nvm](https://github.com/nvm-sh/nvm) — a `.nvmrc` is included:
+> ```bash
+> nvm install   # installs the pinned version (22)
+> nvm use       # switches to it
+> ```
+> Or install via [Homebrew](https://brew.sh): `brew install node@22 && brew link node@22`
 
 Download the [latest release](https://github.com/incendiary/HopStock/releases/latest), extract it, then:
 
