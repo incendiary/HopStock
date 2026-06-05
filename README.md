@@ -64,6 +64,71 @@ npm install
 npm run dev
 ```
 
+---
+
+## Docker / Proxmox
+
+The image is published to [GitHub Container Registry](https://ghcr.io/incendiary/hopstock) on every release.
+
+### Quick start
+
+```bash
+# Download the compose file
+curl -O https://raw.githubusercontent.com/incendiary/HopStock/main/docker-compose.yml
+
+# Start (pulls latest image automatically)
+docker compose up -d
+
+# App is now running at http://localhost:3000
+```
+
+### Proxmox install
+
+1. Create an LXC container (Debian 12 recommended) or a VM
+2. Install Docker inside it:
+   ```bash
+   curl -fsSL https://get.docker.com | sh
+   ```
+3. Pull the compose file and start:
+   ```bash
+   curl -O https://raw.githubusercontent.com/incendiary/HopStock/main/docker-compose.yml
+   docker compose up -d
+   ```
+4. Access at `http://<your-proxmox-ip>:3000`
+
+To expose on a different port, edit `docker-compose.yml` and change `"3000:3000"` to e.g. `"8080:3000"`.
+
+### Persistent data
+
+All state lives in the `hopstock_data` Docker volume, mounted at `/data` inside the container:
+
+| Path inside container | Contents |
+|---|---|
+| `/data/hopstock.db` | SQLite database |
+| `/data/uploads/` | Equipment photos |
+| `/data/backups/` | Auto-backup archives |
+
+To back up your data:
+```bash
+docker run --rm -v hopstock_data:/data -v $(pwd):/out alpine \
+  tar czf /out/hopstock-backup.tar.gz -C / data
+```
+
+### Environment variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `PORT` | `3000` | Server listen port |
+| `ANTHROPIC_API_KEY` | — | Enables receipt scanning |
+| `BACKUP_INTERVAL_HOURS` | `24` | How often to auto-backup (`0` = disabled) |
+| `BACKUP_KEEP` | `7` | Number of backup archives to retain |
+
+Set variables in `docker-compose.yml` under `environment:`.
+
+---
+
+## Source setup
+
 ### Development commands
 
 All commands run from the repo root:
@@ -160,6 +225,7 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 | 34 | ✅ Done | Client component tests — Vitest + @vue/test-utils, EquipmentCard and EquipmentForm | |
 | 35 | Platform | PWA / mobile-first — service worker, offline read, native camera capture | |
 | 36 | Platform | Multi-user / sharing — optional password gate, read-only share links | |
+| 37 | ✅ Done | Docker packaging — multi-stage image on GHCR; `docker-compose.yml` for Proxmox | |
 
 ---
 

@@ -4,8 +4,8 @@ import { dirname, join } from 'path';
 import { runMigrations } from './schema.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// DB lives at project root, two levels up from server/src/db/
-const DB_PATH = join(__dirname, '../../../hopstock.db');
+// DB path: env override for Docker (/data/hopstock.db), else project root
+const DB_PATH = process.env.DB_PATH ?? join(__dirname, '../../../hopstock.db');
 
 const db = new Database(DB_PATH);
 
