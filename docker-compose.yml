@@ -4,7 +4,10 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - hopstock_data:/data
+      # Bind-mount a host directory so data survives image updates and is
+      # easy to back up. Change the host path to suit your setup.
+      # Proxmox recommended: /opt/hopstock/data
+      - /opt/hopstock/data:/data
     environment:
       PORT: "3000"
       # Uncomment to enable receipt scanning:
@@ -13,6 +16,3 @@ services:
       # BACKUP_INTERVAL_HOURS: "24"
       # BACKUP_KEEP: "7"
     restart: unless-stopped
-
-volumes:
-  hopstock_data:
