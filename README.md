@@ -82,36 +82,74 @@ docker compose up -d
 # App is now running at http://localhost:3000
 ```
 
-### Proxmox install
+### Proxmox LXC container setup
 
-1. Create an LXC container (Debian 12 recommended) or a VM
-2. Install Docker inside it:
-   ```bash
-   curl -fsSL https://get.docker.com | sh
-   ```
-3. Pull the compose file and start:
-   ```bash
-   curl -O https://raw.githubusercontent.com/incendiary/HopStock/main/docker-compose.yml
-   docker compose up -d
-   ```
-4. Access at `http://<your-proxmox-ip>:3000`
+Proxmox LXC containers are lighter than VMs and work well for Docker. The steps below create a Debian 12 container with Docker and start HopStock.
+
+**1. Create the LXC container in Proxmox**
+
+In the Proxmox web UI:
+- Download the Debian 12 template if you don't have it (`Datacenter → node → local → CT Templates → Templates → debian-12-standard`)
+- `Create CT` → set hostname (`hopstock`), password, disk size (4 GB minimum), CPU (1 core), RAM (512 MB)
+- Network: DHCP or a static IP on your LAN
+- Uncheck "Unprivileged container" — Docker requires a privileged container, **or** keep it unprivileged and enable nesting (see below)
+
+> **Unprivileged with nesting (recommended):** Keep "Unprivileged" checked, then after creating the CT go to `Options → Features` and enable **Nesting**. This is safer than full privileged mode and Docker works fine with nesting.
+
+**2. Start the container and install Docker**
+
+```bash
+# In the Proxmox shell (pct enter <ctid>) or via the console tab
+apt-get update && apt-get install -y curl
+curl -fsSL https://get.docker.com | sh
+```
+
+**3. Create the data directory**
+
+```bash
+mkdir -p /opt/hopstock/data
+```
+
+All persistent data (database, photos, backups) lives here. It survives image updates and is easy to back up with a standard `tar`.
+
+**4. Pull the compose file and start**
+
+```bash
+curl -O https://raw.githubusercontent.com/incendiary/HopStock/main/docker-compose.yml
+docker compose up -d
+```
+
+**5. Access the app**
+
+`http://<container-ip>:3000`
+
+To find the container IP: `ip addr show eth0` inside the CT, or check the Proxmox network tab.
+
+**6. Updating to a new release**
+
+Data lives on the host at `/opt/hopstock/data` — it is never touched during an update:
+
+```bash
+docker compose pull          # pull the latest image
+docker compose up -d         # replace the running container
+```
 
 To expose on a different port, edit `docker-compose.yml` and change `"3000:3000"` to e.g. `"8080:3000"`.
 
 ### Persistent data
 
-All state lives in the `hopstock_data` Docker volume, mounted at `/data` inside the container:
+All state is bind-mounted from the host into the container at `/data`:
 
-| Path inside container | Contents |
-|---|---|
-| `/data/hopstock.db` | SQLite database |
-| `/data/uploads/` | Equipment photos |
-| `/data/backups/` | Auto-backup archives |
+| Host path | Container path | Contents |
+|---|---|---|
+| `/opt/hopstock/data/hopstock.db` | `/data/hopstock.db` | SQLite database |
+| `/opt/hopstock/data/uploads/` | `/data/uploads/` | Equipment photos |
+| `/opt/hopstock/data/backups/` | `/data/backups/` | Auto-backup archives |
 
-To back up your data:
+The app creates these paths on first run — no manual setup needed. To back up:
+
 ```bash
-docker run --rm -v hopstock_data:/data -v $(pwd):/out alpine \
-  tar czf /out/hopstock-backup.tar.gz -C / data
+tar czf hopstock-backup-$(date +%Y%m%d).tar.gz -C /opt/hopstock data
 ```
 
 ### Environment variables
