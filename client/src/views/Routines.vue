@@ -286,36 +286,7 @@ function daysAgo(iso) {
   align-items: flex-start;
 }
 
-/* Buttons */
-.btn {
-  padding: 0.4rem 0.9rem;
-  border-radius: 6px;
-  border: none;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.btn--primary {
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.btn--primary:hover {
-  opacity: 0.85;
-}
-
-.btn--secondary {
-  background: var(--color-input-bg);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-
-.btn--secondary:hover {
-  border-color: var(--color-primary);
-}
-
+/* Buttons — base styles in style.css; only Routines-specific variant here */
 .btn--danger-outline {
   background: transparent;
   color: var(--color-danger);

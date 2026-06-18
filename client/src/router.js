@@ -2,7 +2,15 @@ import { createRouter, createWebHistory } from 'vue-router';
 import EquipmentList   from './views/EquipmentList.vue';
 import EquipmentDetail from './views/EquipmentDetail.vue';
 
-export default createRouter({
+const TITLES = {
+  '/':             'Inventory — HopStock',
+  '/dashboard':    'Dashboard — HopStock',
+  '/routines':     'Routines — HopStock',
+  '/locations':    'Locations — HopStock',
+  '/print-labels': 'Print Labels — HopStock',
+};
+
+const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/',               component: EquipmentList                              },
@@ -14,3 +22,9 @@ export default createRouter({
     { path: '/:pathMatch(.*)', redirect: '/'                                        },
   ],
 });
+
+router.afterEach((to) => {
+  document.title = TITLES[to.path] ?? 'HopStock';
+});
+
+export default router;

@@ -263,8 +263,8 @@
             <option :value="null">
               Move to location…
             </option>
-            <option :value="null">
-              — None —
+            <option value="__none__">
+              — None (unassign) —
             </option>
             <option
               v-for="loc in locations"
@@ -274,6 +274,11 @@
               {{ loc.name }}
             </option>
           </select>
+
+          <span
+            v-if="batchLabel"
+            class="batch-bar__pending"
+          >{{ batchLabel }}</span>
 
           <button
             class="batch-bar__apply"
@@ -352,17 +357,34 @@ function clearSelection() {
   selected.value = new Set();
 }
 
+const batchLabel = computed(() => {
+  if (!batchAction.value || batchValue.value === null) return null;
+  if (batchAction.value === 'condition') return `Set condition → ${batchValue.value}`;
+  if (batchAction.value === 'tag') {
+    const t = tags.value.find((tag) => tag.id === batchValue.value);
+    return t ? `Add tag → ${t.name}` : null;
+  }
+  if (batchAction.value === 'location') {
+    if (batchValue.value === '__none__') return 'Remove location';
+    const l = locations.value.find((loc) => loc.id === batchValue.value);
+    return l ? `Move to → ${l.name}` : null;
+  }
+  return null;
+});
+
 async function runBatch() {
   if (selected.value.size === 0 || !batchAction.value) return;
   if (batchAction.value === 'delete') {
     if (!confirm(`Delete ${selected.value.size} item(s)? This cannot be undone.`)) return;
   }
+  // '__none__' sentinel means "unassign location" — send null to the API
+  const apiValue = batchValue.value === '__none__' ? null : batchValue.value;
   batching.value = true;
   try {
     await batchEquipment({
       ids:    [...selected.value],
       action: batchAction.value,
-      value:  batchValue.value,
+      value:  apiValue,
     });
     selected.value    = new Set();
     batchAction.value = '';
@@ -685,6 +707,13 @@ function onSaved() {
   font-size: 0.82rem;
   cursor: pointer;
   &:disabled { opacity: 0.5; }
+}
+
+.batch-bar__pending {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  white-space: nowrap;
 }
 
 .batch-bar__apply {

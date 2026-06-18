@@ -166,9 +166,9 @@
         </div>
         <div class="export-buttons">
           <a
-            href="/api/export/insurance-csv"
+            :href="`${BASE}/export/insurance-csv`"
             class="btn btn--secondary"
-            download
+            download="hopstock-insurance.csv"
           >↓ Insurance report (CSV)</a>
         </div>
       </section>
@@ -180,14 +180,14 @@
         </h3>
         <div class="export-buttons">
           <a
-            href="/api/export/csv"
+            :href="`${BASE}/export/csv`"
             class="btn btn--secondary"
-            download
+            download="hopstock-export.csv"
           >↓ CSV</a>
           <a
-            href="/api/export/json"
+            :href="`${BASE}/export/json`"
             class="btn btn--secondary"
-            download
+            download="hopstock-export.json"
           >↓ JSON</a>
         </div>
       </section>
@@ -305,7 +305,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { getStats, getCategories, importFile as apiImportFile, triggerBackup } from '../api.js';
+import { BASE, getStats, getCategories, importFile as apiImportFile, triggerBackup } from '../api.js';
 
 const stats      = ref(null);
 const categories = ref([]);
@@ -685,33 +685,15 @@ function pct(count, total) {
 
 .file-pick__input { display: none; }
 
-/* Buttons */
-.btn {
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
-  border: none;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  text-decoration: none;
-  display: inline-block;
+/* Buttons — base styles live in style.css */
+
+@media (max-width: 480px) {
+  .bar-row {
+    grid-template-columns: 1fr 2.5rem;
+  }
+
+  .bar-row__track {
+    display: none;
+  }
 }
-
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn--primary {
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.btn--primary:hover:not(:disabled) { opacity: 0.85; }
-
-.btn--secondary {
-  background: var(--color-input-bg);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-
-.btn--secondary:hover { border-color: var(--color-primary); }
 </style>

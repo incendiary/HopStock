@@ -23,7 +23,10 @@
     </div>
 
     <div class="card__body">
-      <h3 class="card__name">
+      <h3
+        class="card__name"
+        :title="item.name"
+      >
         {{ item.name }}
       </h3>
       <p class="card__category">

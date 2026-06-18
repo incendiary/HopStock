@@ -6,67 +6,72 @@
 
 /* === 1. Oxidised Copper (default) ========================= */
 :root {
-  --color-bg:       #1a1612;
-  --color-surface:  #2a211a;
-  --color-primary:  #b87333;
-  --color-accent:   #4a9a8a;
-  --color-text:     #e8dcc8;
-  --color-muted:    #8a7a6a;
-  --color-danger:   #c0392b;
-  --color-border:   #3a2f25;
-  --color-input-bg: #221b14;
+  --color-bg:         #1a1612;
+  --color-surface:    #2a211a;
+  --color-surface-2:  #362a21;
+  --color-primary:    #b87333;
+  --color-accent:     #4a9a8a;
+  --color-text:       #e8dcc8;
+  --color-muted:      #8a7a6a;
+  --color-danger:     #c0392b;
+  --color-border:     #3a2f25;
+  --color-input-bg:   #221b14;
 }
 
 /* === 2. Bioluminescent Ferment ============================ */
 [data-theme="bioluminescent"] {
-  --color-bg:       #0a0a0a;
-  --color-surface:  #111111;
-  --color-primary:  #ffb300;
-  --color-accent:   #00e5cc;
-  --color-text:     #f0f0f0;
-  --color-muted:    #666666;
-  --color-danger:   #ff4444;
-  --color-border:   #222222;
-  --color-input-bg: #0d0d0d;
+  --color-bg:         #0a0a0a;
+  --color-surface:    #111111;
+  --color-surface-2:  #1a1a1a;
+  --color-primary:    #ffb300;
+  --color-accent:     #00e5cc;
+  --color-text:       #f0f0f0;
+  --color-muted:      #666666;
+  --color-danger:     #ff4444;
+  --color-border:     #222222;
+  --color-input-bg:   #0d0d0d;
 }
 
 /* === 3. Chalk & Slate ===================================== */
 [data-theme="chalk"] {
-  --color-bg:       #1c2128;
-  --color-surface:  #252d38;
-  --color-primary:  #d4841a;
-  --color-accent:   #e8c87a;
-  --color-text:     #f5f0e8;
-  --color-muted:    #7a8a9a;
-  --color-danger:   #e05252;
-  --color-border:   #2f3a47;
-  --color-input-bg: #1a2230;
+  --color-bg:         #1c2128;
+  --color-surface:    #252d38;
+  --color-surface-2:  #2f3a47;
+  --color-primary:    #d4841a;
+  --color-accent:     #e8c87a;
+  --color-text:       #f5f0e8;
+  --color-muted:      #7a8a9a;
+  --color-danger:     #e05252;
+  --color-border:     #2f3a47;
+  --color-input-bg:   #1a2230;
 }
 
 /* === 4. Cold Side ========================================= */
 [data-theme="cold-side"] {
-  --color-bg:       #f4f6f8;
-  --color-surface:  #ffffff;
-  --color-primary:  #2563eb;
-  --color-accent:   #0ea5e9;
-  --color-text:     #1a2332;
-  --color-muted:    #8a9bb0;
-  --color-danger:   #dc2626;
-  --color-border:   #dde3ea;
-  --color-input-bg: #eef1f5;
+  --color-bg:         #f4f6f8;
+  --color-surface:    #ffffff;
+  --color-surface-2:  #f0f4f8;
+  --color-primary:    #2563eb;
+  --color-accent:     #0ea5e9;
+  --color-text:       #1a2332;
+  --color-muted:      #8a9bb0;
+  --color-danger:     #dc2626;
+  --color-border:     #dde3ea;
+  --color-input-bg:   #eef1f5;
 }
 
 /* === 5. Mash Tun ========================================== */
 [data-theme="mash-tun"] {
-  --color-bg:       #faf6ef;
-  --color-surface:  #f0e8d8;
-  --color-primary:  #5c3d1e;
-  --color-accent:   #2d6a4f;
-  --color-text:     #3a2810;
-  --color-muted:    #8a7060;
-  --color-danger:   #c0392b;
-  --color-border:   #d4c4a8;
-  --color-input-bg: #e8dcc8;
+  --color-bg:         #faf6ef;
+  --color-surface:    #f0e8d8;
+  --color-surface-2:  #e5d9c5;
+  --color-primary:    #5c3d1e;
+  --color-accent:     #2d6a4f;
+  --color-text:       #3a2810;
+  --color-muted:      #8a7060;
+  --color-danger:     #c0392b;
+  --color-border:     #d4c4a8;
+  --color-input-bg:   #e8dcc8;
 }
 
 /* ============================================================
@@ -125,4 +130,52 @@ input, select, textarea, button {
   body {
     font-size: 15px;
   }
+}
+
+/* ============================================================
+   Shared button styles (used across multiple views)
+   ============================================================ */
+.btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.btn--secondary {
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.btn--danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn--danger:hover:not(:disabled) {
+  opacity: 0.85;
 }

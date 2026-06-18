@@ -38,6 +38,10 @@
       </nav>
 
       <div class="navbar__actions">
+        <span
+          class="theme-label"
+          aria-hidden="true"
+        >🎨</span>
         <select
           class="theme-select"
           aria-label="Select theme"
@@ -155,6 +159,12 @@ function setTheme(id) {
 }
 
 /* --- Theme selector --- */
+.theme-label {
+  font-size: 1rem;
+  opacity: 0.7;
+  line-height: 1;
+}
+
 .theme-select {
   background: var(--color-input-bg);
   color: var(--color-text);

@@ -555,7 +555,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   getEquipmentItem,
@@ -683,6 +683,12 @@ async function load() {
 }
 
 watch(itemId, load, { immediate: true });
+
+watch(item, (val) => {
+  if (val?.name) document.title = `${val.name} — HopStock`;
+});
+
+onUnmounted(() => { document.title = 'HopStock'; });
 
 // ─── Helpers ──────────────────────────────────────────────
 function formatDate(iso) {
@@ -1250,44 +1256,7 @@ select.badge:disabled {
   border-top: 1px solid var(--color-border);
 }
 
-/* Buttons */
-.btn {
-  padding: 0.45rem 1.1rem;
-  border-radius: 6px;
-  border: none;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.btn--primary {
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.btn--primary:hover {
-  opacity: 0.85;
-}
-
-.btn--danger {
-  background: var(--color-danger);
-  color: #fff;
-}
-
-.btn--danger:hover:not(:disabled) {
-  opacity: 0.85;
-}
-
-.btn--secondary {
-  background: var(--color-input-bg);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-
-.btn--secondary:hover:not(:disabled) {
-  border-color: var(--color-primary);
-}
+/* Buttons — base styles in style.css; accent variant is Detail-only */
 
 /* State */
 .state-message {
