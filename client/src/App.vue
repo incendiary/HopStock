@@ -2,57 +2,25 @@
   <div class="app-shell">
     <header class="navbar">
       <div class="navbar__brand">
-        🍺 <RouterLink
-          to="/"
-          class="navbar__brand-link"
-        >
-          HopStock
-        </RouterLink>
+        🍺 <RouterLink to="/" class="navbar__brand-link"> HopStock </RouterLink>
       </div>
 
       <nav class="navbar__nav">
-        <RouterLink
-          to="/"
-          class="nav-link"
-        >
-          Inventory
-        </RouterLink>
-        <RouterLink
-          to="/dashboard"
-          class="nav-link"
-        >
-          Dashboard
-        </RouterLink>
-        <RouterLink
-          to="/routines"
-          class="nav-link"
-        >
-          Routines
-        </RouterLink>
-        <RouterLink
-          to="/locations"
-          class="nav-link"
-        >
-          Locations
-        </RouterLink>
+        <RouterLink to="/" class="nav-link"> Inventory </RouterLink>
+        <RouterLink to="/dashboard" class="nav-link"> Dashboard </RouterLink>
+        <RouterLink to="/routines" class="nav-link"> Routines </RouterLink>
+        <RouterLink to="/locations" class="nav-link"> Locations </RouterLink>
       </nav>
 
       <div class="navbar__actions">
-        <span
-          class="theme-label"
-          aria-hidden="true"
-        >🎨</span>
+        <span class="theme-label" aria-hidden="true">🎨</span>
         <select
           class="theme-select"
           aria-label="Select theme"
           :value="currentTheme"
           @change="setTheme($event.target.value)"
         >
-          <option
-            v-for="t in themes"
-            :key="t.id"
-            :value="t.id"
-          >
+          <option v-for="t in themes" :key="t.id" :value="t.id">
             {{ t.label }}
           </option>
         </select>
@@ -69,14 +37,14 @@
 import { ref } from 'vue';
 
 const THEMES = [
-  { id: '',               label: 'Oxidised Copper (default)' },
-  { id: 'bioluminescent', label: 'Bioluminescent Ferment'    },
-  { id: 'chalk',          label: 'Chalk & Slate'             },
-  { id: 'cold-side',      label: 'Cold Side'                 },
-  { id: 'mash-tun',       label: 'Mash Tun'                  },
+  { id: '', label: 'Oxidised Copper (default)' },
+  { id: 'bioluminescent', label: 'Bioluminescent Ferment' },
+  { id: 'chalk', label: 'Chalk & Slate' },
+  { id: 'cold-side', label: 'Cold Side' },
+  { id: 'mash-tun', label: 'Mash Tun' },
 ];
 
-const themes       = THEMES;
+const themes = THEMES;
 const currentTheme = ref(localStorage.getItem('hopstock-theme') ?? '');
 
 function setTheme(id) {
@@ -145,7 +113,9 @@ function setTheme(id) {
   font-weight: 500;
   color: var(--color-muted);
   text-decoration: none;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .nav-link:hover {

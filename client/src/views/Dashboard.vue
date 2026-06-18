@@ -1,22 +1,12 @@
 <template>
   <div class="dashboard">
-    <h2 class="dashboard__title">
-      Dashboard
-    </h2>
+    <h2 class="dashboard__title">Dashboard</h2>
 
     <!-- Loading -->
-    <div
-      v-if="loading"
-      class="state-message"
-    >
-      Loading…
-    </div>
+    <div v-if="loading" class="state-message">Loading…</div>
 
     <!-- Error -->
-    <div
-      v-else-if="error"
-      class="state-message state-message--error"
-    >
+    <div v-else-if="error" class="state-message state-message--error">
       {{ error }}
     </div>
 
@@ -26,51 +16,35 @@
         <div class="stat-tile">
           <span class="stat-tile__value">{{ stats.total }}</span>
           <span class="stat-tile__label">{{ stats.total === 1 ? 'item' : 'items' }}</span>
-          <span
-            v-if="stats.totalUnits && stats.totalUnits !== stats.total"
-            class="stat-tile__sub"
-          >{{ stats.totalUnits }} units</span>
+          <span v-if="stats.totalUnits && stats.totalUnits !== stats.total" class="stat-tile__sub"
+            >{{ stats.totalUnits }} units</span
+          >
         </div>
         <div class="stat-tile">
           <span class="stat-tile__value">{{ stats.photos }}</span>
           <span class="stat-tile__label">{{ stats.photos === 1 ? 'photo' : 'photos' }}</span>
         </div>
-        <div
-          v-if="stats.onLoan"
-          class="stat-tile stat-tile--warning"
-        >
+        <div v-if="stats.onLoan" class="stat-tile stat-tile--warning">
           <span class="stat-tile__value">{{ stats.onLoan }}</span>
           <span class="stat-tile__label">on loan</span>
         </div>
       </div>
 
       <!-- Empty state -->
-      <p
-        v-if="stats.total === 0"
-        class="empty-hint"
-      >
+      <p v-if="stats.total === 0" class="empty-hint">
         No equipment yet — add your first item from the
-        <RouterLink to="/">
-          inventory
-        </RouterLink>.
+        <RouterLink to="/"> inventory </RouterLink>.
       </p>
 
       <template v-else>
         <!-- By condition -->
         <section class="section">
-          <h3 class="section__title">
-            By condition
-          </h3>
+          <h3 class="section__title">By condition</h3>
           <ul class="bar-list">
-            <li
-              v-for="row in stats.byCondition"
-              :key="row.condition"
-              class="bar-row"
-            >
-              <span
-                class="bar-row__label"
-                :class="`bar-row__label--${slug(row.condition)}`"
-              >{{ row.condition }}</span>
+            <li v-for="row in stats.byCondition" :key="row.condition" class="bar-row">
+              <span class="bar-row__label" :class="`bar-row__label--${slug(row.condition)}`">{{
+                row.condition
+              }}</span>
               <div class="bar-row__track">
                 <div
                   class="bar-row__fill"
@@ -84,19 +58,10 @@
         </section>
 
         <!-- By category -->
-        <section
-          v-if="byCategory.length"
-          class="section"
-        >
-          <h3 class="section__title">
-            By category
-          </h3>
+        <section v-if="byCategory.length" class="section">
+          <h3 class="section__title">By category</h3>
           <ul class="bar-list">
-            <li
-              v-for="row in byCategory"
-              :key="row.category"
-              class="bar-row"
-            >
+            <li v-for="row in byCategory" :key="row.category" class="bar-row">
               <span class="bar-row__label bar-row__label--category">
                 {{ row.label }}
                 <span class="bar-row__group">{{ row.group }}</span>
@@ -117,15 +82,9 @@
           v-if="byLocation.length > 1 || (byLocation.length === 1 && byLocation[0].id)"
           class="section"
         >
-          <h3 class="section__title">
-            By location
-          </h3>
+          <h3 class="section__title">By location</h3>
           <ul class="bar-list">
-            <li
-              v-for="row in byLocation"
-              :key="row.id ?? 'unassigned'"
-              class="bar-row"
-            >
+            <li v-for="row in byLocation" :key="row.id ?? 'unassigned'" class="bar-row">
               <span class="bar-row__label bar-row__label--location">{{ row.name }}</span>
               <div class="bar-row__track">
                 <div
@@ -140,26 +99,20 @@
       </template>
 
       <!-- ── Reports ───────────────────────────────── -->
-      <section
-        v-if="stats.valueSummary && stats.valueSummary.priced_count > 0"
-        class="section"
-      >
-        <h3 class="section__title">
-          Inventory value
-        </h3>
+      <section v-if="stats.valueSummary && stats.valueSummary.priced_count > 0" class="section">
+        <h3 class="section__title">Inventory value</h3>
         <div class="value-tiles">
           <div class="value-tile">
-            <span class="value-tile__val">{{ formatCurrency(stats.valueSummary.total_value) }}</span>
+            <span class="value-tile__val">{{
+              formatCurrency(stats.valueSummary.total_value)
+            }}</span>
             <span class="value-tile__label">total recorded value</span>
           </div>
           <div class="value-tile">
             <span class="value-tile__val">{{ stats.valueSummary.priced_count }}</span>
             <span class="value-tile__label">items with price</span>
           </div>
-          <div
-            v-if="stats.valueSummary.unpriced_count > 0"
-            class="value-tile value-tile--muted"
-          >
+          <div v-if="stats.valueSummary.unpriced_count > 0" class="value-tile value-tile--muted">
             <span class="value-tile__val">{{ stats.valueSummary.unpriced_count }}</span>
             <span class="value-tile__label">items without price</span>
           </div>
@@ -169,69 +122,58 @@
             :href="`${BASE}/export/insurance-csv`"
             class="btn btn--secondary"
             download="hopstock-insurance.csv"
-          >↓ Insurance report (CSV)</a>
+            >↓ Insurance report (CSV)</a
+          >
         </div>
       </section>
 
       <!-- ── Export ─────────────────────────────────── -->
       <section class="section">
-        <h3 class="section__title">
-          Export
-        </h3>
+        <h3 class="section__title">Export</h3>
         <div class="export-buttons">
-          <a
-            :href="`${BASE}/export/csv`"
-            class="btn btn--secondary"
-            download="hopstock-export.csv"
-          >↓ CSV</a>
+          <a :href="`${BASE}/export/csv`" class="btn btn--secondary" download="hopstock-export.csv"
+            >↓ CSV</a
+          >
           <a
             :href="`${BASE}/export/json`"
             class="btn btn--secondary"
             download="hopstock-export.json"
-          >↓ JSON</a>
+            >↓ JSON</a
+          >
         </div>
       </section>
 
       <!-- ── Backup ────────────────────────────────── -->
       <section class="section">
-        <h3 class="section__title">
-          Backup
-        </h3>
+        <h3 class="section__title">Backup</h3>
         <p class="import-hint">
           Creates a <code>.tar.gz</code> of the database and all uploaded photos in the configured
-          backup directory. Scheduled backups run automatically if <code>BACKUP_INTERVAL_HOURS</code>
-          is set in <code>.env</code>.
+          backup directory. Scheduled backups run automatically if
+          <code>BACKUP_INTERVAL_HOURS</code> is set in <code>.env</code>.
         </p>
         <div class="export-buttons">
-          <button
-            class="btn btn--secondary"
-            :disabled="backingUp"
-            @click="doBackup"
-          >
+          <button class="btn btn--secondary" :disabled="backingUp" @click="doBackup">
             {{ backingUp ? 'Backing up…' : '💾 Backup now' }}
           </button>
           <span
             v-if="backupMessage"
             class="backup-message"
             :class="{ 'backup-message--error': backupError }"
-          >{{ backupMessage }}</span>
+            >{{ backupMessage }}</span
+          >
         </div>
       </section>
 
       <!-- ── Import ─────────────────────────────────── -->
       <section class="section">
-        <h3 class="section__title">
-          Import
-        </h3>
+        <h3 class="section__title">Import</h3>
         <p class="import-hint">
           Upload a CSV or JSON file. CSV columns: <code>name</code>, <code>category</code>,
-          <code>condition</code>, <code>notes</code>. JSON must be an array matching the export format.
+          <code>condition</code>, <code>notes</code>. JSON must be an array matching the export
+          format.
         </p>
 
-        <form
-          class="import-form"
-          @submit.prevent="handleImport"
-        >
+        <form class="import-form" @submit.prevent="handleImport">
           <label class="file-pick">
             <span class="file-pick__label">
               {{ importFile ? importFile.name : 'Choose CSV or JSON…' }}
@@ -242,60 +184,37 @@
               accept=".csv,.json,text/csv,application/json"
               :disabled="importing"
               @change="onFileChange"
-            >
+            />
           </label>
 
-          <button
-            type="submit"
-            class="btn btn--primary"
-            :disabled="!importFile || importing"
-          >
+          <button type="submit" class="btn btn--primary" :disabled="!importFile || importing">
             {{ importing ? 'Importing…' : 'Import' }}
           </button>
         </form>
 
         <!-- Import results -->
-        <div
-          v-if="importResult"
-          class="import-result"
-        >
-          <p
-            v-if="importResult.imported"
-            class="import-result__ok"
-          >
-            ✓ Imported {{ importResult.imported }} {{ importResult.imported === 1 ? 'item' : 'items' }}
+        <div v-if="importResult" class="import-result">
+          <p v-if="importResult.imported" class="import-result__ok">
+            ✓ Imported {{ importResult.imported }}
+            {{ importResult.imported === 1 ? 'item' : 'items' }}
           </p>
-          <p
-            v-if="importResult.skipped"
-            class="import-result__warn"
-          >
+          <p v-if="importResult.skipped" class="import-result__warn">
             ⚠ Skipped {{ importResult.skipped }} {{ importResult.skipped === 1 ? 'row' : 'rows' }}
           </p>
           <ul
             v-if="importResult.errors && importResult.errors.length"
             class="import-result__errors"
           >
-            <li
-              v-for="err in importResult.errors"
-              :key="err.row"
-            >
+            <li v-for="err in importResult.errors" :key="err.row">
               Row {{ err.row }}: {{ err.message }}
             </li>
           </ul>
-          <p
-            v-if="importResult.imported"
-            class="import-result__hint"
-          >
-            <RouterLink to="/">
-              View inventory →
-            </RouterLink>
+          <p v-if="importResult.imported" class="import-result__hint">
+            <RouterLink to="/"> View inventory → </RouterLink>
           </p>
         </div>
 
-        <p
-          v-if="importError"
-          class="import-result__error-msg"
-        >
+        <p v-if="importError" class="import-result__error-msg">
           {{ importError }}
         </p>
       </section>
@@ -305,12 +224,18 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { BASE, getStats, getCategories, importFile as apiImportFile, triggerBackup } from '../api.js';
+import {
+  BASE,
+  getStats,
+  getCategories,
+  importFile as apiImportFile,
+  triggerBackup,
+} from '../api.js';
 
-const stats      = ref(null);
+const stats = ref(null);
 const categories = ref([]);
-const loading    = ref(false);
-const error      = ref(null);
+const loading = ref(false);
+const error = ref(null);
 
 const byCategory = computed(() => {
   if (!stats.value) return [];
@@ -328,10 +253,10 @@ const byLocation = computed(() => stats.value?.byLocation ?? []);
 
 onMounted(async () => {
   loading.value = true;
-  error.value   = null;
+  error.value = null;
   try {
     const [s, cats] = await Promise.all([getStats(), getCategories()]);
-    stats.value      = s;
+    stats.value = s;
     categories.value = cats;
   } catch (err) {
     error.value = err.message ?? 'Failed to load stats.';
@@ -342,42 +267,42 @@ onMounted(async () => {
 
 // ─── Import state ─────────────────────────────────────────
 // ─── Backup ──────────────────────────────────────────────
-const backingUp      = ref(false);
-const backupMessage  = ref('');
-const backupError    = ref(false);
+const backingUp = ref(false);
+const backupMessage = ref('');
+const backupError = ref(false);
 
 async function doBackup() {
-  backingUp.value    = true;
+  backingUp.value = true;
   backupMessage.value = '';
-  backupError.value  = false;
+  backupError.value = false;
   try {
     await triggerBackup();
     backupMessage.value = 'Backup created ✓';
   } catch (err) {
     backupMessage.value = err.message ?? 'Backup failed';
-    backupError.value   = true;
+    backupError.value = true;
   } finally {
     backingUp.value = false;
   }
 }
 
 // ─── Import ───────────────────────────────────────────────
-const importFile   = ref(null);
-const importing    = ref(false);
+const importFile = ref(null);
+const importing = ref(false);
 const importResult = ref(null);
-const importError  = ref(null);
+const importError = ref(null);
 
 function onFileChange(e) {
-  importFile.value   = e.target.files?.[0] ?? null;
+  importFile.value = e.target.files?.[0] ?? null;
   importResult.value = null;
-  importError.value  = null;
+  importError.value = null;
 }
 
 async function handleImport() {
   if (!importFile.value) return;
-  importing.value    = true;
+  importing.value = true;
   importResult.value = null;
-  importError.value  = null;
+  importError.value = null;
   try {
     const fd = new FormData();
     fd.append('file', importFile.value);
@@ -396,7 +321,11 @@ function slug(str) {
 
 function formatCurrency(val) {
   if (val == null) return '—';
-  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(val);
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'GBP',
+    maximumFractionDigits: 0,
+  }).format(val);
 }
 
 function pct(count, total) {
@@ -533,11 +462,21 @@ function pct(count, total) {
   font-weight: 600;
 }
 
-.bar-row__label--good         { color: var(--color-accent);  }
-.bar-row__label--fair         { color: var(--color-primary); }
-.bar-row__label--needs-repair { color: var(--color-danger);  }
-.bar-row__label--retired      { color: var(--color-muted);   }
-.bar-row__label--category     { color: var(--color-text);    }
+.bar-row__label--good {
+  color: var(--color-accent);
+}
+.bar-row__label--fair {
+  color: var(--color-primary);
+}
+.bar-row__label--needs-repair {
+  color: var(--color-danger);
+}
+.bar-row__label--retired {
+  color: var(--color-muted);
+}
+.bar-row__label--category {
+  color: var(--color-text);
+}
 
 .bar-row__group {
   font-size: 0.72rem;
@@ -559,14 +498,29 @@ function pct(count, total) {
   transition: width 0.4s ease;
 }
 
-.bar-row__fill--good         { background: var(--color-accent);  }
-.bar-row__fill--fair         { background: var(--color-primary); }
-.bar-row__fill--needs-repair { background: var(--color-danger);  }
-.bar-row__fill--retired      { background: var(--color-muted);   }
-.bar-row__fill--category     { background: var(--color-primary); opacity: 0.6; }
-.bar-row__fill--location     { background: var(--color-accent);  opacity: 0.6; }
-.bar-row__label--location    { min-width: 140px; }
-
+.bar-row__fill--good {
+  background: var(--color-accent);
+}
+.bar-row__fill--fair {
+  background: var(--color-primary);
+}
+.bar-row__fill--needs-repair {
+  background: var(--color-danger);
+}
+.bar-row__fill--retired {
+  background: var(--color-muted);
+}
+.bar-row__fill--category {
+  background: var(--color-primary);
+  opacity: 0.6;
+}
+.bar-row__fill--location {
+  background: var(--color-accent);
+  opacity: 0.6;
+}
+.bar-row__label--location {
+  min-width: 140px;
+}
 
 .bar-row__count {
   font-size: 0.85rem;
@@ -637,8 +591,12 @@ function pct(count, total) {
   gap: 0.35rem;
 }
 
-.import-result__ok   { color: var(--color-accent);  }
-.import-result__warn { color: var(--color-primary);  }
+.import-result__ok {
+  color: var(--color-accent);
+}
+.import-result__warn {
+  color: var(--color-primary);
+}
 
 .import-result__errors {
   list-style: none;
@@ -648,7 +606,9 @@ function pct(count, total) {
   gap: 0.2rem;
 }
 
-.import-result__hint { color: var(--color-muted); }
+.import-result__hint {
+  color: var(--color-muted);
+}
 
 .import-result__error-msg {
   margin-top: 0.75rem;
@@ -675,7 +635,9 @@ function pct(count, total) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .file-pick:hover .file-pick__label {
@@ -683,7 +645,9 @@ function pct(count, total) {
   color: var(--color-text);
 }
 
-.file-pick__input { display: none; }
+.file-pick__input {
+  display: none;
+}
 
 /* Buttons — base styles live in style.css */
 

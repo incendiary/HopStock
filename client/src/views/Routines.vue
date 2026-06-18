@@ -1,94 +1,54 @@
 <template>
   <div class="routines-page">
     <div class="routines-header">
-      <h1 class="routines-title">
-        Service Routines
-      </h1>
-      <button
-        class="btn btn--primary"
-        type="button"
-        @click="openCreate"
-      >
-        + New routine
-      </button>
+      <h1 class="routines-title">Service Routines</h1>
+      <button class="btn btn--primary" type="button" @click="openCreate">+ New routine</button>
     </div>
 
     <!-- Loading -->
-    <div
-      v-if="loading"
-      class="state-message"
-    >
-      Loading…
-    </div>
+    <div v-if="loading" class="state-message">Loading…</div>
 
     <!-- Empty -->
-    <div
-      v-else-if="!routines.length"
-      class="state-message"
-    >
+    <div v-else-if="!routines.length" class="state-message">
       <p>No service routines yet.</p>
       <p class="state-hint">
-        Create a routine to define a named checklist — e.g. "Kegerator Deep Clean" — and attach the equipment it covers.
+        Create a routine to define a named checklist — e.g. "Kegerator Deep Clean" — and attach the
+        equipment it covers.
       </p>
     </div>
 
     <!-- List -->
-    <div
-      v-else
-      class="routine-list"
-    >
-      <div
-        v-for="routine in routines"
-        :key="routine.id"
-        class="routine-card"
-      >
+    <div v-else class="routine-list">
+      <div v-for="routine in routines" :key="routine.id" class="routine-card">
         <div class="routine-card__body">
           <h2 class="routine-card__name">
             {{ routine.name }}
           </h2>
-          <p
-            v-if="routine.description"
-            class="routine-card__desc"
-          >
+          <p v-if="routine.description" class="routine-card__desc">
             {{ routine.description }}
           </p>
           <div class="routine-card__meta">
-            <span class="routine-meta-chip">{{ routine.step_count }} step{{ routine.step_count !== 1 ? 's' : '' }}</span>
-            <span class="routine-meta-chip">{{ routine.equipment_count }} item{{ routine.equipment_count !== 1 ? 's' : '' }}</span>
-            <span
-              v-if="routine.interval_days"
-              class="routine-meta-chip"
-            >every {{ routine.interval_days }}d</span>
-            <span
-              v-if="routine.last_run"
-              class="routine-meta-chip routine-meta-chip--muted"
-            >last run {{ daysAgo(routine.last_run) }}</span>
-            <span
-              v-else
-              class="routine-meta-chip routine-meta-chip--muted"
-            >never run</span>
+            <span class="routine-meta-chip"
+              >{{ routine.step_count }} step{{ routine.step_count !== 1 ? 's' : '' }}</span
+            >
+            <span class="routine-meta-chip"
+              >{{ routine.equipment_count }} item{{
+                routine.equipment_count !== 1 ? 's' : ''
+              }}</span
+            >
+            <span v-if="routine.interval_days" class="routine-meta-chip"
+              >every {{ routine.interval_days }}d</span
+            >
+            <span v-if="routine.last_run" class="routine-meta-chip routine-meta-chip--muted"
+              >last run {{ daysAgo(routine.last_run) }}</span
+            >
+            <span v-else class="routine-meta-chip routine-meta-chip--muted">never run</span>
           </div>
         </div>
         <div class="routine-card__actions">
-          <button
-            class="btn btn--primary"
-            type="button"
-            @click="startRun(routine)"
-          >
-            ▶ Run
-          </button>
-          <button
-            class="btn btn--secondary"
-            type="button"
-            @click="openEdit(routine)"
-          >
-            Edit
-          </button>
-          <button
-            class="btn btn--danger-outline"
-            type="button"
-            @click="handleDelete(routine)"
-          >
+          <button class="btn btn--primary" type="button" @click="startRun(routine)">▶ Run</button>
+          <button class="btn btn--secondary" type="button" @click="openEdit(routine)">Edit</button>
+          <button class="btn btn--danger-outline" type="button" @click="handleDelete(routine)">
             Delete
           </button>
         </div>
@@ -101,11 +61,7 @@
       :title="editingId ? 'Edit routine' : 'New routine'"
       @close="showForm = false"
     >
-      <RoutineForm
-        :routine-id="editingId"
-        @saved="onFormSaved"
-        @cancel="showForm = false"
-      />
+      <RoutineForm :routine-id="editingId" @saved="onFormSaved" @cancel="showForm = false" />
     </AppModal>
 
     <!-- Run modal -->
@@ -126,14 +82,14 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { getRoutines, deleteRoutine, getRoutine } from '../api.js';
-import AppModal   from '../components/AppModal.vue';
+import AppModal from '../components/AppModal.vue';
 import RoutineForm from '../components/RoutineForm.vue';
-import RunRoutine  from '../components/RunRoutine.vue';
+import RunRoutine from '../components/RunRoutine.vue';
 
-const routines      = ref([]);
-const loading       = ref(false);
-const showForm      = ref(false);
-const editingId     = ref(null);
+const routines = ref([]);
+const loading = ref(false);
+const showForm = ref(false);
+const editingId = ref(null);
 const runningRoutine = ref(null);
 
 onMounted(load);
@@ -149,12 +105,12 @@ async function load() {
 
 function openCreate() {
   editingId.value = null;
-  showForm.value  = true;
+  showForm.value = true;
 }
 
 function openEdit(routine) {
   editingId.value = routine.id;
-  showForm.value  = true;
+  showForm.value = true;
 }
 
 async function startRun(routine) {

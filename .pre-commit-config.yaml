@@ -33,7 +33,16 @@ repos:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
 
-  # Layer 4: ESLint — Vue 3 + JS code quality
+  # Layer 4: Prettier — JS/Vue/CSS formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        files: ^client/src/.*\.(js|vue|css)$
+        additional_dependencies:
+          - prettier@3.8.4
+
+  # Layer 5: ESLint — Vue 3 + JS code quality
   - repo: local
     hooks:
       - id: eslint

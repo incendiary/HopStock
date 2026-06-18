@@ -1,42 +1,22 @@
 <template>
   <div class="run-routine">
     <!-- Equipment summary -->
-    <div
-      v-if="routine.equipment.length"
-      class="run-routine__equip-list"
-    >
-      <p class="run-routine__section-label">
-        This routine will log a "Serviced" event for:
-      </p>
+    <div v-if="routine.equipment.length" class="run-routine__equip-list">
+      <p class="run-routine__section-label">This routine will log a "Serviced" event for:</p>
       <div class="run-routine__equip-chips">
-        <span
-          v-for="e in routine.equipment"
-          :key="e.id"
-          class="equip-chip"
-        >
-          <span
-            v-if="e.icon"
-            class="equip-chip__icon"
-          >{{ e.icon }}</span>
+        <span v-for="e in routine.equipment" :key="e.id" class="equip-chip">
+          <span v-if="e.icon" class="equip-chip__icon">{{ e.icon }}</span>
           {{ e.name }}
         </span>
       </div>
     </div>
-    <p
-      v-else
-      class="run-routine__no-equip"
-    >
+    <p v-else class="run-routine__no-equip">
       No equipment attached to this routine. Edit the routine to attach items first.
     </p>
 
     <!-- Checklist -->
-    <div
-      v-if="routine.steps.length"
-      class="run-routine__checklist"
-    >
-      <p class="run-routine__section-label">
-        Checklist
-      </p>
+    <div v-if="routine.steps.length" class="run-routine__checklist">
+      <p class="run-routine__section-label">Checklist</p>
       <ul class="checklist">
         <li
           v-for="(step, i) in routine.steps"
@@ -46,23 +26,14 @@
           @click="toggle(i)"
         >
           <span class="checklist__box">{{ checked[i] ? '✓' : '' }}</span>
-          <span
-            class="checklist__text"
-            :class="{ 'checklist__text--check': step.is_check }"
-          >
+          <span class="checklist__text" :class="{ 'checklist__text--check': step.is_check }">
             {{ step.instruction }}
-            <span
-              v-if="step.is_check"
-              class="checklist__check-badge"
-            >verify</span>
+            <span v-if="step.is_check" class="checklist__check-badge">verify</span>
           </span>
         </li>
       </ul>
 
-      <p
-        v-if="routine.steps.length"
-        class="run-routine__progress"
-      >
+      <p v-if="routine.steps.length" class="run-routine__progress">
         {{ checkedCount }} / {{ routine.steps.length }} steps completed
       </p>
     </div>
@@ -70,23 +41,17 @@
     <!-- Date + notes -->
     <div class="run-routine__fields">
       <div class="field">
-        <label
-          class="field__label"
-          for="rr-date"
-        >Date performed</label>
+        <label class="field__label" for="rr-date">Date performed</label>
         <input
           id="rr-date"
           v-model="performedDate"
           class="field__input"
           type="date"
           :disabled="running"
-        >
+        />
       </div>
       <div class="field">
-        <label
-          class="field__label"
-          for="rr-notes"
-        >Notes (optional)</label>
+        <label class="field__label" for="rr-notes">Notes (optional)</label>
         <input
           id="rr-notes"
           v-model="notes"
@@ -94,25 +59,17 @@
           type="text"
           placeholder="Any observations or issues"
           :disabled="running"
-        >
+        />
       </div>
     </div>
 
-    <p
-      v-if="runError"
-      class="run-routine__error"
-    >
+    <p v-if="runError" class="run-routine__error">
       {{ runError }}
     </p>
 
     <!-- Actions -->
     <div class="run-routine__actions">
-      <button
-        type="button"
-        class="btn btn--secondary"
-        :disabled="running"
-        @click="$emit('cancel')"
-      >
+      <button type="button" class="btn btn--secondary" :disabled="running" @click="$emit('cancel')">
         Cancel
       </button>
       <button
@@ -121,7 +78,11 @@
         :disabled="running || !routine.equipment.length"
         @click="handleRun"
       >
-        {{ running ? 'Logging…' : `Log completion (${routine.equipment.length} item${routine.equipment.length !== 1 ? 's' : ''})` }}
+        {{
+          running
+            ? 'Logging…'
+            : `Log completion (${routine.equipment.length} item${routine.equipment.length !== 1 ? 's' : ''})`
+        }}
       </button>
     </div>
   </div>
@@ -140,11 +101,11 @@ const props = defineProps({
 
 const emit = defineEmits(['completed', 'cancel']);
 
-const today        = new Date().toISOString().slice(0, 10);
+const today = new Date().toISOString().slice(0, 10);
 const performedDate = ref(today);
-const notes         = ref('');
-const running       = ref(false);
-const runError      = ref(null);
+const notes = ref('');
+const running = ref(false);
+const runError = ref(null);
 
 // Checklist state — one bool per step
 const checked = ref(props.routine.steps.map(() => false));
@@ -157,12 +118,10 @@ function toggle(i) {
 
 async function handleRun() {
   runError.value = null;
-  running.value  = true;
+  running.value = true;
   try {
     await runRoutine(props.routine.id, {
-      performed_at: performedDate.value
-        ? `${performedDate.value}T00:00:00Z`
-        : undefined,
+      performed_at: performedDate.value ? `${performedDate.value}T00:00:00Z` : undefined,
       notes: notes.value.trim() || '',
     });
     emit('completed');
@@ -238,7 +197,9 @@ async function handleRun() {
   background: var(--color-input-bg);
   cursor: pointer;
   user-select: none;
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
 }
 
 .checklist__item:hover {

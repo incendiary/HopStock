@@ -1,14 +1,8 @@
 <template>
-  <form
-    class="rform"
-    @submit.prevent="handleSubmit"
-  >
+  <form class="rform" @submit.prevent="handleSubmit">
     <!-- Name -->
     <div class="field">
-      <label
-        class="field__label"
-        for="rf-name"
-      >Name <span class="field__required">*</span></label>
+      <label class="field__label" for="rf-name">Name <span class="field__required">*</span></label>
       <input
         id="rf-name"
         v-model="form.name"
@@ -17,15 +11,12 @@
         required
         placeholder="e.g. Kegerator Deep Clean"
         :disabled="saving"
-      >
+      />
     </div>
 
     <!-- Description -->
     <div class="field">
-      <label
-        class="field__label"
-        for="rf-desc"
-      >Description</label>
+      <label class="field__label" for="rf-desc">Description</label>
       <textarea
         id="rf-desc"
         v-model="form.description"
@@ -38,10 +29,7 @@
 
     <!-- Interval -->
     <div class="field">
-      <label
-        class="field__label"
-        for="rf-interval"
-      >Repeat interval (days)</label>
+      <label class="field__label" for="rf-interval">Repeat interval (days)</label>
       <input
         id="rf-interval"
         v-model.number="form.interval_days"
@@ -50,20 +38,14 @@
         min="1"
         placeholder="e.g. 90"
         :disabled="saving"
-      >
+      />
     </div>
 
     <!-- Steps -->
     <div class="field">
-      <p class="field__label">
-        Steps
-      </p>
+      <p class="field__label">Steps</p>
       <div class="steps-list">
-        <div
-          v-for="(step, i) in form.steps"
-          :key="i"
-          class="step-row"
-        >
+        <div v-for="(step, i) in form.steps" :key="i" class="step-row">
           <span class="step-row__num">{{ i + 1 }}</span>
           <input
             v-model="step.instruction"
@@ -71,14 +53,14 @@
             type="text"
             placeholder="Step instruction or check"
             :disabled="saving"
-          >
+          />
           <label class="step-row__check-label">
             <input
               v-model="step.is_check"
               type="checkbox"
               class="step-row__check"
               :disabled="saving"
-            >
+            />
             Check
           </label>
           <button
@@ -92,21 +74,14 @@
           </button>
         </div>
       </div>
-      <button
-        type="button"
-        class="btn btn--ghost"
-        :disabled="saving"
-        @click="addStep"
-      >
+      <button type="button" class="btn btn--ghost" :disabled="saving" @click="addStep">
         + Add step
       </button>
     </div>
 
     <!-- Attached equipment -->
     <div class="field">
-      <p class="field__label">
-        Attached equipment
-      </p>
+      <p class="field__label">Attached equipment</p>
       <div class="equip-picker">
         <div
           v-for="item in allEquipment"
@@ -120,42 +95,22 @@
           @keydown.enter.prevent="toggleEquip(item.id)"
           @keydown.space.prevent="toggleEquip(item.id)"
         >
-          <span
-            v-if="item.icon"
-            class="equip-chip__icon"
-          >{{ item.icon }}</span>
+          <span v-if="item.icon" class="equip-chip__icon">{{ item.icon }}</span>
           {{ item.name }}
         </div>
       </div>
-      <p
-        v-if="!allEquipment.length"
-        class="field__hint"
-      >
-        No equipment in inventory yet.
-      </p>
+      <p v-if="!allEquipment.length" class="field__hint">No equipment in inventory yet.</p>
     </div>
 
-    <p
-      v-if="formError"
-      class="form-error"
-    >
+    <p v-if="formError" class="form-error">
       {{ formError }}
     </p>
 
     <div class="form-actions">
-      <button
-        type="button"
-        class="btn btn--secondary"
-        :disabled="saving"
-        @click="$emit('cancel')"
-      >
+      <button type="button" class="btn btn--secondary" :disabled="saving" @click="$emit('cancel')">
         Cancel
       </button>
-      <button
-        type="submit"
-        class="btn btn--primary"
-        :disabled="saving"
-      >
+      <button type="submit" class="btn btn--primary" :disabled="saving">
         {{ saving ? 'Saving…' : routineId ? 'Save changes' : 'Create routine' }}
       </button>
     </div>
@@ -185,17 +140,17 @@ const emit = defineEmits(['saved', 'cancel']);
 const isEditing = computed(() => props.routineId !== null);
 
 const form = ref({
-  name:          '',
-  description:   '',
+  name: '',
+  description: '',
   interval_days: null,
-  steps:         [],
+  steps: [],
 });
 
-const allEquipment   = ref([]);
-const attachedIds    = ref(new Set());
+const allEquipment = ref([]);
+const attachedIds = ref(new Set());
 const originalAttached = ref(new Set());
 
-const saving    = ref(false);
+const saving = ref(false);
 const formError = ref(null);
 
 onMounted(async () => {
@@ -209,13 +164,13 @@ onMounted(async () => {
 async function loadRoutine() {
   const r = await getRoutine(props.routineId);
   form.value = {
-    name:          r.name,
-    description:   r.description ?? '',
+    name: r.name,
+    description: r.description ?? '',
     interval_days: r.interval_days ?? null,
-    steps:         r.steps.map((s) => ({ instruction: s.instruction, is_check: !!s.is_check })),
+    steps: r.steps.map((s) => ({ instruction: s.instruction, is_check: !!s.is_check })),
   };
   const ids = new Set(r.equipment.map((e) => e.id));
-  attachedIds.value    = new Set(ids);
+  attachedIds.value = new Set(ids);
   originalAttached.value = new Set(ids);
 }
 
@@ -236,14 +191,14 @@ function toggleEquip(id) {
 
 async function handleSubmit() {
   formError.value = null;
-  saving.value    = true;
+  saving.value = true;
 
   try {
     const payload = {
-      name:          form.value.name.trim(),
-      description:   form.value.description.trim() || null,
+      name: form.value.name.trim(),
+      description: form.value.description.trim() || null,
       interval_days: form.value.interval_days || null,
-      steps:         form.value.steps.filter((s) => s.instruction.trim()),
+      steps: form.value.steps.filter((s) => s.instruction.trim()),
     };
 
     let saved;
@@ -254,11 +209,11 @@ async function handleSubmit() {
     }
 
     // Sync equipment attachments
-    const toAdd    = [...attachedIds.value].filter((id) => !originalAttached.value.has(id));
+    const toAdd = [...attachedIds.value].filter((id) => !originalAttached.value.has(id));
     const toRemove = [...originalAttached.value].filter((id) => !attachedIds.value.has(id));
 
     await Promise.all([
-      ...toAdd.map((id)    => attachEquipment(saved.id, id)),
+      ...toAdd.map((id) => attachEquipment(saved.id, id)),
       ...toRemove.map((id) => detachEquipment(saved.id, id)),
     ]);
 
@@ -398,7 +353,9 @@ async function handleSubmit() {
   font-size: 0.8rem;
   cursor: pointer;
   user-select: none;
-  transition: border-color 0.12s, background 0.12s;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
   display: flex;
   align-items: center;
   gap: 0.3rem;

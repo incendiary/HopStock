@@ -1,27 +1,16 @@
 <template>
   <div class="locations-page">
     <div class="page-header">
-      <h2 class="page-title">
-        Storage Locations
-      </h2>
-      <button
-        class="btn btn--primary"
-        @click="startAdd"
-      >
-        + Add location
-      </button>
+      <h2 class="page-title">Storage Locations</h2>
+      <button class="btn btn--primary" @click="startAdd">+ Add location</button>
     </div>
 
     <!-- Add / edit form -->
-    <div
-      v-if="editing"
-      class="location-form"
-    >
+    <div v-if="editing" class="location-form">
       <div class="field">
-        <label
-          class="field__label"
-          for="loc-name"
-        >Name <span class="field__required">*</span></label>
+        <label class="field__label" for="loc-name"
+          >Name <span class="field__required">*</span></label
+        >
         <input
           id="loc-name"
           ref="nameInput"
@@ -32,13 +21,10 @@
           :disabled="saving"
           @keydown.enter.prevent="save"
           @keydown.escape="cancel"
-        >
+        />
       </div>
       <div class="field">
-        <label
-          class="field__label"
-          for="loc-notes"
-        >Notes</label>
+        <label class="field__label" for="loc-notes">Notes</label>
         <input
           id="loc-notes"
           v-model="form.notes"
@@ -47,78 +33,39 @@
           placeholder="Optional description"
           :disabled="saving"
           @keydown.escape="cancel"
-        >
+        />
       </div>
-      <p
-        v-if="formError"
-        class="form-error"
-      >
+      <p v-if="formError" class="form-error">
         {{ formError }}
       </p>
       <div class="form-actions">
-        <button
-          class="btn btn--secondary"
-          :disabled="saving"
-          @click="cancel"
-        >
-          Cancel
-        </button>
-        <button
-          class="btn btn--primary"
-          :disabled="saving || !form.name.trim()"
-          @click="save"
-        >
+        <button class="btn btn--secondary" :disabled="saving" @click="cancel">Cancel</button>
+        <button class="btn btn--primary" :disabled="saving || !form.name.trim()" @click="save">
           {{ saving ? 'Saving…' : editId ? 'Save changes' : 'Add' }}
         </button>
       </div>
     </div>
 
-    <p
-      v-if="error"
-      class="state-message state-message--error"
-    >
+    <p v-if="error" class="state-message state-message--error">
       {{ error }}
     </p>
 
-    <p
-      v-else-if="!loading && locations.length === 0 && !editing"
-      class="empty-hint"
-    >
+    <p v-else-if="!loading && locations.length === 0 && !editing" class="empty-hint">
       No locations yet. Add one above to start assigning equipment.
     </p>
 
-    <ul
-      v-else-if="locations.length"
-      class="location-list"
-    >
-      <li
-        v-for="loc in locations"
-        :key="loc.id"
-        class="location-row"
-      >
+    <ul v-else-if="locations.length" class="location-list">
+      <li v-for="loc in locations" :key="loc.id" class="location-row">
         <div class="location-row__info">
           <span class="location-row__name">{{ loc.name }}</span>
-          <span
-            v-if="loc.notes"
-            class="location-row__notes"
-          >{{ loc.notes }}</span>
+          <span v-if="loc.notes" class="location-row__notes">{{ loc.notes }}</span>
         </div>
         <div class="location-row__meta">
-          <span class="location-row__count">{{ loc.item_count }} {{ loc.item_count === 1 ? 'item' : 'items' }}</span>
-          <button
-            class="btn-icon"
-            title="Edit"
-            @click="startEdit(loc)"
+          <span class="location-row__count"
+            >{{ loc.item_count }} {{ loc.item_count === 1 ? 'item' : 'items' }}</span
           >
-            ✏️
-          </button>
-          <button
-            class="btn-icon btn-icon--danger"
-            title="Delete"
-            @click="remove(loc)"
-          >
-            🗑
-          </button>
+          <button class="btn-icon" title="Edit" @click="startEdit(loc)">✏️</button>
+          <button class="btn-icon btn-icon--danger" title="Delete" @click="remove(loc)">🗑</button>
         </div>
       </li>
     </ul>
@@ -130,13 +77,13 @@ import { ref, nextTick, onMounted } from 'vue';
 import { getLocations, createLocation, updateLocation, deleteLocation } from '../api.js';
 
 const locations = ref([]);
-const loading   = ref(true);
-const error     = ref(null);
+const loading = ref(true);
+const error = ref(null);
 
-const editing   = ref(false);
-const editId    = ref(null);
-const form      = ref({ name: '', notes: '' });
-const saving    = ref(false);
+const editing = ref(false);
+const editId = ref(null);
+const form = ref({ name: '', notes: '' });
+const saving = ref(false);
 const formError = ref(null);
 const nameInput = ref(null);
 
@@ -144,7 +91,7 @@ onMounted(load);
 
 async function load() {
   loading.value = true;
-  error.value   = null;
+  error.value = null;
   try {
     locations.value = await getLocations();
   } catch (err) {
@@ -155,29 +102,29 @@ async function load() {
 }
 
 function startAdd() {
-  editId.value    = null;
-  form.value      = { name: '', notes: '' };
+  editId.value = null;
+  form.value = { name: '', notes: '' };
   formError.value = null;
-  editing.value   = true;
+  editing.value = true;
   nextTick(() => nameInput.value?.focus());
 }
 
 function startEdit(loc) {
-  editId.value    = loc.id;
-  form.value      = { name: loc.name, notes: loc.notes ?? '' };
+  editId.value = loc.id;
+  form.value = { name: loc.name, notes: loc.notes ?? '' };
   formError.value = null;
-  editing.value   = true;
+  editing.value = true;
   nextTick(() => nameInput.value?.focus());
 }
 
 function cancel() {
   editing.value = false;
-  editId.value  = null;
+  editId.value = null;
 }
 
 async function save() {
   if (!form.value.name.trim()) return;
-  saving.value    = true;
+  saving.value = true;
   formError.value = null;
   try {
     const body = { name: form.value.name.trim(), notes: form.value.notes.trim() || null };
@@ -187,7 +134,7 @@ async function save() {
       await createLocation(body);
     }
     editing.value = false;
-    editId.value  = null;
+    editId.value = null;
     await load();
   } catch (err) {
     formError.value = err.message ?? 'Save failed';
@@ -197,9 +144,10 @@ async function save() {
 }
 
 async function remove(loc) {
-  const msg = loc.item_count > 0
-    ? `Delete "${loc.name}"? ${loc.item_count} item(s) will become unassigned.`
-    : `Delete "${loc.name}"?`;
+  const msg =
+    loc.item_count > 0
+      ? `Delete "${loc.name}"? ${loc.item_count} item(s) will become unassigned.`
+      : `Delete "${loc.name}"?`;
   if (!confirm(msg)) return;
   try {
     await deleteLocation(loc.id);
@@ -345,7 +293,10 @@ async function remove(loc) {
   font-size: 1rem;
   opacity: 0.7;
 
-  &:hover { opacity: 1; background: var(--color-surface-2); }
+  &:hover {
+    opacity: 1;
+    background: var(--color-surface-2);
+  }
 }
 
 .btn-icon--danger:hover {

@@ -3,82 +3,36 @@
     <!-- Screen controls (hidden on print) -->
     <div class="print-controls no-print">
       <div class="print-controls__left">
-        <RouterLink
-          to="/"
-          class="btn btn--secondary"
-        >
-          ← Back
-        </RouterLink>
-        <h2 class="print-controls__title">
-          QR Label Sheet
-        </h2>
+        <RouterLink to="/" class="btn btn--secondary"> ← Back </RouterLink>
+        <h2 class="print-controls__title">QR Label Sheet</h2>
       </div>
       <div class="print-controls__right">
         <label class="control-label">
-          <input
-            v-model="showAll"
-            type="checkbox"
-          > Show all items
+          <input v-model="showAll" type="checkbox" /> Show all items
         </label>
         <label class="control-label">
           Label size:
-          <select
-            v-model="labelSize"
-            class="control-select"
-          >
-            <option value="small">
-              Small (2×2 cm)
-            </option>
-            <option value="medium">
-              Medium (3×3 cm)
-            </option>
-            <option value="large">
-              Large (5×5 cm)
-            </option>
+          <select v-model="labelSize" class="control-select">
+            <option value="small">Small (2×2 cm)</option>
+            <option value="medium">Medium (3×3 cm)</option>
+            <option value="large">Large (5×5 cm)</option>
           </select>
         </label>
-        <button
-          class="btn btn--primary"
-          @click="window.print()"
-        >
-          🖨 Print
-        </button>
+        <button class="btn btn--primary" @click="window.print()">🖨 Print</button>
       </div>
     </div>
 
-    <p
-      v-if="loading"
-      class="state-message no-print"
-    >
-      Loading…
-    </p>
+    <p v-if="loading" class="state-message no-print">Loading…</p>
 
-    <p
-      v-else-if="!items.length"
-      class="state-message no-print"
-    >
-      No equipment found.
-    </p>
+    <p v-else-if="!items.length" class="state-message no-print">No equipment found.</p>
 
     <!-- Label grid (printed as-is) -->
-    <div
-      v-else
-      class="label-grid"
-      :class="`label-grid--${labelSize}`"
-    >
-      <div
-        v-for="item in visibleItems"
-        :key="item.id"
-        class="label-tile"
-      >
+    <div v-else class="label-grid" :class="`label-grid--${labelSize}`">
+      <div v-for="item in visibleItems" :key="item.id" class="label-tile">
         <div class="label-tile__icon">
           {{ item.icon || '📦' }}
         </div>
-        <QrCode
-          :value="qrUrl(item.id)"
-          :size="qrSize"
-          class="label-tile__qr"
-        />
+        <QrCode :value="qrUrl(item.id)" :size="qrSize" class="label-tile__qr" />
         <p class="label-tile__name">
           {{ item.name }}
         </p>
@@ -95,9 +49,9 @@ import { ref, computed, onMounted } from 'vue';
 import { getEquipment } from '../api.js';
 import QrCode from '../components/QrCode.vue';
 
-const items    = ref([]);
-const loading  = ref(true);
-const showAll  = ref(true);
+const items = ref([]);
+const loading = ref(true);
+const showAll = ref(true);
 const labelSize = ref('medium');
 
 // Make window available in template
@@ -188,9 +142,15 @@ onMounted(async () => {
   gap: 0.5rem;
 }
 
-.label-grid--small  .label-tile { width: 80px;  }
-.label-grid--medium .label-tile { width: 120px; }
-.label-grid--large  .label-tile { width: 200px; }
+.label-grid--small .label-tile {
+  width: 80px;
+}
+.label-grid--medium .label-tile {
+  width: 120px;
+}
+.label-grid--large .label-tile {
+  width: 200px;
+}
 
 .label-tile {
   display: flex;
@@ -233,17 +193,27 @@ onMounted(async () => {
 
 /* Print styles */
 @media print {
-  .no-print { display: none !important; }
+  .no-print {
+    display: none !important;
+  }
 
-  .print-page { padding: 0; }
+  .print-page {
+    padding: 0;
+  }
 
   .label-grid {
     gap: 3mm;
     padding: 5mm;
   }
 
-  .label-grid--small  .label-tile { width: 20mm; }
-  .label-grid--medium .label-tile { width: 30mm; }
-  .label-grid--large  .label-tile { width: 50mm; }
+  .label-grid--small .label-tile {
+    width: 20mm;
+  }
+  .label-grid--medium .label-tile {
+    width: 30mm;
+  }
+  .label-grid--large .label-tile {
+    width: 50mm;
+  }
 }
 </style>
