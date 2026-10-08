@@ -247,13 +247,13 @@ Sequence and parallelism: groups that touch the same files must not run concurre
 
 **Files:** `.github/workflows/*.yml`, `.github/dependabot.yml`.
 
-### RA-14: Dockerfile and compose hardening (DECISION PENDING: root vs non-root)
+### RA-14: Dockerfile and compose hardening (DECIDED: non-root now)
 
 **Model:** Sonnet 5.5. **Effort:** S.
 
 **Do:** run as the `node` user (`USER node`, `chown node:node /data` in the image); add `HEALTHCHECK CMD wget -qO- http://localhost:3000/api/health || exit 1`; pin `node:22-alpine` by digest (Dependabot keeps it fresh); in compose, pin the image tag to the `VERSION` instead of `latest` in the example and add `security_opt: [no-new-privileges:true]`, `cap_drop: [ALL]`.
 
-**Recommendation:** keep root for now, add `cap_drop: [ALL]`, `no-new-privileges`, `HEALTHCHECK`, digest pin; defer `USER node` (option a) to the next major release. Implement only the non-breaking parts until the owner confirms. Reason: existing deployments bind-mount `/opt/hopstock/data` owned by root; switching to a non-root user needs `chown -R 1000:1000` on the host. Document in the README and release notes, or keep root and rely on `cap_drop`.
+**Decision (2026-10-08): option (a), non-root now.** There are no existing installs, so no migration is needed. Document in the README that a host bind mount must be owned by uid 1000 (`chown -R 1000:1000 /opt/hopstock/data`), or use a named volume. The image `chown` covers named volumes.
 
 **Success criteria:** CI Docker smoke passes; `docker inspect` shows a healthy status; `docker exec <c> id` is not root; data persists across restart.
 
@@ -314,7 +314,7 @@ net: about -45 lines possible in the server, before any client deduplication.
 | 1 | RA-1, RA-2, RA-3, RA-7, RA-13, RA-15 | Sonnet 5.5 (RA-1, RA-2, RA-13); Haiku 4.5 (RA-3, RA-7, RA-15) |
 | 2 | RA-5, then RA-6 | Sonnet 5.5 |
 | 3 | RA-8, RA-9, RA-10 (sequential), RA-12 alongside | Sonnet 5.5 |
-| Decisions | RA-4, RA-11, RA-14 | discuss before dispatch |
+| Decided | RA-4 (b), RA-11 (b), RA-14 (a) | ready to dispatch |
 | 4 | RA-16, RA-17 | Sonnet 5.5; Haiku 4.5 |
 
 Reserve Opus 5.5 for RA-4 only if full user accounts are chosen. Every other item is bounded and test-verifiable, so a cheaper model with a strict success criterion is the right trade.
