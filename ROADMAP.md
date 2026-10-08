@@ -94,7 +94,7 @@ Existing assertions are specific enough; no over-broad status-only tests were fo
 
 ### Action roadmap
 
-Sequence and parallelism: groups that touch the same files must not run concurrently. Group A (`backup.js`, `config.js`): RA-1. Group B (`photos.js`, `app.js`): RA-2 then RA-5. Group C (`equipment.js`, `routines.js`, `db/schema.js`): RA-6, RA-8, RA-9, RA-10 sequentially. Independent and parallel-safe: RA-3, RA-7, RA-13, RA-14, RA-15. Do RA-16 and RA-17 last, after PR #36 merges. Each agent: new branch off `main`, one PR per item, run `npm test` and `npm run lint` before opening, no unrelated changes.
+Sequence and parallelism: groups that touch the same files must not run concurrently. Group A (`backup.js`, `config.js`): RA-1. Group B (`photos.js`, `app.js`): RA-2 then RA-5. Group C (`equipment.js`, `routines.js`, `db/schema.js`): RA-6, RA-8, RA-9, RA-10 sequentially. Independent and parallel-safe: RA-3, RA-7, RA-14, RA-15, RA-19. Workflow files: RA-18 before RA-13. `package-lock.json`: RA-3 before RA-20. RA-21 joins group C after RA-10. Do RA-16 and RA-17 last, after PR #36 merges. Each agent: new branch off `main`, one PR per item, run `npm test` and `npm run lint` before opening, no unrelated changes.
 
 #### Tier 0: data loss and security (do first)
 
@@ -241,7 +241,7 @@ Sequence and parallelism: groups that touch the same files must not run concurre
 
 **Model:** Sonnet 5.5. **Effort:** S. Independent.
 
-**Do:** in `.github/workflows/`: set `permissions: contents: read`; `on: push: branches: [main]` plus `pull_request`; `node-version-file: .nvmrc`; pin each action to a full commit SHA with a version comment; replace `trufflehog@main` with a released SHA; add steps `npm run format -w client -- --check` (or `format:check`) and `npm audit --omit=dev --audit-level=high`; make `docker-publish.yml` trigger via `workflow_run` on CI success (or add a `needs` on a reusable CI call). Add `.github/dependabot.yml` (npm weekly, github-actions weekly, docker weekly, grouped).
+**Do:** in `.github/workflows/`: set `permissions: contents: read`; `on: push: branches: [main]` plus `pull_request`; `node-version-file: .nvmrc`; pin each action to a full commit SHA with a version comment; (trufflehog is removed by RA-18, so nothing to pin there); add steps `npm run format -w client -- --check` (or `format:check`) and `npm audit --omit=dev --audit-level=high`; make `docker-publish.yml` trigger via `workflow_run` on CI success (or add a `needs` on a reusable CI call). Add `.github/dependabot.yml` (npm weekly, github-actions weekly, docker weekly, grouped).
 
 **Success criteria:** a PR run shows lint, format-check, audit, test, build, smoke green; a deliberately failing test on a branch prevents the image publish; no `@main`/`@v\d` action references remain (`grep -rn "uses:" .github | grep -v @[0-9a-f]\{40\}` is empty).
 
@@ -291,10 +291,60 @@ Sequence and parallelism: groups that touch the same files must not run concurre
 
 **Files:** `server/package.json`, `server/eslint.config.js`, `server/.prettierrc`, `.pre-commit-config.yaml`, root `package.json`, `.github/workflows/ci.yml`.
 
+### RA-18: Reduce secret scanners to gitleaks
+
+**Model:** Haiku 4.5. **Effort:** XS. Run before RA-13 (both touch `.github/workflows/`).
+
+**Context:** gitleaks, trufflehog, and detect-secrets all run, locally and/or in CI. Their pattern coverage overlaps heavily; trufflehog's live verification adds little for this repo, and its CI step is pinned to `@main`. gitleaks is the policy baseline. Owner approved reduction on 2026-10-08.
+
+**Do:** delete the `trufflehog` and `detect-secrets` hooks from `.pre-commit-config.yaml`; delete `.secrets.baseline`; remove the `trufflehog` job from `.github/workflows/secret-scan.yml`; keep `.gitleaks.toml`, the gitleaks hook, and the gitleaks job. Run `gitleaks detect` over full history once and report the result.
+
+**Success criteria:** `pre-commit run --all-files` passes with gitleaks only; the Secret Scan workflow runs one job and passes; a deliberately planted fake key on a scratch branch is still blocked by gitleaks (do not commit it); RA-13 no longer needs to pin trufflehog.
+
+**Files:** `.pre-commit-config.yaml`, `.secrets.baseline` (delete), `.github/workflows/secret-scan.yml`.
+
+### RA-19: Collapse JSON request boilerplate in api.js
+
+**Model:** Haiku 4.5. **Effort:** XS. Independent.
+
+**Context:** `client/src/api.js` repeats `headers: { 'Content-Type': 'application/json' }` and `body: JSON.stringify(...)` 15 times.
+
+**Do:** add `const json = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });` and rewrite each call as `request(path, json('PUT', body))`. Leave multipart (`FormData`) calls and `DELETE`s without a body unchanged. Exported names and signatures must not change.
+
+**Success criteria:** `npm test -w client` and `npm run lint` pass; a diff of exported symbol names is empty; net line reduction of roughly 30.
+
+**Files:** `client/src/api.js`.
+
+### RA-20: Drop `concurrently`
+
+**Model:** Haiku 4.5. **Effort:** XS. After RA-3 (shares `package-lock.json`).
+
+**Do:** change the root `dev` script to `npm run dev -w server & npm run dev -w client` with a `trap 'kill 0' EXIT` prefix so Ctrl-C stops both (`"dev": "trap 'kill 0' EXIT; npm run dev -w server & npm run dev -w client; wait"`); remove `concurrently` from root `devDependencies`; regenerate the lockfile with `npm install --package-lock-only`. Update README dev instructions if they mention it.
+
+**Success criteria:** `npm run dev` starts both processes, the UI loads and proxies to the API, Ctrl-C leaves no node processes behind (`pgrep -f vite` is empty); `npm audit` no longer lists `shell-quote` or `concurrently`.
+
+**Files:** `package.json`, `package-lock.json`, `README.md`.
+
+### RA-21: Small server de-duplication
+
+**Model:** Haiku 4.5. **Effort:** S. Group C: run after RA-10, in one PR.
+
+**Do:**
+1. `routes/export.js`: one `listItems()` for the three identical queries; one `sendCsv(res, filename, header, rows)` for the shared send tail.
+2. `routes/routines.js`: one `insertSteps(routineId, steps)` used by POST and PUT; prepare the statement once outside the loop.
+3. `routes/equipment.js`: hoist `const addTag = db.prepare('INSERT OR IGNORE INTO equipment_tags ...')` and reuse it in create, update, and batch.
+4. `routes/import.js`: replace `recs.indexOf(rec) + 1` with the loop index.
+5. `app.js`: merge the two `path` imports.
+
+**Success criteria:** all existing server tests pass unchanged; exported CSV and JSON bytes are identical before and after (diff a fixture export); no behaviour change; about 25 lines removed.
+
+**Files:** `server/src/routes/export.js`, `routines.js`, `equipment.js`, `import.js`, `server/src/app.js`.
+
 ### Ponytail review (complexity only; none applied)
 
 - `server/src/backup.js:66-72`: shrink: the date-parsing map and comparator are the bug and the bloat. `readdirSync(...).filter(...).sort().reverse().slice(BACKUP_KEEP)`. (Folded into RA-1.)
 - `server/src/backup.js:85,93`: delete: `_timer` is never read; `intervalHours` re-parses the env already parsed at the top. Reuse `BACKUP_INTERVAL_MS / 3600000`. (RA-1.)
+- Repo-wide audit additions (2026-10-08): secret scanners reduced (RA-18), `api.js` JSON boilerplate (RA-19), `concurrently` dependency (RA-20), small server de-duplication (RA-21). Net about -245 lines, -1 dependency, -2 scanners across all items.
 - `server/src/routes/maintenance.js:43`: delete: `.replace('T', 'T')` is a no-op. (RA-6.)
 - `server/src/app.js:2,4`: shrink: two `path` imports, `import { join, dirname } from 'path'`.
 - `server/src/routes/export.js:21,45,68`: reuse: the same `SELECT * FROM equipment WHERE deleted = 0 ORDER BY name COLLATE NOCASE` three times. One `const listItems = () => db.prepare(...).all()` at the top; the CSV and insurance-CSV handlers also share the join-and-send tail, one `sendCsv(res, filename, header, rows)` helper.
@@ -311,9 +361,9 @@ net: about -45 lines possible in the server, before any client deduplication.
 
 | Wave | Items (parallel within a wave) | Model |
 |---|---|---|
-| 1 | RA-1, RA-2, RA-3, RA-7, RA-13, RA-15 | Sonnet 5.5 (RA-1, RA-2, RA-13); Haiku 4.5 (RA-3, RA-7, RA-15) |
-| 2 | RA-5, then RA-6 | Sonnet 5.5 |
-| 3 | RA-8, RA-9, RA-10 (sequential), RA-12 alongside | Sonnet 5.5 |
+| 1 | RA-1, RA-2, RA-3, RA-7, RA-15, RA-18, RA-19 | Sonnet 5.5 (RA-1, RA-2); Haiku 4.5 (RA-3, RA-7, RA-15, RA-18, RA-19) |
+| 2 | RA-5, then RA-6; RA-13 (after RA-18), RA-14, RA-20 in parallel | Sonnet 5.5 (RA-5, RA-6, RA-13, RA-14); Haiku 4.5 (RA-20) |
+| 3 | RA-8, RA-9, RA-10, RA-21 (sequential), RA-12 alongside | Sonnet 5.5 (RA-8 to RA-10, RA-12); Haiku 4.5 (RA-21) |
 | Decided | RA-4 (b), RA-11 (b), RA-14 (a) | ready to dispatch |
 | 4 | RA-16, RA-17 | Sonnet 5.5; Haiku 4.5 |
 
