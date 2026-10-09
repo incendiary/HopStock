@@ -158,6 +158,7 @@ tar czf hopstock-backup-$(date +%Y%m%d).tar.gz -C /opt/hopstock data
 |---|---|---|
 | `PORT` | `3000` | Server listen port |
 | `ANTHROPIC_API_KEY` | — | Enables receipt scanning |
+| `RECEIPT_MODEL` | `claude-sonnet-5-5` | Claude model for receipt extraction. Set only if you have a different model available (e.g. `claude-opus-5-5` for higher accuracy). |
 | `BACKUP_INTERVAL_HOURS` | `24` | How often to auto-backup (`0` = disabled) |
 | `BACKUP_KEEP` | `7` | Number of backup archives to retain |
 
