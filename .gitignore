@@ -13,6 +13,8 @@ yarn-error.log*
 # Build output
 dist/
 client/dist/
+server/public/
+.serena/
 
 # Environment
 .env
