@@ -102,8 +102,7 @@ router.post('/', upload.single('receipt'), async (req, res) => {
     const data   = await response.json();
     let text     = data.content?.[0]?.text ?? '{}';
 
-    // Strip markdown code fences and leading prose before the first '{'
-    text = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```$/, '');
+    // Strip leading prose before the first '{' and trailing content after the last '}'
     const firstBrace = text.indexOf('{');
     const lastBrace = text.lastIndexOf('}');
     if (firstBrace >= 0 && lastBrace > firstBrace) {
@@ -132,7 +131,7 @@ router.post('/', upload.single('receipt'), async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    if (err.name === 'AbortError') {
+    if (err.name === 'TimeoutError' || err.name === 'AbortError') {
       return res.status(504).json({ error: 'Receipt scan request timed out.' });
     }
     res.status(500).json({ error: `Scan error: ${err.message}` });
