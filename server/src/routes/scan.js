@@ -75,15 +75,17 @@ router.post('/', upload.single('receipt'), async (req, res) => {
   }
 
   try {
+    const model = process.env.RECEIPT_MODEL ?? 'claude-sonnet-5-5';
     const response = await fetch(ANTHROPIC_API, {
       method:  'POST',
+      signal:  AbortSignal.timeout(30000),
       headers: {
         'x-api-key':         process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
         'content-type':      'application/json',
       },
       body: JSON.stringify({
-        model:      'claude-opus-4-5',
+        model,
         max_tokens: 512,
         system:     SYSTEM_PROMPT,
         messages:   [{ role: 'user', content: [contentBlock] }],
@@ -98,8 +100,24 @@ router.post('/', upload.single('receipt'), async (req, res) => {
     }
 
     const data   = await response.json();
-    const text   = data.content?.[0]?.text ?? '{}';
-    const parsed = JSON.parse(text);
+    let text     = data.content?.[0]?.text ?? '{}';
+
+    // Strip markdown code fences and leading prose before the first '{'
+    text = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```$/, '');
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      text = text.slice(firstBrace, lastBrace + 1);
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (_parseErr) {
+      return res.status(502).json({
+        error: 'Receipt scan returned invalid JSON. Please try another receipt.',
+      });
+    }
 
     // Sanitise — only return known keys
     const result = {
@@ -114,6 +132,9 @@ router.post('/', upload.single('receipt'), async (req, res) => {
 
     res.json(result);
   } catch (err) {
+    if (err.name === 'AbortError') {
+      return res.status(504).json({ error: 'Receipt scan request timed out.' });
+    }
     res.status(500).json({ error: `Scan error: ${err.message}` });
   }
 });
