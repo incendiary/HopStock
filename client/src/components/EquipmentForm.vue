@@ -1,14 +1,8 @@
 <template>
-  <form
-    class="equipment-form"
-    @submit.prevent="handleSubmit"
-  >
+  <form class="equipment-form" @submit.prevent="handleSubmit">
     <!-- Name -->
     <div class="field">
-      <label
-        class="field__label"
-        for="ef-name"
-      >
+      <label class="field__label" for="ef-name">
         Name <span class="field__required">*</span>
       </label>
       <input
@@ -19,31 +13,15 @@
         required
         placeholder="e.g. 50 L Brew Kettle"
         :disabled="saving"
-      >
+      />
     </div>
 
     <!-- Category -->
     <div class="field">
-      <label
-        class="field__label"
-        for="ef-category"
-      >
-        Category
-      </label>
-      <select
-        id="ef-category"
-        v-model="form.category"
-        class="field__input"
-        :disabled="saving"
-      >
-        <option value="">
-          — select —
-        </option>
-        <option
-          v-for="cat in categories"
-          :key="cat.id"
-          :value="cat.id"
-        >
+      <label class="field__label" for="ef-category"> Category </label>
+      <select id="ef-category" v-model="form.category" class="field__input" :disabled="saving">
+        <option value="">— select —</option>
+        <option v-for="cat in categories" :key="cat.id" :value="cat.id">
           {{ cat.label }}
         </option>
       </select>
@@ -51,23 +29,9 @@
 
     <!-- Condition -->
     <div class="field">
-      <label
-        class="field__label"
-        for="ef-condition"
-      >
-        Condition
-      </label>
-      <select
-        id="ef-condition"
-        v-model="form.condition"
-        class="field__input"
-        :disabled="saving"
-      >
-        <option
-          v-for="cond in conditions"
-          :key="cond"
-          :value="cond"
-        >
+      <label class="field__label" for="ef-condition"> Condition </label>
+      <select id="ef-condition" v-model="form.condition" class="field__input" :disabled="saving">
+        <option v-for="cond in conditions" :key="cond" :value="cond">
           {{ cond }}
         </option>
       </select>
@@ -75,12 +39,7 @@
 
     <!-- Notes -->
     <div class="field">
-      <label
-        class="field__label"
-        for="ef-notes"
-      >
-        Notes
-      </label>
+      <label class="field__label" for="ef-notes"> Notes </label>
       <textarea
         id="ef-notes"
         v-model="form.notes"
@@ -95,69 +54,54 @@
     <details class="acquisition-section">
       <summary class="acquisition-section__summary">
         <span class="field__label">Acquisition details</span>
-        <span
-          v-if="scanAvailable"
-          class="acquisition-section__scan-hint"
-        >— or <button
-          type="button"
-          class="btn-scan-link"
-          :disabled="scanning"
-          @click.stop="triggerScan"
-        >{{ scanning ? 'Scanning…' : 'scan a receipt' }}</button></span>
+        <span v-if="scanAvailable" class="acquisition-section__scan-hint"
+          >— or
+          <button
+            type="button"
+            class="btn-scan-link"
+            :disabled="scanning"
+            @click.stop="triggerScan"
+          >
+            {{ scanning ? 'Scanning…' : 'scan a receipt' }}
+          </button></span
+        >
       </summary>
 
       <input
         ref="scanFileInput"
         type="file"
         accept="image/*,application/pdf"
-        style="display:none"
+        style="display: none"
         @change="onScanFile"
-      >
+      />
 
-      <p
-        v-if="scanError"
-        class="scan-error"
-      >
+      <p v-if="scanError" class="scan-error">
         {{ scanError }}
       </p>
 
       <div class="acquisition-grid">
         <div class="field">
-          <label
-            class="field__label"
-            for="ef-purchase-date"
-          >Purchase date</label>
+          <label class="field__label" for="ef-purchase-date">Purchase date</label>
           <input
             id="ef-purchase-date"
             v-model="form.purchase_date"
             class="field__input"
             type="date"
             :disabled="saving"
-          >
+          />
         </div>
         <div class="field">
-          <label
-            class="field__label"
-            for="ef-purchase-price"
-          >Price</label>
+          <label class="field__label" for="ef-purchase-price">Price</label>
           <div class="price-row">
             <select
               v-model="form.purchase_currency"
               class="field__input field__input--currency"
               :disabled="saving"
             >
-              <option value="GBP">
-                £ GBP
-              </option>
-              <option value="EUR">
-                € EUR
-              </option>
-              <option value="USD">
-                $ USD
-              </option>
-              <option value="AUD">
-                A$ AUD
-              </option>
+              <option value="GBP">£ GBP</option>
+              <option value="EUR">€ EUR</option>
+              <option value="USD">$ USD</option>
+              <option value="AUD">A$ AUD</option>
             </select>
             <input
               id="ef-purchase-price"
@@ -168,14 +112,11 @@
               step="0.01"
               placeholder="0.00"
               :disabled="saving"
-            >
+            />
           </div>
         </div>
         <div class="field">
-          <label
-            class="field__label"
-            for="ef-retailer"
-          >Retailer / source</label>
+          <label class="field__label" for="ef-retailer">Retailer / source</label>
           <input
             id="ef-retailer"
             v-model="form.retailer"
@@ -183,56 +124,44 @@
             type="text"
             placeholder="e.g. Brew UK"
             :disabled="saving"
-          >
+          />
         </div>
         <div class="field">
-          <label
-            class="field__label"
-            for="ef-warranty"
-          >Warranty expires</label>
+          <label class="field__label" for="ef-warranty">Warranty expires</label>
           <input
             id="ef-warranty"
             v-model="form.warranty_expires"
             class="field__input"
             type="date"
             :disabled="saving"
-          >
+          />
         </div>
         <div class="field">
-          <label
-            class="field__label"
-            for="ef-model"
-          >Model number</label>
+          <label class="field__label" for="ef-model">Model number</label>
           <input
             id="ef-model"
             v-model="form.model_number"
             class="field__input"
             type="text"
             :disabled="saving"
-          >
+          />
         </div>
         <div class="field">
-          <label
-            class="field__label"
-            for="ef-serial"
-          >Serial number</label>
+          <label class="field__label" for="ef-serial">Serial number</label>
           <input
             id="ef-serial"
             v-model="form.serial_number"
             class="field__input"
             type="text"
             :disabled="saving"
-          >
+          />
         </div>
       </div>
     </details>
 
     <!-- Quantity -->
     <div class="field">
-      <label
-        class="field__label"
-        for="ef-quantity"
-      >Quantity</label>
+      <label class="field__label" for="ef-quantity">Quantity</label>
       <div class="quantity-stepper">
         <button
           type="button"
@@ -249,7 +178,7 @@
           type="number"
           min="1"
           :disabled="saving"
-        >
+        />
         <button
           type="button"
           class="quantity-stepper__btn"
@@ -262,28 +191,11 @@
     </div>
 
     <!-- Location -->
-    <div
-      v-if="locations.length"
-      class="field"
-    >
-      <label
-        class="field__label"
-        for="ef-location"
-      >Location</label>
-      <select
-        id="ef-location"
-        v-model="form.location_id"
-        class="field__input"
-        :disabled="saving"
-      >
-        <option :value="null">
-          — none —
-        </option>
-        <option
-          v-for="loc in locations"
-          :key="loc.id"
-          :value="loc.id"
-        >
+    <div v-if="locations.length" class="field">
+      <label class="field__label" for="ef-location">Location</label>
+      <select id="ef-location" v-model="form.location_id" class="field__input" :disabled="saving">
+        <option :value="null">— none —</option>
+        <option v-for="loc in locations" :key="loc.id" :value="loc.id">
           {{ loc.name }}
         </option>
       </select>
@@ -291,46 +203,22 @@
 
     <!-- Tags -->
     <div class="field">
-      <p class="field__label">
-        Tags
-      </p>
-      <TagInput
-        v-model="form.tags"
-        :all-tags="allTags"
-        @tag-created="refreshTags"
-      />
+      <p class="field__label">Tags</p>
+      <TagInput v-model="form.tags" :all-tags="allTags" @tag-created="refreshTags" />
     </div>
 
     <!-- Icon -->
     <div class="field">
-      <p class="field__label">
-        Icon
-      </p>
-      <IconPicker
-        v-model="form.icon"
-        :disabled="saving"
-      />
+      <p class="field__label">Icon</p>
+      <IconPicker v-model="form.icon" :disabled="saving" />
     </div>
 
     <!-- Existing photos (edit mode) -->
-    <div
-      v-if="existingPhotos.length"
-      class="field"
-    >
-      <p class="field__label">
-        Current photos
-      </p>
+    <div v-if="existingPhotos.length" class="field">
+      <p class="field__label">Current photos</p>
       <div class="photo-grid">
-        <div
-          v-for="photo in existingPhotos"
-          :key="photo.id"
-          class="photo-thumb"
-        >
-          <img
-            :src="photo.url"
-            :alt="form.name"
-            class="photo-thumb__img"
-          >
+        <div v-for="photo in existingPhotos" :key="photo.id" class="photo-thumb">
+          <img :src="photo.url" :alt="form.name" class="photo-thumb__img" />
           <button
             type="button"
             class="photo-thumb__remove"
@@ -340,10 +228,7 @@
           >
             ×
           </button>
-          <div
-            v-if="photosToDelete.has(photo.id)"
-            class="photo-thumb__deleted-overlay"
-          >
+          <div v-if="photosToDelete.has(photo.id)" class="photo-thumb__deleted-overlay">
             Removing
           </div>
         </div>
@@ -364,22 +249,11 @@
           accept="image/*"
           :disabled="saving"
           @change="onFileChange"
-        >
+        />
       </label>
-      <div
-        v-if="newFiles.length"
-        class="photo-grid"
-      >
-        <div
-          v-for="(f, i) in newFiles"
-          :key="i"
-          class="photo-thumb"
-        >
-          <img
-            :src="f.preview"
-            :alt="f.file.name"
-            class="photo-thumb__img"
-          >
+      <div v-if="newFiles.length" class="photo-grid">
+        <div v-for="(f, i) in newFiles" :key="i" class="photo-thumb">
+          <img :src="f.preview" :alt="f.file.name" class="photo-thumb__img" />
           <button
             type="button"
             class="photo-thumb__remove"
@@ -394,28 +268,16 @@
     </div>
 
     <!-- Error -->
-    <p
-      v-if="formError"
-      class="form-error"
-    >
+    <p v-if="formError" class="form-error">
       {{ formError }}
     </p>
 
     <!-- Actions -->
     <div class="form-actions">
-      <button
-        type="button"
-        class="btn btn--secondary"
-        :disabled="saving"
-        @click="$emit('cancel')"
-      >
+      <button type="button" class="btn btn--secondary" :disabled="saving" @click="$emit('cancel')">
         Cancel
       </button>
-      <button
-        type="submit"
-        class="btn btn--primary"
-        :disabled="saving"
-      >
+      <button type="submit" class="btn btn--primary" :disabled="saving">
         {{ saving ? 'Saving…' : isEditing ? 'Save changes' : 'Add item' }}
       </button>
     </div>
@@ -438,7 +300,7 @@ import {
   getLocations,
 } from '../api.js';
 import IconPicker from './IconPicker.vue';
-import TagInput   from './TagInput.vue';
+import TagInput from './TagInput.vue';
 
 const props = defineProps({
   itemId: {
@@ -453,74 +315,78 @@ const isEditing = computed(() => props.itemId !== null);
 
 // Meta
 const categories = ref([]);
-const conditions  = ref([]);
-const allTags     = ref([]);
-const locations   = ref([]);
+const conditions = ref([]);
+const allTags = ref([]);
+const locations = ref([]);
 
 // Form state
 const form = ref({
-  name:              '',
-  category:          '',
-  condition:         'Good',
-  notes:             '',
-  icon:              null,
-  tags:              [],
+  name: '',
+  category: '',
+  condition: 'Good',
+  notes: '',
+  icon: null,
+  tags: [],
   // Purchase / acquisition
-  purchase_date:     null,
-  purchase_price:    null,
+  purchase_date: null,
+  purchase_price: null,
   purchase_currency: 'GBP',
-  retailer:          null,
-  serial_number:     null,
-  model_number:      null,
-  warranty_expires:  null,
-  quantity:          1,
-  location_id:       null,
+  retailer: null,
+  serial_number: null,
+  model_number: null,
+  warranty_expires: null,
+  quantity: 1,
+  location_id: null,
 });
 
 // Receipt scanning
-const scanAvailable  = ref(false);
-const scanning       = ref(false);
-const scanError      = ref(null);
-const scanFileInput  = ref(null);
+const scanAvailable = ref(false);
+const scanning = ref(false);
+const scanError = ref(null);
+const scanFileInput = ref(null);
 
 // Photo state
 const existingPhotos = ref([]);
 const photosToDelete = ref(new Set());
-const newFiles       = ref([]); // [{ file: File, preview: string }]
+const newFiles = ref([]); // [{ file: File, preview: string }]
 
 // Submission state
-const saving    = ref(false);
+const saving = ref(false);
 const formError = ref(null);
 
 // ─── Mount ────────────────────────────────────────────────
 onMounted(async () => {
   const [cats, conds, tags, scanStatus, locs] = await Promise.all([
-    getCategories(), getConditions(), getTags(), checkScanAvailable(), getLocations(),
+    getCategories(),
+    getConditions(),
+    getTags(),
+    checkScanAvailable(),
+    getLocations(),
   ]);
-  categories.value  = cats;
-  conditions.value  = conds;
-  allTags.value     = tags;
+  categories.value = cats;
+  conditions.value = conds;
+  allTags.value = tags;
   scanAvailable.value = scanStatus.available;
-  locations.value   = locs;
+  locations.value = locs;
 
   if (isEditing.value) {
     const item = await getEquipmentItem(props.itemId);
     form.value = {
-      name:              item.name              ?? '',
-      category:          item.category          ?? '',
-      condition:         item.condition         ?? 'Good',
-      notes:             item.notes             ?? '',
-      icon:              item.icon              ?? null,
-      tags:              item.tags              ?? [],
-      purchase_date:     item.purchase_date     ?? null,
-      purchase_price:    item.purchase_price    ?? null,
+      name: item.name ?? '',
+      category: item.category ?? '',
+      condition: item.condition ?? 'Good',
+      notes: item.notes ?? '',
+      icon: item.icon ?? null,
+      tags: item.tags ?? [],
+      purchase_date: item.purchase_date ?? null,
+      purchase_price: item.purchase_price ?? null,
       purchase_currency: item.purchase_currency ?? 'GBP',
-      retailer:          item.retailer          ?? null,
-      serial_number:     item.serial_number     ?? null,
-      model_number:      item.model_number      ?? null,
-      warranty_expires:  item.warranty_expires  ?? null,
-      quantity:          item.quantity          ?? 1,
-      location_id:       item.location_id       ?? null,
+      retailer: item.retailer ?? null,
+      serial_number: item.serial_number ?? null,
+      model_number: item.model_number ?? null,
+      warranty_expires: item.warranty_expires ?? null,
+      quantity: item.quantity ?? 1,
+      location_id: item.location_id ?? null,
     };
     existingPhotos.value = item.photos ?? [];
   }
@@ -592,25 +458,25 @@ function stageRemove(photoId) {
 // ─── Submit ───────────────────────────────────────────────
 async function handleSubmit() {
   formError.value = null;
-  saving.value    = true;
+  saving.value = true;
 
   try {
     const payload = {
-      name:              form.value.name.trim(),
-      category:          form.value.category  || null,
-      condition:         form.value.condition || 'Good',
-      notes:             form.value.notes.trim() || null,
-      icon:              form.value.icon || null,
-      tag_ids:           form.value.tags.map((t) => t.id),
-      purchase_date:     form.value.purchase_date     || null,
-      purchase_price:    form.value.purchase_price    ?? null,
+      name: form.value.name.trim(),
+      category: form.value.category || null,
+      condition: form.value.condition || 'Good',
+      notes: form.value.notes.trim() || null,
+      icon: form.value.icon || null,
+      tag_ids: form.value.tags.map((t) => t.id),
+      purchase_date: form.value.purchase_date || null,
+      purchase_price: form.value.purchase_price ?? null,
       purchase_currency: form.value.purchase_currency || 'GBP',
-      retailer:          form.value.retailer          || null,
-      serial_number:     form.value.serial_number     || null,
-      model_number:      form.value.model_number      || null,
-      warranty_expires:  form.value.warranty_expires  || null,
-      quantity:          Math.max(1, form.value.quantity || 1),
-      location_id:       form.value.location_id       || null,
+      retailer: form.value.retailer || null,
+      serial_number: form.value.serial_number || null,
+      model_number: form.value.model_number || null,
+      warranty_expires: form.value.warranty_expires || null,
+      quantity: Math.max(1, form.value.quantity || 1),
+      location_id: form.value.location_id || null,
     };
 
     let item;
@@ -622,9 +488,7 @@ async function handleSubmit() {
 
     // Delete staged photo removals
     if (photosToDelete.value.size) {
-      await Promise.all(
-        [...photosToDelete.value].map((pid) => deletePhoto(item.id, pid)),
-      );
+      await Promise.all([...photosToDelete.value].map((pid) => deletePhoto(item.id, pid)));
     }
 
     // Upload new photos
@@ -743,10 +607,19 @@ async function handleSubmit() {
   cursor: pointer;
   line-height: 1;
 
-  &:first-child { border-radius: 6px 0 0 6px; }
-  &:last-child  { border-radius: 0 6px 6px 0; }
-  &:hover:not(:disabled) { background: var(--color-surface-3); }
-  &:disabled { opacity: 0.4; cursor: not-allowed; }
+  &:first-child {
+    border-radius: 6px 0 0 6px;
+  }
+  &:last-child {
+    border-radius: 0 6px 6px 0;
+  }
+  &:hover:not(:disabled) {
+    background: var(--color-surface-3);
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 }
 
 .quantity-stepper__input {
@@ -762,7 +635,9 @@ async function handleSubmit() {
 
   /* hide spin buttons */
   &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button { -webkit-appearance: none; }
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
   -moz-appearance: textfield;
 }
 
@@ -834,7 +709,9 @@ async function handleSubmit() {
   font-size: 0.875rem;
   color: var(--color-muted);
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .file-pick:hover .file-pick__label {

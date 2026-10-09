@@ -1,35 +1,16 @@
 <template>
   <section class="mlog">
-    <h2 class="mlog__heading">
-      Maintenance log
-    </h2>
+    <h2 class="mlog__heading">Maintenance log</h2>
 
     <!-- Quick-add form -->
-    <form
-      class="mlog__add"
-      @submit.prevent="handleAdd"
-    >
-      <select
-        v-model="form.event_type"
-        class="mlog__select"
-        required
-        :disabled="adding"
-      >
-        <option
-          v-for="t in eventTypes"
-          :key="t"
-          :value="t"
-        >
+    <form class="mlog__add" @submit.prevent="handleAdd">
+      <select v-model="form.event_type" class="mlog__select" required :disabled="adding">
+        <option v-for="t in eventTypes" :key="t" :value="t">
           {{ t }}
         </option>
       </select>
 
-      <input
-        v-model="form.performed_at"
-        class="mlog__date"
-        type="date"
-        :disabled="adding"
-      >
+      <input v-model="form.performed_at" class="mlog__date" type="date" :disabled="adding" />
 
       <input
         v-model="form.notes"
@@ -37,55 +18,27 @@
         type="text"
         placeholder="Notes (optional)"
         :disabled="adding"
-      >
+      />
 
-      <button
-        type="submit"
-        class="mlog__btn mlog__btn--add"
-        :disabled="adding"
-      >
+      <button type="submit" class="mlog__btn mlog__btn--add" :disabled="adding">
         {{ adding ? '…' : '+ Log' }}
       </button>
     </form>
 
-    <p
-      v-if="addError"
-      class="mlog__error"
-    >
+    <p v-if="addError" class="mlog__error">
       {{ addError }}
     </p>
 
     <!-- Events list -->
-    <div
-      v-if="loading"
-      class="mlog__empty"
-    >
-      Loading…
-    </div>
-    <div
-      v-else-if="!events.length"
-      class="mlog__empty"
-    >
-      No maintenance events recorded yet.
-    </div>
-    <ul
-      v-else
-      class="mlog__list"
-    >
-      <li
-        v-for="event in events"
-        :key="event.id"
-        class="mlog__item"
-      >
-        <span
-          class="mlog__type-badge"
-          :class="`mlog__type-badge--${typeslug(event.event_type)}`"
-        >{{ event.event_type }}</span>
+    <div v-if="loading" class="mlog__empty">Loading…</div>
+    <div v-else-if="!events.length" class="mlog__empty">No maintenance events recorded yet.</div>
+    <ul v-else class="mlog__list">
+      <li v-for="event in events" :key="event.id" class="mlog__item">
+        <span class="mlog__type-badge" :class="`mlog__type-badge--${typeslug(event.event_type)}`">{{
+          event.event_type
+        }}</span>
         <span class="mlog__date-text">{{ formatDate(event.performed_at) }}</span>
-        <span
-          v-if="event.notes"
-          class="mlog__item-notes"
-        >{{ event.notes }}</span>
+        <span v-if="event.notes" class="mlog__item-notes">{{ event.notes }}</span>
         <button
           type="button"
           class="mlog__btn mlog__btn--delete"
@@ -117,25 +70,22 @@ const props = defineProps({
 
 const emit = defineEmits(['updated']);
 
-const events     = ref([]);
+const events = ref([]);
 const eventTypes = ref([]);
-const loading    = ref(false);
-const adding     = ref(false);
-const addError   = ref(null);
+const loading = ref(false);
+const adding = ref(false);
+const addError = ref(null);
 
 const today = new Date().toISOString().slice(0, 10);
 
 const form = ref({
-  event_type:   'Cleaned',
+  event_type: 'Cleaned',
   performed_at: today,
-  notes:        '',
+  notes: '',
 });
 
 onMounted(async () => {
-  const [types] = await Promise.all([
-    getMaintenanceEventTypes(),
-    loadEvents(),
-  ]);
+  const [types] = await Promise.all([getMaintenanceEventTypes(), loadEvents()]);
   eventTypes.value = types;
   form.value.event_type = types[0] ?? 'Cleaned';
 });
@@ -151,14 +101,12 @@ async function loadEvents() {
 
 async function handleAdd() {
   addError.value = null;
-  adding.value   = true;
+  adding.value = true;
   try {
     const payload = {
-      event_type:   form.value.event_type,
-      notes:        form.value.notes.trim() || null,
-      performed_at: form.value.performed_at
-        ? `${form.value.performed_at}T00:00:00Z`
-        : undefined,
+      event_type: form.value.event_type,
+      notes: form.value.notes.trim() || null,
+      performed_at: form.value.performed_at ? `${form.value.performed_at}T00:00:00Z` : undefined,
     };
     await addMaintenanceEvent(props.equipmentId, payload);
     form.value.notes = '';

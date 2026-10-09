@@ -8,25 +8,14 @@
     @keydown.space.prevent="$emit('select', item.id)"
   >
     <div class="card__thumb">
-      <img
-        v-if="firstPhotoUrl"
-        :src="firstPhotoUrl"
-        :alt="item.name"
-        class="card__thumb-img"
-      >
-      <div
-        v-else
-        class="card__thumb-placeholder"
-      >
+      <img v-if="firstPhotoUrl" :src="firstPhotoUrl" :alt="item.name" class="card__thumb-img" />
+      <div v-else class="card__thumb-placeholder">
         {{ item.icon || '📦' }}
       </div>
     </div>
 
     <div class="card__body">
-      <h3
-        class="card__name"
-        :title="item.name"
-      >
+      <h3 class="card__name" :title="item.name">
         {{ item.name }}
       </h3>
       <p class="card__category">
@@ -34,46 +23,32 @@
       </p>
 
       <!-- Tags -->
-      <div
-        v-if="item.tags && item.tags.length"
-        class="card__tags"
-      >
+      <div v-if="item.tags && item.tags.length" class="card__tags">
         <span
           v-for="tag in item.tags.slice(0, 3)"
           :key="tag.id"
           class="card__tag"
           :style="{ '--tag-color': tag.color }"
-        >{{ tag.name }}</span>
-        <span
-          v-if="item.tags.length > 3"
-          class="card__tag card__tag--more"
-        >+{{ item.tags.length - 3 }}</span>
+          >{{ tag.name }}</span
+        >
+        <span v-if="item.tags.length > 3" class="card__tag card__tag--more"
+          >+{{ item.tags.length - 3 }}</span
+        >
       </div>
 
       <!-- Quantity badge (shown when > 1) -->
-      <span
-        v-if="item.quantity && item.quantity > 1"
-        class="card__qty"
-      >×{{ item.quantity }}</span>
+      <span v-if="item.quantity && item.quantity > 1" class="card__qty">×{{ item.quantity }}</span>
 
       <!-- Location badge -->
-      <span
-        v-if="item.location"
-        class="card__location"
-      >📍 {{ item.location.name }}</span>
+      <span v-if="item.location" class="card__location">📍 {{ item.location.name }}</span>
 
       <!-- On Loan badge -->
-      <span
-        v-if="item.activeLoan"
-        class="card__on-loan"
-      >📤 On loan — {{ item.activeLoan.borrower }}</span>
+      <span v-if="item.activeLoan" class="card__on-loan"
+        >📤 On loan — {{ item.activeLoan.borrower }}</span
+      >
 
       <!-- Inline condition select — click stops card navigation -->
-      <div
-        class="card__condition-wrap"
-        @click.stop
-        @keydown.stop
-      >
+      <div class="card__condition-wrap" @click.stop @keydown.stop>
         <select
           class="card__condition"
           :class="`card__condition--${conditionSlug}`"
@@ -82,18 +57,11 @@
           aria-label="Condition"
           @change="onConditionChange"
         >
-          <option
-            v-for="c in conditions"
-            :key="c"
-            :value="c"
-          >
+          <option v-for="c in conditions" :key="c" :value="c">
             {{ c }}
           </option>
         </select>
-        <span
-          v-if="saving"
-          class="card__saving"
-        >…</span>
+        <span v-if="saving" class="card__saving">…</span>
       </div>
     </div>
   </div>
@@ -122,7 +90,12 @@ const emit = defineEmits(['select', 'updated']);
 
 // Local copy so the select reflects optimistic updates
 const localCondition = ref(props.item.condition ?? 'Good');
-watch(() => props.item.condition, (v) => { localCondition.value = v; });
+watch(
+  () => props.item.condition,
+  (v) => {
+    localCondition.value = v;
+  },
+);
 
 const saving = ref(false);
 
@@ -132,20 +105,18 @@ const categoryLabel = computed(
   () => props.categoryMap[props.item.category] ?? props.item.category ?? '—',
 );
 
-const conditionSlug = computed(
-  () => localCondition.value.toLowerCase().replace(/\s+/g, '-'),
-);
+const conditionSlug = computed(() => localCondition.value.toLowerCase().replace(/\s+/g, '-'));
 
 async function onConditionChange(e) {
   const newCondition = e.target.value;
-  const previous     = localCondition.value;
-  localCondition.value = newCondition;   // optimistic
+  const previous = localCondition.value;
+  localCondition.value = newCondition; // optimistic
   saving.value = true;
   try {
     const updated = await updateEquipment(props.item.id, { condition: newCondition });
     emit('updated', updated);
   } catch {
-    localCondition.value = previous;     // revert on error
+    localCondition.value = previous; // revert on error
   } finally {
     saving.value = false;
   }
@@ -159,7 +130,9 @@ async function onConditionChange(e) {
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.15s, transform 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
   outline: none;
 }
 

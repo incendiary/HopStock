@@ -4,15 +4,15 @@ import EquipmentForm from '../components/EquipmentForm.vue';
 
 // Stub all API calls the form makes on mount
 vi.mock('../api.js', () => ({
-  getCategories:      vi.fn().mockResolvedValue([
+  getCategories: vi.fn().mockResolvedValue([
     { id: 'kettle', label: 'Kettle', group: 'Vessels' },
     { id: 'fermenter', label: 'Fermenter', group: 'Vessels' },
   ]),
-  getConditions:      vi.fn().mockResolvedValue(['Good', 'Fair', 'Needs Repair', 'Retired']),
-  getTags:            vi.fn().mockResolvedValue([]),
+  getConditions: vi.fn().mockResolvedValue(['Good', 'Fair', 'Needs Repair', 'Retired']),
+  getTags: vi.fn().mockResolvedValue([]),
   checkScanAvailable: vi.fn().mockResolvedValue({ available: false }),
-  getLocations:       vi.fn().mockResolvedValue([]),
-  getEquipmentItem:   vi.fn().mockResolvedValue({
+  getLocations: vi.fn().mockResolvedValue([]),
+  getEquipmentItem: vi.fn().mockResolvedValue({
     id: 42,
     name: 'Existing Kettle',
     category: 'kettle',
@@ -33,7 +33,7 @@ vi.mock('../api.js', () => ({
   }),
   createEquipment: vi.fn().mockResolvedValue({ id: 99, name: 'New Item' }),
   updateEquipment: vi.fn().mockResolvedValue({ id: 42, name: 'Existing Kettle' }),
-  uploadPhotos:    vi.fn().mockResolvedValue([]),
+  uploadPhotos: vi.fn().mockResolvedValue([]),
 }));
 
 describe('EquipmentForm', () => {

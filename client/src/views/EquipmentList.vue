@@ -2,9 +2,7 @@
   <div class="equipment-list">
     <!-- Toolbar -->
     <div class="toolbar">
-      <h2 class="toolbar__title">
-        Inventory
-      </h2>
+      <h2 class="toolbar__title">Inventory</h2>
 
       <div class="toolbar__right">
         <div class="search-box">
@@ -15,7 +13,7 @@
             type="search"
             placeholder="Search name, notes, serial…"
             aria-label="Search equipment"
-          >
+          />
           <button
             v-if="searchQuery"
             class="search-box__clear"
@@ -27,52 +25,22 @@
           </button>
         </div>
 
-        <select
-          v-model="filterCategory"
-          class="filter-select"
-          aria-label="Filter by category"
-        >
-          <option value="">
-            All categories
-          </option>
-          <option
-            v-for="cat in categories"
-            :key="cat.id"
-            :value="cat.id"
-          >
+        <select v-model="filterCategory" class="filter-select" aria-label="Filter by category">
+          <option value="">All categories</option>
+          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
             {{ cat.label }}
           </option>
         </select>
 
-        <select
-          v-model="filterCondition"
-          class="filter-select"
-          aria-label="Filter by condition"
-        >
-          <option value="">
-            All conditions
-          </option>
-          <option
-            v-for="cond in conditions"
-            :key="cond"
-            :value="cond"
-          >
+        <select v-model="filterCondition" class="filter-select" aria-label="Filter by condition">
+          <option value="">All conditions</option>
+          <option v-for="cond in conditions" :key="cond" :value="cond">
             {{ cond }}
           </option>
         </select>
-        <select
-          v-model="filterTag"
-          class="filter-select"
-          aria-label="Filter by tag"
-        >
-          <option value="">
-            All tags
-          </option>
-          <option
-            v-for="tag in tags"
-            :key="tag.id"
-            :value="tag.name"
-          >
+        <select v-model="filterTag" class="filter-select" aria-label="Filter by tag">
+          <option value="">All tags</option>
+          <option v-for="tag in tags" :key="tag.id" :value="tag.name">
             {{ tag.name }}
           </option>
         </select>
@@ -83,17 +51,9 @@
           class="filter-select"
           aria-label="Filter by location"
         >
-          <option value="">
-            All locations
-          </option>
-          <option value="none">
-            No location
-          </option>
-          <option
-            v-for="loc in locations"
-            :key="loc.id"
-            :value="loc.id"
-          >
+          <option value="">All locations</option>
+          <option value="none">No location</option>
+          <option v-for="loc in locations" :key="loc.id" :value="loc.id">
             {{ loc.name }}
           </option>
         </select>
@@ -116,57 +76,39 @@
           ☑ Select
         </button>
 
-        <button
-          class="btn-add"
-          type="button"
-          @click="showAddModal = true"
-        >
-          + Add item
-        </button>
+        <button class="btn-add" type="button" @click="showAddModal = true">+ Add item</button>
       </div>
     </div>
 
     <!-- Loading -->
-    <div
-      v-if="loading"
-      class="state-message"
-    >
-      Loading…
-    </div>
+    <div v-if="loading" class="state-message">Loading…</div>
 
     <!-- Error -->
-    <div
-      v-else-if="error"
-      class="state-message state-message--error"
-    >
+    <div v-else-if="error" class="state-message state-message--error">
       {{ error }}
     </div>
 
     <!-- Empty -->
-    <div
-      v-else-if="items.length === 0"
-      class="state-message"
-    >
+    <div v-else-if="items.length === 0" class="state-message">
       <p>No equipment found.</p>
       <p
-        v-if="filterCategory || filterCondition || filterTag || filterLocation || filterOnLoan || searchQuery"
+        v-if="
+          filterCategory ||
+          filterCondition ||
+          filterTag ||
+          filterLocation ||
+          filterOnLoan ||
+          searchQuery
+        "
         class="state-message__hint"
       >
         Try clearing the filters.
       </p>
-      <p
-        v-else
-        class="state-message__hint"
-      >
-        Add your first item to get started.
-      </p>
+      <p v-else class="state-message__hint">Add your first item to get started.</p>
     </div>
 
     <!-- Grid -->
-    <div
-      v-else
-      class="grid"
-    >
+    <div v-else class="grid">
       <div
         v-for="item in items"
         :key="item.id"
@@ -175,16 +117,8 @@
         @click="selectMode ? toggleSelect(item.id) : null"
       >
         <!-- Selection checkbox overlay -->
-        <label
-          v-if="selectMode"
-          class="card-checkbox"
-          @click.stop
-        >
-          <input
-            type="checkbox"
-            :checked="selected.has(item.id)"
-            @change="toggleSelect(item.id)"
-          >
+        <label v-if="selectMode" class="card-checkbox" @click.stop>
+          <input type="checkbox" :checked="selected.has(item.id)" @change="toggleSelect(item.id)" />
         </label>
 
         <EquipmentCard
@@ -199,10 +133,7 @@
 
     <!-- Floating batch action bar -->
     <Transition name="batch-bar">
-      <div
-        v-if="selectMode && selected.size > 0"
-        class="batch-bar"
-      >
+      <div v-if="selectMode && selected.size > 0" class="batch-bar">
         <div class="batch-bar__count">
           <button
             class="batch-bar__select-all"
@@ -221,14 +152,8 @@
             :disabled="batching"
             @change="batchAction = 'condition'"
           >
-            <option :value="null">
-              Set condition…
-            </option>
-            <option
-              v-for="c in conditions"
-              :key="c"
-              :value="c"
-            >
+            <option :value="null">Set condition…</option>
+            <option v-for="c in conditions" :key="c" :value="c">
               {{ c }}
             </option>
           </select>
@@ -240,14 +165,8 @@
             :disabled="batching"
             @change="batchAction = 'tag'"
           >
-            <option :value="null">
-              Add tag…
-            </option>
-            <option
-              v-for="tag in tags"
-              :key="tag.id"
-              :value="tag.id"
-            >
+            <option :value="null">Add tag…</option>
+            <option v-for="tag in tags" :key="tag.id" :value="tag.id">
               {{ tag.name }}
             </option>
           </select>
@@ -260,25 +179,14 @@
             :disabled="batching"
             @change="batchAction = 'location'"
           >
-            <option :value="null">
-              Move to location…
-            </option>
-            <option value="__none__">
-              — None (unassign) —
-            </option>
-            <option
-              v-for="loc in locations"
-              :key="loc.id"
-              :value="loc.id"
-            >
+            <option :value="null">Move to location…</option>
+            <option value="__none__">— None (unassign) —</option>
+            <option v-for="loc in locations" :key="loc.id" :value="loc.id">
               {{ loc.name }}
             </option>
           </select>
 
-          <span
-            v-if="batchLabel"
-            class="batch-bar__pending"
-          >{{ batchLabel }}</span>
+          <span v-if="batchLabel" class="batch-bar__pending">{{ batchLabel }}</span>
 
           <button
             class="batch-bar__apply"
@@ -291,7 +199,11 @@
           <button
             class="batch-bar__delete"
             :disabled="batching"
-            @click="batchAction = 'delete'; batchValue = null; runBatch()"
+            @click="
+              batchAction = 'delete';
+              batchValue = null;
+              runBatch();
+            "
           >
             🗑 Delete ({{ selected.size }})
           </button>
@@ -301,43 +213,42 @@
   </div>
 
   <!-- Add modal -->
-  <AppModal
-    v-if="showAddModal"
-    title="Add equipment"
-    @close="showAddModal = false"
-  >
-    <EquipmentForm
-      :item-id="null"
-      @saved="onSaved"
-      @cancel="showAddModal = false"
-    />
+  <AppModal v-if="showAddModal" title="Add equipment" @close="showAddModal = false">
+    <EquipmentForm :item-id="null" @saved="onSaved" @cancel="showAddModal = false" />
   </AppModal>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { getEquipment, getCategories, getConditions, getTags, getLocations, batchEquipment } from '../api.js';
-import EquipmentCard  from '../components/EquipmentCard.vue';
-import AppModal       from '../components/AppModal.vue';
-import EquipmentForm  from '../components/EquipmentForm.vue';
+import {
+  getEquipment,
+  getCategories,
+  getConditions,
+  getTags,
+  getLocations,
+  batchEquipment,
+} from '../api.js';
+import EquipmentCard from '../components/EquipmentCard.vue';
+import AppModal from '../components/AppModal.vue';
+import EquipmentForm from '../components/EquipmentForm.vue';
 
 const router = useRouter();
-const route  = useRoute();
+const route = useRoute();
 
 const showAddModal = ref(false);
 
 // Batch select
-const selectMode   = ref(false);
-const selected     = ref(new Set()); // Set<number>
-const batchAction  = ref('');        // 'condition'|'tag'|'location'|'delete'
-const batchValue   = ref(null);
-const batching     = ref(false);
+const selectMode = ref(false);
+const selected = ref(new Set()); // Set<number>
+const batchAction = ref(''); // 'condition'|'tag'|'location'|'delete'
+const batchValue = ref(null);
+const batching = ref(false);
 
 function toggleSelectMode() {
   selectMode.value = !selectMode.value;
   if (!selectMode.value) {
-    selected.value  = new Set();
+    selected.value = new Set();
     batchAction.value = '';
   }
 }
@@ -382,57 +293,62 @@ async function runBatch() {
   batching.value = true;
   try {
     await batchEquipment({
-      ids:    [...selected.value],
+      ids: [...selected.value],
       action: batchAction.value,
-      value:  apiValue,
+      value: apiValue,
     });
-    selected.value    = new Set();
+    selected.value = new Set();
     batchAction.value = '';
-    batchValue.value  = null;
+    batchValue.value = null;
     await loadItems();
   } finally {
     batching.value = false;
   }
 }
 
-const items      = ref([]);
+const items = ref([]);
 const categories = ref([]);
 const conditions = ref([]);
-const loading    = ref(false);
-const error      = ref(null);
+const loading = ref(false);
+const error = ref(null);
 
-const filterCategory  = ref('');
+const filterCategory = ref('');
 const filterCondition = ref('');
-const filterTag       = ref('');
-const filterLocation  = ref('');
-const filterOnLoan    = ref(false);
-const searchQuery     = ref('');
-const tags            = ref([]);
-const locations       = ref([]);
+const filterTag = ref('');
+const filterLocation = ref('');
+const filterOnLoan = ref(false);
+const searchQuery = ref('');
+const tags = ref([]);
+const locations = ref([]);
 
 const categoryMap = computed(() =>
   Object.fromEntries(categories.value.map((c) => [c.id, c.label])),
 );
 
 async function loadMeta() {
-  const [cats, conds, t, locs] = await Promise.all([getCategories(), getConditions(), getTags(), getLocations()]);
+  const [cats, conds, t, locs] = await Promise.all([
+    getCategories(),
+    getConditions(),
+    getTags(),
+    getLocations(),
+  ]);
   categories.value = cats;
   conditions.value = conds;
-  tags.value       = t;
-  locations.value  = locs;
+  tags.value = t;
+  locations.value = locs;
 }
 
 async function loadItems() {
   loading.value = true;
-  error.value   = null;
+  error.value = null;
   try {
     items.value = await getEquipment({
-      category:  filterCategory.value  || undefined,
+      category: filterCategory.value || undefined,
       condition: filterCondition.value || undefined,
-      tag:       filterTag.value       || undefined,
-      location:  filterLocation.value  || undefined,
-      onLoan:    filterOnLoan.value    ? '1' : undefined,
-      q:         searchQuery.value.trim() || undefined,
+      tag: filterTag.value || undefined,
+      location: filterLocation.value || undefined,
+      onLoan: filterOnLoan.value ? '1' : undefined,
+      q: searchQuery.value.trim() || undefined,
     });
   } catch (err) {
     error.value = err.message ?? 'Failed to load equipment.';
@@ -442,27 +358,30 @@ async function loadItems() {
 }
 
 // Sync filter changes to URL query params (for bookmarkable filtered views)
-watch([filterCategory, filterCondition, filterTag, filterLocation, filterOnLoan, searchQuery], () => {
-  const q = {};
-  if (filterCategory.value)  q.category  = filterCategory.value;
-  if (filterCondition.value) q.condition = filterCondition.value;
-  if (filterTag.value)       q.tag       = filterTag.value;
-  if (filterLocation.value)  q.location  = filterLocation.value;
-  if (filterOnLoan.value)    q.onLoan    = '1';
-  if (searchQuery.value)     q.q         = searchQuery.value;
-  router.replace({ query: q });
-  loadItems();
-});
+watch(
+  [filterCategory, filterCondition, filterTag, filterLocation, filterOnLoan, searchQuery],
+  () => {
+    const q = {};
+    if (filterCategory.value) q.category = filterCategory.value;
+    if (filterCondition.value) q.condition = filterCondition.value;
+    if (filterTag.value) q.tag = filterTag.value;
+    if (filterLocation.value) q.location = filterLocation.value;
+    if (filterOnLoan.value) q.onLoan = '1';
+    if (searchQuery.value) q.q = searchQuery.value;
+    router.replace({ query: q });
+    loadItems();
+  },
+);
 
 onMounted(async () => {
   // Restore filter state from URL on initial load
   const q = route.query;
-  if (q.category)  filterCategory.value  = q.category;
+  if (q.category) filterCategory.value = q.category;
   if (q.condition) filterCondition.value = q.condition;
-  if (q.tag)       filterTag.value       = q.tag;
-  if (q.location)  filterLocation.value  = q.location;
-  if (q.onLoan)    filterOnLoan.value    = true;
-  if (q.q)         searchQuery.value     = q.q;
+  if (q.tag) filterTag.value = q.tag;
+  if (q.location) filterLocation.value = q.location;
+  if (q.onLoan) filterOnLoan.value = true;
+  if (q.q) searchQuery.value = q.q;
 
   await loadMeta();
   await loadItems();
@@ -553,10 +472,15 @@ function onSaved() {
   font-size: 0.875rem;
   width: 220px;
 
-  &:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+  &:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
 
   /* Remove browser default clear button */
-  &::-webkit-search-cancel-button { -webkit-appearance: none; }
+  &::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
 }
 
 .search-box__clear {
@@ -569,7 +493,9 @@ function onSaved() {
   cursor: pointer;
   line-height: 1;
   padding: 0;
-  &:hover { color: var(--color-text); }
+  &:hover {
+    color: var(--color-text);
+  }
 }
 
 .filter-select {
@@ -645,7 +571,7 @@ function onSaved() {
   z-index: 2;
   cursor: pointer;
 
-  input[type="checkbox"] {
+  input[type='checkbox'] {
     width: 1.2rem;
     height: 1.2rem;
     cursor: pointer;
@@ -666,7 +592,7 @@ function onSaved() {
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
   z-index: 100;
   flex-wrap: wrap;
   max-width: 90vw;
@@ -706,7 +632,9 @@ function onSaved() {
   padding: 0.3rem 0.6rem;
   font-size: 0.82rem;
   cursor: pointer;
-  &:disabled { opacity: 0.5; }
+  &:disabled {
+    opacity: 0.5;
+  }
 }
 
 .batch-bar__pending {
@@ -725,7 +653,10 @@ function onSaved() {
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .batch-bar__delete {
@@ -737,12 +668,19 @@ function onSaved() {
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 /* Transition for batch bar */
 .batch-bar-enter-active,
-.batch-bar-leave-active { transition: opacity 0.2s, transform 0.2s; }
+.batch-bar-leave-active {
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
 .batch-bar-enter-from,
 .batch-bar-leave-to {
   opacity: 0;

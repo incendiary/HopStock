@@ -21,7 +21,7 @@ const baseItem = {
 };
 
 const categoryMap = { kettle: 'Kettle' };
-const conditions  = ['Good', 'Fair', 'Needs Repair', 'Retired'];
+const conditions = ['Good', 'Fair', 'Needs Repair', 'Retired'];
 
 function mountCard(itemOverrides = {}) {
   return mount(EquipmentCard, {

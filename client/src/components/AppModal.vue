@@ -1,28 +1,12 @@
 <template>
   <Teleport to="body">
-    <div
-      class="modal-backdrop"
-      @click.self="$emit('close')"
-    >
-      <div
-        class="modal-panel"
-        role="dialog"
-        aria-modal="true"
-        :aria-labelledby="titleId"
-      >
+    <div class="modal-backdrop" @click.self="$emit('close')">
+      <div class="modal-panel" role="dialog" aria-modal="true" :aria-labelledby="titleId">
         <div class="modal-header">
-          <h2
-            :id="titleId"
-            class="modal-title"
-          >
+          <h2 :id="titleId" class="modal-title">
             {{ title }}
           </h2>
-          <button
-            class="modal-close"
-            aria-label="Close"
-            type="button"
-            @click="$emit('close')"
-          >
+          <button class="modal-close" aria-label="Close" type="button" @click="$emit('close')">
             ×
           </button>
         </div>

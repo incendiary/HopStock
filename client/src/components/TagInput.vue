@@ -1,10 +1,7 @@
 <template>
   <div class="tag-input">
     <!-- Existing tags on this item -->
-    <div
-      v-if="modelValue.length"
-      class="tag-input__selected"
-    >
+    <div v-if="modelValue.length" class="tag-input__selected">
       <span
         v-for="tag in modelValue"
         :key="tag.id"
@@ -12,12 +9,9 @@
         :style="{ '--tag-color': tag.color }"
       >
         {{ tag.name }}
-        <button
-          type="button"
-          class="tag-pill__remove"
-          aria-label="Remove tag"
-          @click="remove(tag)"
-        >×</button>
+        <button type="button" class="tag-pill__remove" aria-label="Remove tag" @click="remove(tag)">
+          ×
+        </button>
       </span>
     </div>
 
@@ -34,24 +28,18 @@
         @keydown.enter.prevent="onEnter"
         @keydown.escape="close"
         @focus="open"
-      >
+      />
     </div>
 
     <!-- Dropdown -->
-    <ul
-      v-if="showDropdown && (filtered.length || query.trim())"
-      class="tag-input__dropdown"
-    >
+    <ul v-if="showDropdown && (filtered.length || query.trim())" class="tag-input__dropdown">
       <li
         v-for="tag in filtered"
         :key="tag.id"
         class="tag-input__option"
         @mousedown.prevent="select(tag)"
       >
-        <span
-          class="tag-dot"
-          :style="{ background: tag.color }"
-        />
+        <span class="tag-dot" :style="{ background: tag.color }" />
         {{ tag.name }}
       </li>
       <li
@@ -82,9 +70,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'tag-created']);
 
-const query       = ref('');
+const query = ref('');
 const showDropdown = ref(false);
-const inputRef    = ref(null);
+const inputRef = ref(null);
 
 const selectedIds = computed(() => new Set(props.modelValue.map((t) => t.id)));
 
@@ -133,7 +121,10 @@ function select(tag) {
 }
 
 function remove(tag) {
-  emit('update:modelValue', props.modelValue.filter((t) => t.id !== tag.id));
+  emit(
+    'update:modelValue',
+    props.modelValue.filter((t) => t.id !== tag.id),
+  );
 }
 
 async function createAndSelect() {

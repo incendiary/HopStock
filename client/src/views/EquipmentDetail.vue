@@ -1,37 +1,19 @@
 <template>
   <div class="detail-page">
     <!-- Loading -->
-    <div
-      v-if="loading"
-      class="state-message"
-    >
-      Loading…
-    </div>
+    <div v-if="loading" class="state-message">Loading…</div>
 
     <!-- Error / not found -->
-    <div
-      v-else-if="error"
-      class="state-message state-message--error"
-    >
+    <div v-else-if="error" class="state-message state-message--error">
       <p>{{ error }}</p>
-      <RouterLink
-        to="/"
-        class="back-link"
-      >
-        ← Back to inventory
-      </RouterLink>
+      <RouterLink to="/" class="back-link"> ← Back to inventory </RouterLink>
     </div>
 
     <!-- Content -->
     <template v-else-if="item">
       <!-- Top bar -->
       <div class="topbar">
-        <RouterLink
-          to="/"
-          class="back-link"
-        >
-          ← Inventory
-        </RouterLink>
+        <RouterLink to="/" class="back-link"> ← Inventory </RouterLink>
         <div class="topbar__actions">
           <button
             class="btn btn--secondary"
@@ -42,13 +24,7 @@
             📷 QR
           </button>
 
-          <button
-            class="btn btn--primary"
-            type="button"
-            @click="showEditModal = true"
-          >
-            Edit
-          </button>
+          <button class="btn btn--primary" type="button" @click="showEditModal = true">Edit</button>
 
           <!-- Delete — two-step confirmation -->
           <template v-if="!confirmDelete">
@@ -84,26 +60,16 @@
       </div>
 
       <!-- Inline QR panel -->
-      <div
-        v-if="showQrModal"
-        class="qr-panel"
-      >
+      <div v-if="showQrModal" class="qr-panel">
         <div class="qr-panel__inner">
           <p class="qr-panel__label">
             Scan to open <strong>{{ item.name }}</strong> on any device
           </p>
-          <QrCode
-            :value="itemQrUrl"
-            :size="200"
-          />
+          <QrCode :value="itemQrUrl" :size="200" />
           <p class="qr-panel__url">
             {{ itemQrUrl }}
           </p>
-          <RouterLink
-            to="/print-labels"
-            class="btn btn--secondary"
-            style="font-size:0.82rem"
-          >
+          <RouterLink to="/print-labels" class="btn btn--secondary" style="font-size: 0.82rem">
             Print all labels →
           </RouterLink>
         </div>
@@ -112,27 +78,14 @@
       <div class="detail-layout">
         <!-- Photo gallery -->
         <section class="gallery">
-          <div
-            v-if="item.photos && item.photos.length"
-            class="gallery__main"
-          >
-            <img
-              :src="activePhoto.url"
-              :alt="item.name"
-              class="gallery__featured"
-            >
+          <div v-if="item.photos && item.photos.length" class="gallery__main">
+            <img :src="activePhoto.url" :alt="item.name" class="gallery__featured" />
           </div>
-          <div
-            v-else
-            class="gallery__placeholder"
-          >
+          <div v-else class="gallery__placeholder">
             {{ item.icon || '📦' }}
           </div>
 
-          <div
-            v-if="item.photos && item.photos.length > 1"
-            class="gallery__thumbs"
-          >
+          <div v-if="item.photos && item.photos.length > 1" class="gallery__thumbs">
             <button
               v-for="photo in item.photos"
               :key="photo.id"
@@ -141,42 +94,22 @@
               :class="{ 'gallery__thumb-btn--active': photo.id === activePhotoId }"
               @click="activePhotoId = photo.id"
             >
-              <img
-                :src="photo.url"
-                :alt="item.name"
-                class="gallery__thumb-img"
-              >
+              <img :src="photo.url" :alt="item.name" class="gallery__thumb-img" />
             </button>
           </div>
 
           <!-- Photo caption -->
-          <p
-            v-if="activePhoto && activePhoto.caption"
-            class="gallery__caption"
-          >
+          <p v-if="activePhoto && activePhoto.caption" class="gallery__caption">
             {{ activePhoto.caption }}
           </p>
 
           <!-- Photo management (edit controls) -->
-          <div
-            v-if="item.photos && item.photos.length"
-            class="gallery__manage"
-          >
+          <div v-if="item.photos && item.photos.length" class="gallery__manage">
             <details class="photo-manage-details">
-              <summary class="photo-manage-details__summary">
-                Manage photos
-              </summary>
+              <summary class="photo-manage-details__summary">Manage photos</summary>
               <ul class="photo-manage-list">
-                <li
-                  v-for="(photo, idx) in item.photos"
-                  :key="photo.id"
-                  class="photo-manage-row"
-                >
-                  <img
-                    :src="photo.url"
-                    :alt="item.name"
-                    class="photo-manage-row__thumb"
-                  >
+                <li v-for="(photo, idx) in item.photos" :key="photo.id" class="photo-manage-row">
+                  <img :src="photo.url" :alt="item.name" class="photo-manage-row__thumb" />
                   <div class="photo-manage-row__controls">
                     <button
                       class="btn-icon"
@@ -202,10 +135,7 @@
                     >
                       ⭐
                     </button>
-                    <span
-                      v-else
-                      class="photo-manage-row__primary"
-                    >Primary</span>
+                    <span v-else class="photo-manage-row__primary">Primary</span>
                   </div>
                   <input
                     class="photo-manage-row__caption"
@@ -213,7 +143,7 @@
                     :placeholder="`Caption…`"
                     :value="photo.caption || ''"
                     @change="saveCaption(photo, $event.target.value)"
-                  >
+                  />
                 </li>
               </ul>
             </details>
@@ -223,10 +153,8 @@
         <!-- Metadata -->
         <section class="meta">
           <h1 class="meta__name">
-            <span
-              v-if="item.icon"
-              class="meta__icon"
-            >{{ item.icon }}</span>{{ item.name }}
+            <span v-if="item.icon" class="meta__icon">{{ item.icon }}</span
+            >{{ item.name }}
           </h1>
 
           <div class="meta__badges">
@@ -240,25 +168,15 @@
                 aria-label="Condition"
                 @change="onConditionChange"
               >
-                <option
-                  v-for="c in conditions"
-                  :key="c"
-                  :value="c"
-                >
+                <option v-for="c in conditions" :key="c" :value="c">
                   {{ c }}
                 </option>
               </select>
               <Transition name="fade">
-                <span
-                  v-if="conditionSaved"
-                  class="condition-saved"
-                >Saved ✓</span>
+                <span v-if="conditionSaved" class="condition-saved">Saved ✓</span>
               </Transition>
             </div>
-            <span
-              v-if="categoryLabel"
-              class="badge badge--category"
-            >{{ categoryLabel }}</span>
+            <span v-if="categoryLabel" class="badge badge--category">{{ categoryLabel }}</span>
 
             <!-- Tags -->
             <span
@@ -266,93 +184,66 @@
               :key="tag.id"
               class="badge badge--tag"
               :style="{ '--tag-color': tag.color }"
-            >{{ tag.name }}</span>
+              >{{ tag.name }}</span
+            >
 
             <!-- Location badge -->
-            <span
-              v-if="item.location"
-              class="badge badge--location"
-            >📍 {{ item.location.name }}</span>
+            <span v-if="item.location" class="badge badge--location"
+              >📍 {{ item.location.name }}</span
+            >
 
             <!-- On Loan badge -->
-            <span
-              v-if="item.activeLoan"
-              class="badge badge--loan"
-            >📤 On loan — {{ item.activeLoan.borrower }}</span>
+            <span v-if="item.activeLoan" class="badge badge--loan"
+              >📤 On loan — {{ item.activeLoan.borrower }}</span
+            >
 
             <!-- Maintenance summary chips -->
             <span
               v-if="lastCleaned"
               class="badge badge--maint badge--cleaned"
               :title="`Last cleaned ${formatDateShort(lastCleaned)}`"
-            >🧽 {{ daysAgo(lastCleaned) }}</span>
+              >🧽 {{ daysAgo(lastCleaned) }}</span
+            >
             <span
               v-if="lastServiced"
               class="badge badge--maint badge--serviced"
               :title="`Last serviced ${formatDateShort(lastServiced)}`"
-            >🔧 {{ daysAgo(lastServiced) }}</span>
+              >🔧 {{ daysAgo(lastServiced) }}</span
+            >
           </div>
 
-          <div
-            v-if="item.notes"
-            class="meta__notes"
-          >
-            <p class="meta__notes-label">
-              Notes
-            </p>
+          <div v-if="item.notes" class="meta__notes">
+            <p class="meta__notes-label">Notes</p>
             <p class="meta__notes-body">
               {{ item.notes }}
             </p>
           </div>
 
           <!-- Acquisition info -->
-          <div
-            v-if="hasAcquisitionData"
-            class="meta__acquisition"
-          >
-            <p class="meta__notes-label">
-              Acquisition
-            </p>
+          <div v-if="hasAcquisitionData" class="meta__acquisition">
+            <p class="meta__notes-label">Acquisition</p>
             <dl class="meta__dates">
-              <div
-                v-if="item.retailer"
-                class="meta__date-row"
-              >
+              <div v-if="item.retailer" class="meta__date-row">
                 <dt>From</dt>
                 <dd>{{ item.retailer }}</dd>
               </div>
-              <div
-                v-if="item.purchase_price != null"
-                class="meta__date-row"
-              >
+              <div v-if="item.purchase_price != null" class="meta__date-row">
                 <dt>Paid</dt>
                 <dd>{{ formatPrice(item.purchase_price, item.purchase_currency) }}</dd>
               </div>
-              <div
-                v-if="item.purchase_date"
-                class="meta__date-row"
-              >
+              <div v-if="item.purchase_date" class="meta__date-row">
                 <dt>Bought</dt>
                 <dd>{{ formatDateShort(item.purchase_date) }}</dd>
               </div>
-              <div
-                v-if="item.model_number"
-                class="meta__date-row"
-              >
+              <div v-if="item.model_number" class="meta__date-row">
                 <dt>Model</dt>
                 <dd>{{ item.model_number }}</dd>
               </div>
-              <div
-                v-if="item.serial_number"
-                class="meta__date-row"
-              >
+              <div v-if="item.serial_number" class="meta__date-row">
                 <dt>Serial</dt>
                 <dd>{{ item.serial_number }}</dd>
               </div>
-              <div
-                v-if="item.warranty_expires"
-                class="meta__date-row"
-              >
+              <div v-if="item.warranty_expires" class="meta__date-row">
                 <dt>Warranty</dt>
                 <dd :class="{ 'meta__warranty--expired': warrantyExpired }">
                   {{ formatDateShort(item.warranty_expires) }}
@@ -367,10 +258,7 @@
               <dt>Added</dt>
               <dd>{{ formatDate(item.created_at) }}</dd>
             </div>
-            <div
-              v-if="item.updated_at !== item.created_at"
-              class="meta__date-row"
-            >
+            <div v-if="item.updated_at !== item.created_at" class="meta__date-row">
               <dt>Updated</dt>
               <dd>{{ formatDate(item.updated_at) }}</dd>
             </div>
@@ -380,30 +268,20 @@
 
       <!-- Maintenance log — full width below the two-column layout -->
       <div class="maintenance-section">
-        <MaintenanceLog
-          :equipment-id="item.id"
-          @updated="onMaintenanceUpdated"
-        />
+        <MaintenanceLog :equipment-id="item.id" @updated="onMaintenanceUpdated" />
       </div>
 
       <!-- Loan history -->
       <div class="loans-section">
-        <h3 class="section-title">
-          Loans
-        </h3>
+        <h3 class="section-title">Loans</h3>
 
         <!-- Record loan form -->
-        <form
-          v-if="showLoanForm"
-          class="loan-form"
-          @submit.prevent="submitLoan"
-        >
+        <form v-if="showLoanForm" class="loan-form" @submit.prevent="submitLoan">
           <div class="loan-form__fields">
             <div class="field">
-              <label
-                class="field__label"
-                for="loan-borrower"
-              >Borrower <span class="field__required">*</span></label>
+              <label class="field__label" for="loan-borrower"
+                >Borrower <span class="field__required">*</span></label
+              >
               <input
                 id="loan-borrower"
                 ref="borrowerInput"
@@ -413,46 +291,37 @@
                 placeholder="Name"
                 required
                 :disabled="loanSaving"
-              >
+              />
             </div>
             <div class="field">
-              <label
-                class="field__label"
-                for="loan-date"
-              >Loaned on</label>
+              <label class="field__label" for="loan-date">Loaned on</label>
               <input
                 id="loan-date"
                 v-model="loanForm.loaned_at"
                 class="field__input"
                 type="date"
                 :disabled="loanSaving"
-              >
+              />
             </div>
             <div class="field">
-              <label
-                class="field__label"
-                for="loan-return"
-              >Expected return</label>
+              <label class="field__label" for="loan-return">Expected return</label>
               <input
                 id="loan-return"
                 v-model="loanForm.expected_return"
                 class="field__input"
                 type="date"
                 :disabled="loanSaving"
-              >
+              />
             </div>
             <div class="field field--full">
-              <label
-                class="field__label"
-                for="loan-notes"
-              >Notes</label>
+              <label class="field__label" for="loan-notes">Notes</label>
               <input
                 id="loan-notes"
                 v-model="loanForm.notes"
                 class="field__input"
                 type="text"
                 :disabled="loanSaving"
-              >
+              />
             </div>
           </div>
           <div class="loan-form__actions">
@@ -474,19 +343,10 @@
           </div>
         </form>
 
-        <button
-          v-else
-          class="btn btn--secondary"
-          @click="openLoanForm"
-        >
-          + Record loan
-        </button>
+        <button v-else class="btn btn--secondary" @click="openLoanForm">+ Record loan</button>
 
         <!-- Loans list -->
-        <ul
-          v-if="loans.length"
-          class="loan-list"
-        >
+        <ul v-if="loans.length" class="loan-list">
           <li
             v-for="loan in loans"
             :key="loan.id"
@@ -497,27 +357,18 @@
               <span class="loan-row__borrower">{{ loan.borrower }}</span>
               <span class="loan-row__dates">
                 {{ formatDateShort(loan.loaned_at) }}
-                <span v-if="loan.expected_return">→ due {{ formatDateShort(loan.expected_return) }}</span>
-                <span
-                  v-if="loan.returned_at"
-                  class="loan-row__returned"
-                > — returned {{ formatDateShort(loan.returned_at) }}</span>
-                <span
-                  v-else-if="isOverdue(loan)"
-                  class="loan-row__overdue"
-                > — OVERDUE</span>
+                <span v-if="loan.expected_return"
+                  >→ due {{ formatDateShort(loan.expected_return) }}</span
+                >
+                <span v-if="loan.returned_at" class="loan-row__returned">
+                  — returned {{ formatDateShort(loan.returned_at) }}</span
+                >
+                <span v-else-if="isOverdue(loan)" class="loan-row__overdue"> — OVERDUE</span>
               </span>
-              <span
-                v-if="loan.notes"
-                class="loan-row__notes"
-              >{{ loan.notes }}</span>
+              <span v-if="loan.notes" class="loan-row__notes">{{ loan.notes }}</span>
             </div>
             <div class="loan-row__actions">
-              <button
-                v-if="!loan.returned_at"
-                class="btn btn--accent"
-                @click="markReturned(loan)"
-              >
+              <button v-if="!loan.returned_at" class="btn btn--accent" @click="markReturned(loan)">
                 Mark returned
               </button>
               <button
@@ -530,26 +381,13 @@
             </div>
           </li>
         </ul>
-        <p
-          v-else-if="!showLoanForm"
-          class="loans-empty"
-        >
-          No loan history.
-        </p>
+        <p v-else-if="!showLoanForm" class="loans-empty">No loan history.</p>
       </div>
     </template>
 
     <!-- Edit modal -->
-    <AppModal
-      v-if="showEditModal"
-      title="Edit equipment"
-      @close="showEditModal = false"
-    >
-      <EquipmentForm
-        :item-id="item.id"
-        @saved="onSaved"
-        @cancel="showEditModal = false"
-      />
+    <AppModal v-if="showEditModal" title="Edit equipment" @close="showEditModal = false">
+      <EquipmentForm :item-id="item.id" @saved="onSaved" @cancel="showEditModal = false" />
     </AppModal>
   </div>
 </template>
@@ -570,42 +408,43 @@ import {
   deleteLoan,
   patchPhoto,
 } from '../api.js';
-import AppModal      from '../components/AppModal.vue';
+import AppModal from '../components/AppModal.vue';
 import EquipmentForm from '../components/EquipmentForm.vue';
 import MaintenanceLog from '../components/MaintenanceLog.vue';
-import QrCode        from '../components/QrCode.vue';
+import QrCode from '../components/QrCode.vue';
 
-const route  = useRoute();
+const route = useRoute();
 const router = useRouter();
 
-const item               = ref(null);
-const categories         = ref([]);
-const conditions         = ref([]);
-const maintenanceEvents  = ref([]);
-const loading            = ref(false);
-const error              = ref(null);
-const showEditModal      = ref(false);
-const showQrModal        = ref(false);
-const activePhotoId      = ref(null);
-const confirmDelete      = ref(false);
-const deleting           = ref(false);
-const conditionSaving    = ref(false);
-const conditionSaved     = ref(false);
+const item = ref(null);
+const categories = ref([]);
+const conditions = ref([]);
+const maintenanceEvents = ref([]);
+const loading = ref(false);
+const error = ref(null);
+const showEditModal = ref(false);
+const showQrModal = ref(false);
+const activePhotoId = ref(null);
+const confirmDelete = ref(false);
+const deleting = ref(false);
+const conditionSaving = ref(false);
+const conditionSaved = ref(false);
 
 // Loans
-const loans          = ref([]);
-const showLoanForm   = ref(false);
-const loanForm       = ref({ borrower: '', loaned_at: '', expected_return: '', notes: '' });
-const loanSaving     = ref(false);
-const borrowerInput  = ref(null);
+const loans = ref([]);
+const showLoanForm = ref(false);
+const loanForm = ref({ borrower: '', loaned_at: '', expected_return: '', notes: '' });
+const loanSaving = ref(false);
+const borrowerInput = ref(null);
 
 // ─── Computed ─────────────────────────────────────────────
 const itemId = computed(() => Number(route.params.id));
 
 const activePhoto = computed(
-  () => item.value?.photos?.find((p) => p.id === activePhotoId.value)
-    ?? item.value?.photos?.[0]
-    ?? null,
+  () =>
+    item.value?.photos?.find((p) => p.id === activePhotoId.value) ??
+    item.value?.photos?.[0] ??
+    null,
 );
 
 const categoryMap = computed(() =>
@@ -616,24 +455,24 @@ const categoryLabel = computed(
   () => categoryMap.value[item.value?.category] ?? item.value?.category ?? '',
 );
 
-const conditionSlug = computed(
-  () => (item.value?.condition ?? '').toLowerCase().replace(/\s+/g, '-'),
+const conditionSlug = computed(() =>
+  (item.value?.condition ?? '').toLowerCase().replace(/\s+/g, '-'),
 );
 
-const itemQrUrl = computed(
-  () => item.value ? `${window.location.origin}/equipment/${item.value.id}` : '',
+const itemQrUrl = computed(() =>
+  item.value ? `${window.location.origin}/equipment/${item.value.id}` : '',
 );
 
 // Acquisition data presence
-const hasAcquisitionData = computed(() =>
-  item.value && (
-    item.value.purchase_date ||
-    item.value.purchase_price != null ||
-    item.value.retailer ||
-    item.value.model_number ||
-    item.value.serial_number ||
-    item.value.warranty_expires
-  ),
+const hasAcquisitionData = computed(
+  () =>
+    item.value &&
+    (item.value.purchase_date ||
+      item.value.purchase_price != null ||
+      item.value.retailer ||
+      item.value.model_number ||
+      item.value.serial_number ||
+      item.value.warranty_expires),
 );
 
 const warrantyExpired = computed(() => {
@@ -657,8 +496,8 @@ const lastServiced = computed(() => {
 // ─── Load ─────────────────────────────────────────────────
 async function load() {
   loading.value = true;
-  error.value   = null;
-  item.value    = null;
+  error.value = null;
+  item.value = null;
   try {
     const [fetched, cats, conds, events, loanList] = await Promise.all([
       getEquipmentItem(itemId.value),
@@ -667,16 +506,14 @@ async function load() {
       getMaintenanceEvents(itemId.value),
       getLoans(itemId.value),
     ]);
-    categories.value        = cats;
-    conditions.value        = conds;
-    item.value              = fetched;
+    categories.value = cats;
+    conditions.value = conds;
+    item.value = fetched;
     maintenanceEvents.value = events;
-    loans.value             = loanList;
-    activePhotoId.value     = fetched.photos?.[0]?.id ?? null;
+    loans.value = loanList;
+    activePhotoId.value = fetched.photos?.[0]?.id ?? null;
   } catch (err) {
-    error.value = err.status === 404
-      ? 'Item not found.'
-      : (err.message ?? 'Failed to load item.');
+    error.value = err.status === 404 ? 'Item not found.' : (err.message ?? 'Failed to load item.');
   } finally {
     loading.value = false;
   }
@@ -688,7 +525,9 @@ watch(item, (val) => {
   if (val?.name) document.title = `${val.name} — HopStock`;
 });
 
-onUnmounted(() => { document.title = 'HopStock'; });
+onUnmounted(() => {
+  document.title = 'HopStock';
+});
 
 // ─── Helpers ──────────────────────────────────────────────
 function formatDate(iso) {
@@ -723,15 +562,17 @@ function daysAgo(iso) {
 
 async function onConditionChange(e) {
   const newCondition = e.target.value;
-  const previous     = item.value.condition;
+  const previous = item.value.condition;
   item.value = { ...item.value, condition: newCondition }; // optimistic
   conditionSaving.value = true;
-  conditionSaved.value  = false;
+  conditionSaved.value = false;
   try {
     const updated = await updateEquipment(item.value.id, { condition: newCondition });
     item.value = updated;
     conditionSaved.value = true;
-    setTimeout(() => { conditionSaved.value = false; }, 2000);
+    setTimeout(() => {
+      conditionSaved.value = false;
+    }, 2000);
   } catch {
     item.value = { ...item.value, condition: previous }; // revert
   } finally {
@@ -773,10 +614,10 @@ async function submitLoan() {
   loanSaving.value = true;
   try {
     const body = {
-      borrower:        loanForm.value.borrower.trim(),
-      loaned_at:       loanForm.value.loaned_at       || null,
+      borrower: loanForm.value.borrower.trim(),
+      loaned_at: loanForm.value.loaned_at || null,
       expected_return: loanForm.value.expected_return || null,
-      notes:           loanForm.value.notes           || null,
+      notes: loanForm.value.notes || null,
     };
     await recordLoan(itemId.value, body);
     showLoanForm.value = false;
@@ -785,7 +626,7 @@ async function submitLoan() {
       getEquipmentItem(itemId.value),
     ]);
     loans.value = loanList;
-    item.value  = fetched;
+    item.value = fetched;
   } finally {
     loanSaving.value = false;
   }
@@ -798,7 +639,7 @@ async function markReturned(loan) {
     getEquipmentItem(itemId.value),
   ]);
   loans.value = loanList;
-  item.value  = fetched;
+  item.value = fetched;
 }
 
 async function removeLoan(loan) {
@@ -809,7 +650,7 @@ async function removeLoan(loan) {
     getEquipmentItem(itemId.value),
   ]);
   loans.value = loanList;
-  item.value  = fetched;
+  item.value = fetched;
 }
 
 function isOverdue(loan) {
@@ -1010,7 +851,9 @@ async function saveCaption(photo, caption) {
   color: var(--color-muted);
   cursor: pointer;
   user-select: none;
-  &:hover { color: var(--color-text); }
+  &:hover {
+    color: var(--color-text);
+  }
 }
 
 .photo-manage-list {
@@ -1063,7 +906,10 @@ async function saveCaption(photo, caption) {
   color: var(--color-text);
   font-size: 0.82rem;
   padding: 0.25rem 0.5rem;
-  &:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+  &:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
 }
 
 /* Metadata */
@@ -1304,10 +1150,14 @@ select.badge:disabled {
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
 
-  @media (max-width: 600px) { grid-template-columns: 1fr; }
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 }
 
-.field--full { grid-column: 1 / -1; }
+.field--full {
+  grid-column: 1 / -1;
+}
 
 .loan-form__actions {
   display: flex;
@@ -1330,7 +1180,9 @@ select.badge:disabled {
   letter-spacing: 0.04em;
 }
 
-.field__required { color: var(--color-danger); }
+.field__required {
+  color: var(--color-danger);
+}
 
 .field__input {
   padding: 0.4rem 0.65rem;
@@ -1339,7 +1191,10 @@ select.badge:disabled {
   border-radius: 6px;
   color: var(--color-text);
   font-size: 0.9rem;
-  &:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+  &:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
 }
 
 .loan-list {
@@ -1374,15 +1229,23 @@ select.badge:disabled {
   min-width: 0;
 }
 
-.loan-row__borrower { font-weight: 600; color: var(--color-text); }
+.loan-row__borrower {
+  font-weight: 600;
+  color: var(--color-text);
+}
 
 .loan-row__dates {
   font-size: 0.82rem;
   color: var(--color-muted);
 }
 
-.loan-row__returned { color: var(--color-accent); }
-.loan-row__overdue  { color: var(--color-danger); font-weight: 700; }
+.loan-row__returned {
+  color: var(--color-accent);
+}
+.loan-row__overdue {
+  color: var(--color-danger);
+  font-weight: 700;
+}
 
 .loan-row__notes {
   font-size: 0.82rem;
@@ -1405,7 +1268,10 @@ select.badge:disabled {
   border-radius: 4px;
   font-size: 1rem;
   opacity: 0.7;
-  &:hover { opacity: 1; background: var(--color-surface-2); }
+  &:hover {
+    opacity: 1;
+    background: var(--color-surface-2);
+  }
 }
 
 .btn-icon--danger:hover {
@@ -1427,6 +1293,8 @@ select.badge:disabled {
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  &:hover { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+  &:hover {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
 }
 </style>

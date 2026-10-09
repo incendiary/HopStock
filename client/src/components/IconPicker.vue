@@ -37,40 +37,40 @@ defineEmits(['update:modelValue']);
 
 const ICONS = [
   // Vessels
-  { emoji: '🫕',  label: 'Kettle'                  },
-  { emoji: '🏺',  label: 'Boiler'                  },
-  { emoji: '🧪',  label: 'Conical Fermenter'        },
-  { emoji: '🪣',  label: 'Bucket Fermenter'         },
-  { emoji: '🫙',  label: 'Carboy / Demijohn'        },
-  { emoji: '🛢️', label: 'Keg'                      },
+  { emoji: '🫕', label: 'Kettle' },
+  { emoji: '🏺', label: 'Boiler' },
+  { emoji: '🧪', label: 'Conical Fermenter' },
+  { emoji: '🪣', label: 'Bucket Fermenter' },
+  { emoji: '🫙', label: 'Carboy / Demijohn' },
+  { emoji: '🛢️', label: 'Keg' },
   // Heat & Cold
-  { emoji: '🔥',  label: 'Burner'                  },
-  { emoji: '🧊',  label: 'Plate Chiller'            },
-  { emoji: '🌊',  label: 'Counterflow Chiller'      },
-  { emoji: '🌀',  label: 'Immersion Chiller'        },
+  { emoji: '🔥', label: 'Burner' },
+  { emoji: '🧊', label: 'Plate Chiller' },
+  { emoji: '🌊', label: 'Counterflow Chiller' },
+  { emoji: '🌀', label: 'Immersion Chiller' },
   // Flow & Fittings
-  { emoji: '⚙️', label: 'Pump'                     },
-  { emoji: '🚰',  label: 'Ball Valve'               },
-  { emoji: '↔️', label: 'John Guest — Straight'    },
-  { emoji: '↩️', label: 'John Guest — Elbow'       },
-  { emoji: '🔀',  label: 'John Guest — Tee'         },
-  { emoji: '🔽',  label: 'John Guest — Reducer'     },
-  { emoji: '〰️', label: 'Tubing / Hose'            },
-  { emoji: '🪠',  label: 'Auto-Siphon'              },
+  { emoji: '⚙️', label: 'Pump' },
+  { emoji: '🚰', label: 'Ball Valve' },
+  { emoji: '↔️', label: 'John Guest — Straight' },
+  { emoji: '↩️', label: 'John Guest — Elbow' },
+  { emoji: '🔀', label: 'John Guest — Tee' },
+  { emoji: '🔽', label: 'John Guest — Reducer' },
+  { emoji: '〰️', label: 'Tubing / Hose' },
+  { emoji: '🪠', label: 'Auto-Siphon' },
   // Gas
-  { emoji: '💨',  label: 'CO₂ Regulator'           },
-  { emoji: '🫧',  label: 'CO₂ Cylinder'            },
-  { emoji: '🎛️', label: 'Gas Manifold'             },
+  { emoji: '💨', label: 'CO₂ Regulator' },
+  { emoji: '🫧', label: 'CO₂ Cylinder' },
+  { emoji: '🎛️', label: 'Gas Manifold' },
   // Measurement
-  { emoji: '📏',  label: 'Hydrometer'               },
-  { emoji: '🔭',  label: 'Refractometer'            },
-  { emoji: '🧫',  label: 'pH Meter'                 },
-  { emoji: '🌡️', label: 'Thermometer'              },
-  { emoji: '💧',  label: 'Flow Meter'               },
+  { emoji: '📏', label: 'Hydrometer' },
+  { emoji: '🔭', label: 'Refractometer' },
+  { emoji: '🧫', label: 'pH Meter' },
+  { emoji: '🌡️', label: 'Thermometer' },
+  { emoji: '💧', label: 'Flow Meter' },
   // Other
-  { emoji: '⚗️', label: 'Grain Mill'               },
-  { emoji: '🍾',  label: 'Bottle Capper'            },
-  { emoji: '📦',  label: 'Other'                    },
+  { emoji: '⚗️', label: 'Grain Mill' },
+  { emoji: '🍾', label: 'Bottle Capper' },
+  { emoji: '📦', label: 'Other' },
 ];
 </script>
 
@@ -91,7 +91,9 @@ const ICONS = [
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.12s, background 0.12s;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
   padding: 0;
 }
 
