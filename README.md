@@ -215,7 +215,7 @@ HopStock/
 
 | # | Status | Feature |
 |---|--------|---------|
-| 1 | ✅ Done | Repo scaffold — pre-commit, gitleaks, secret-scan CI |
+| 1 | ✅ Done | Repo scaffold — pre-commit, gitleaks, CI |
 | 2 | ✅ Done | Backend scaffold — Express server, project structure, SQLite connection |
 | 3 | ✅ Done | Database schema — equipment table, categories, condition enum |
 | 4 | ✅ Done | REST API — CRUD endpoints for equipment |
@@ -271,19 +271,17 @@ Status key: ⬜ Todo · 🔄 In Progress · ✅ Done
 
 This project uses a layered pre-commit pipeline covering both secret detection and code quality:
 
-- **gitleaks** — fast pattern-based secret detection
-- **TruffleHog** — verified credential detection (live API checks)
-- **detect-secrets** — entropy-based scanning with a committed baseline
+- **gitleaks** — pattern-based secret detection
 - **ESLint** — Vue 3 + JS code quality (client source files)
 
 CI runs on every push and pull request:
-- `.github/workflows/secret-scan.yml` — gitleaks + TruffleHog scans
+- `.github/workflows/secret-scan.yml` — gitleaks secret scan
 - `.github/workflows/ci.yml` — ESLint → tests (server + client) → production build (each stage gates the next)
 
 To install the pre-commit hooks locally:
 
 ```bash
-pip install pre-commit detect-secrets
+pip install pre-commit
 pre-commit install
 ```
 
