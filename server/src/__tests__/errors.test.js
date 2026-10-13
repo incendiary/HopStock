@@ -19,6 +19,11 @@ afterEach(() => vi.restoreAllMocks());
 describe('Error middleware', () => {
   it('maps a foreign-key violation to 400 JSON', async () => {
     const item = seedEquipment(testDb);
+    // RA-6 now rejects unknown locations up front; bypass that check to reach the raw FK error
+    const realPrepare = testDb.prepare.bind(testDb);
+    vi.spyOn(testDb, 'prepare').mockImplementation((sql) => (
+      sql.includes('FROM locations WHERE id') ? { get: () => ({ 1: 1 }) } : realPrepare(sql)
+    ));
     const res = await request(app).put(`/api/equipment/${item.id}`).send({
       name: item.name, category: item.category, condition: item.condition, location_id: 9999,
     });

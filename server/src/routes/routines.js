@@ -43,6 +43,20 @@ function getRoutineWithDetails(id) {
   };
 }
 
+// Returns an error message, or null when the routine fields are valid
+function validateFields({ interval_days, steps }) {
+  if (interval_days != null && !(Number.isInteger(interval_days) && interval_days > 0)) {
+    return 'interval_days must be a positive integer or null';
+  }
+  if (steps !== undefined) {
+    if (!Array.isArray(steps)) return 'steps must be an array';
+    if (!steps.every((s) => typeof s?.instruction === 'string' && s.instruction.trim())) {
+      return 'each step needs a non-empty instruction';
+    }
+  }
+  return null;
+}
+
 // ─── Routes ───────────────────────────────────────────────
 
 // GET /api/routines
@@ -84,9 +98,11 @@ router.get('/:id', (req, res) => {
 router.post('/', (req, res) => {
   const { name, description = null, interval_days = null, steps = [] } = req.body;
 
-  if (!name || !name.trim()) {
+  if (typeof name !== 'string' || !name.trim()) {
     return res.status(400).json({ error: 'name is required' });
   }
+  const fieldError = validateFields({ interval_days, steps });
+  if (fieldError) return res.status(400).json({ error: fieldError });
 
   const createRoutine = db.transaction(() => {
     const result = db
@@ -121,9 +137,11 @@ router.put('/:id', (req, res) => {
 
   const { name, description = null, interval_days = null, steps } = req.body;
 
-  if (name !== undefined && !name.trim()) {
+  if (name !== undefined && (typeof name !== 'string' || !name.trim())) {
     return res.status(400).json({ error: 'name cannot be empty' });
   }
+  const fieldError = validateFields({ interval_days, steps });
+  if (fieldError) return res.status(400).json({ error: fieldError });
 
   const update = db.transaction(() => {
     if (name !== undefined || description !== undefined || interval_days !== undefined) {

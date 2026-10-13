@@ -39,8 +39,12 @@ router.post('/', (req, res) => {
     });
   }
 
+  if (performed_at != null && (typeof performed_at !== 'string' || Number.isNaN(Date.parse(performed_at)))) {
+    return res.status(400).json({ error: 'performed_at must be a valid date' });
+  }
+
   // Default performed_at to now; accept ISO string from client
-  const performedAt = performed_at ?? new Date().toISOString().replace('T', 'T').slice(0, 19) + 'Z';
+  const performedAt = performed_at ?? new Date().toISOString().slice(0, 19) + 'Z';
 
   const result = db
     .prepare(
