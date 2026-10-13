@@ -26,14 +26,9 @@ function getRoutineWithDetails(id) {
     .all(id);
 
   // Last run: most recent maintenance event created by running this routine
-  // We track this via a tag in the notes field: "[routine:<id>]"
   const lastRunRow = db
-    .prepare(`
-      SELECT MAX(performed_at) as last_run
-      FROM maintenance_events
-      WHERE notes LIKE ?
-    `)
-    .get(`%[routine:${id}]%`);
+    .prepare('SELECT MAX(performed_at) as last_run FROM maintenance_events WHERE routine_id = ?')
+    .get(id);
 
   return {
     ...routine,
@@ -67,7 +62,7 @@ router.get('/', (_req, res) => {
         (SELECT COUNT(*) FROM routine_steps s WHERE s.routine_id = r.id) AS step_count,
         (SELECT COUNT(*) FROM routine_equipment re WHERE re.routine_id = r.id) AS equipment_count,
         (SELECT MAX(performed_at) FROM maintenance_events m
-          WHERE m.notes LIKE '%[routine:' || r.id || ']%') AS last_run
+          WHERE m.routine_id = r.id) AS last_run
       FROM service_routines r
       ORDER BY r.name COLLATE NOCASE
     `)
@@ -210,18 +205,12 @@ router.post('/:id/run', (req, res) => {
   const { performed_at, notes = '' } = req.body;
   const performedAt = performed_at ?? new Date().toISOString().slice(0, 19) + 'Z';
 
-  // Tag the notes so we can track last_run per routine
-  const taggedNotes = [notes.trim(), `[routine:${routine.id}]`]
-    .filter(Boolean)
-    .join(' ')
-    .trim();
-
   const runRoutine = db.transaction(() => {
     routine.equipment.forEach((equip) => {
       db.prepare(`
-        INSERT INTO maintenance_events (equipment_id, event_type, notes, performed_at)
-        VALUES (?, 'Serviced', ?, ?)
-      `).run(equip.id, taggedNotes, performedAt);
+        INSERT INTO maintenance_events (equipment_id, event_type, notes, performed_at, routine_id)
+        VALUES (?, 'Serviced', ?, ?, ?)
+      `).run(equip.id, notes.trim() || null, performedAt, routine.id);
     });
   });
 
