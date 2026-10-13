@@ -68,12 +68,74 @@ function withPhotos(item) {
   return { ...item, photos, tags, location, activeLoan };
 }
 
+const CHUNK = 500;
+const MAX_LIMIT = 500;
+
+// Same shape as withPhotos, for a whole result set in four IN (...) queries
+function withRelations(items) {
+  const byEquipment = new Map(items.map((i) => [i.id, { photos: [], tags: [], activeLoan: null }]));
+  const ids = [...byEquipment.keys()];
+  const locIds = [...new Set(items.map((i) => i.location_id).filter(Boolean))];
+  const locations = new Map();
+  const chunks = (list) => Array.from({ length: Math.ceil(list.length / CHUNK) }, (_, i) => list.slice(i * CHUNK, (i + 1) * CHUNK));
+  const marks = (list) => list.map(() => '?').join(',');
+
+  for (const c of chunks(ids)) {
+    for (const { equipment_id, ...photo } of db
+      .prepare(`SELECT id, equipment_id, filename, sort_order, caption, created_at FROM photos WHERE equipment_id IN (${marks(c)}) ORDER BY sort_order, id`)
+      .all(...c)) {
+      byEquipment.get(equipment_id).photos.push({ ...photo, url: `/uploads/${photo.filename}` });
+    }
+    for (const { equipment_id, ...tag } of db
+      .prepare(`
+        SELECT et.equipment_id, t.id, t.name, t.color
+        FROM tags t JOIN equipment_tags et ON et.tag_id = t.id
+        WHERE et.equipment_id IN (${marks(c)})
+        ORDER BY t.name COLLATE NOCASE
+      `)
+      .all(...c)) {
+      byEquipment.get(equipment_id).tags.push(tag);
+    }
+    for (const { equipment_id, ...loan } of db
+      .prepare(`
+        SELECT id, equipment_id, borrower, loaned_at, expected_return
+        FROM loans WHERE equipment_id IN (${marks(c)}) AND returned_at IS NULL
+        ORDER BY loaned_at DESC
+      `)
+      .all(...c)) {
+      const entry = byEquipment.get(equipment_id);
+      entry.activeLoan ??= loan; // rows arrive newest first
+    }
+  }
+  for (const c of chunks(locIds)) {
+    for (const l of db.prepare(`SELECT id, name FROM locations WHERE id IN (${marks(c)})`).all(...c)) {
+      locations.set(l.id, l);
+    }
+  }
+  return items.map((item) => ({
+    ...item,
+    ...byEquipment.get(item.id),
+    location: item.location_id ? locations.get(item.location_id) ?? null : null,
+  }));
+}
+
+// Optional non-negative integer query param: undefined when absent, null when invalid
+function parseCount(v) {
+  if (v === undefined) return undefined;
+  return typeof v === 'string' && /^\d+$/.test(v) ? Number(v) : null;
+}
+
 // --- routes ---
 
 // GET /api/equipment
 // Query params: ?category=&condition=&tag=&location=&onLoan=1&q=
 router.get('/', (req, res) => {
   const { category, condition, tag, location, onLoan, q } = req.query;
+  const limit = parseCount(req.query.limit);
+  const offset = parseCount(req.query.offset);
+  if (limit === null || offset === null) {
+    return res.status(400).json({ error: 'limit and offset must be non-negative integers' });
+  }
 
   let sql    = 'SELECT DISTINCT e.* FROM equipment e';
   const params = [];
@@ -118,10 +180,20 @@ router.get('/', (req, res) => {
     }
   }
 
+  const paged = limit !== undefined || offset !== undefined;
+  let total;
+  if (paged) {
+    total = db.prepare(`SELECT COUNT(*) AS n FROM (${sql})`).get(...params).n;
+  }
+
   sql += ' ORDER BY e.name COLLATE NOCASE';
+  if (paged) {
+    sql += ' LIMIT ? OFFSET ?';
+    params.push(Math.min(limit ?? MAX_LIMIT, MAX_LIMIT), offset ?? 0);
+  }
 
   const items = db.prepare(sql).all(...params);
-  res.json({ items: items.map(withPhotos), total: items.length });
+  res.json({ items: withRelations(items), total: total ?? items.length });
 });
 
 // GET /api/equipment/:id
