@@ -66,4 +66,15 @@ app.get('*', (_req, res) => {
   });
 });
 
+// Final error handler: JSON only, never the stack
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  if (err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
+    return res.status(400).json({ error: 'Referenced record does not exist' });
+  }
+  const status = err.status ?? (err.code === 'LIMIT_FILE_SIZE' ? 413 : err.name === 'MulterError' ? 400 : 500);
+  if (status >= 500) console.error(err.stack ?? err);
+  res.status(status).json({ error: status >= 500 ? 'Internal server error' : err.message });
+});
+
 export default app;

@@ -115,7 +115,7 @@ router.patch('/:photoId', (req, res) => {
 });
 
 // DELETE /api/equipment/:equipmentId/photos/:photoId
-router.delete('/:photoId', async (req, res) => {
+router.delete('/:photoId', async (req, res, next) => {
   const photo = db
     .prepare('SELECT * FROM photos WHERE id = ? AND equipment_id = ?')
     .get(req.params.photoId, req.params.equipmentId);
@@ -126,19 +126,12 @@ router.delete('/:photoId', async (req, res) => {
   try {
     await unlink(join(UPLOADS_DIR, photo.filename));
   } catch (err) {
-    if (err.code !== 'ENOENT') throw err;
+    if (err.code !== 'ENOENT') return next(err); // Express 4 ignores async rejections
   }
 
   db.prepare('DELETE FROM photos WHERE id = ?').run(photo.id);
 
   res.json({ success: true });
-});
-
-// --- multer error handler (must have 4 args) ---
-// eslint-disable-next-line no-unused-vars
-router.use((err, _req, res, _next) => {
-  const status = err.status ?? (err.code === 'LIMIT_FILE_SIZE' ? 413 : 400);
-  res.status(status).json({ error: err.message });
 });
 
 export default router;
