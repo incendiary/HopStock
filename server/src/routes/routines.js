@@ -61,28 +61,17 @@ function validateFields({ interval_days, steps }) {
 
 // GET /api/routines
 router.get('/', (_req, res) => {
-  const routines = db
-    .prepare('SELECT * FROM service_routines ORDER BY name COLLATE NOCASE')
+  const result = db
+    .prepare(`
+      SELECT r.*,
+        (SELECT COUNT(*) FROM routine_steps s WHERE s.routine_id = r.id) AS step_count,
+        (SELECT COUNT(*) FROM routine_equipment re WHERE re.routine_id = r.id) AS equipment_count,
+        (SELECT MAX(performed_at) FROM maintenance_events m
+          WHERE m.notes LIKE '%[routine:' || r.id || ']%') AS last_run
+      FROM service_routines r
+      ORDER BY r.name COLLATE NOCASE
+    `)
     .all();
-
-  // Attach summary counts and last_run to each
-  const result = routines.map((r) => {
-    const stepCount = db
-      .prepare('SELECT COUNT(*) as n FROM routine_steps WHERE routine_id = ?')
-      .get(r.id).n;
-    const equipCount = db
-      .prepare('SELECT COUNT(*) as n FROM routine_equipment WHERE routine_id = ?')
-      .get(r.id).n;
-    const lastRunRow = db
-      .prepare(`SELECT MAX(performed_at) as last_run FROM maintenance_events WHERE notes LIKE ?`)
-      .get(`%[routine:${r.id}]%`);
-    return {
-      ...r,
-      step_count: stepCount,
-      equipment_count: equipCount,
-      last_run: lastRunRow?.last_run ?? null,
-    };
-  });
 
   res.json(result);
 });
