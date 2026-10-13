@@ -9,7 +9,11 @@ async function request(path, options = {}) {
   return res.json();
 }
 
-const json = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+const json = (method, body) => ({
+  method,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body),
+});
 
 // Equipment
 export const getEquipment = (params = {}) => {
@@ -57,8 +61,7 @@ export const attachEquipment = (id, equipId) =>
   request(`/routines/${id}/equipment`, json('POST', { equipment_id: equipId }));
 export const detachEquipment = (id, equipId) =>
   request(`/routines/${id}/equipment/${equipId}`, { method: 'DELETE' });
-export const runRoutine = (id, body) =>
-  request(`/routines/${id}/run`, json('POST', body));
+export const runRoutine = (id, body) => request(`/routines/${id}/run`, json('POST', body));
 
 // Maintenance events
 export const getMaintenanceEvents = (equipmentId) =>
