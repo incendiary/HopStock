@@ -11,9 +11,13 @@
 
 import { execFile }  from 'child_process';
 import { promisify } from 'util';
-import { mkdirSync, readdirSync, rmSync, existsSync } from 'fs';
-import { join, resolve, dirname } from 'path';
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, existsSync } from 'fs';
+import { tmpdir } from 'os';
+import { join, resolve, dirname, basename } from 'path';
 import { fileURLToPath }          from 'url';
+
+import db from './db/index.js';
+import { UPLOADS_DIR } from './config.js';
 
 const execFileAsync = promisify(execFile);
 const __dirname     = dirname(fileURLToPath(import.meta.url));
@@ -22,11 +26,6 @@ const __dirname     = dirname(fileURLToPath(import.meta.url));
 const BACKUP_INTERVAL_MS = (parseInt(process.env.BACKUP_INTERVAL_HOURS, 10) || 24) * 60 * 60 * 1000;
 const BACKUP_DIR         = resolve(process.env.BACKUP_DIR || join(__dirname, '../../backups'));
 const BACKUP_KEEP        = parseInt(process.env.BACKUP_KEEP, 10) || 7;
-
-// Paths to archive — relative to project root (one level above server/)
-const PROJECT_ROOT = resolve(__dirname, '../..');
-const DB_PATH      = join(PROJECT_ROOT, 'hopstock.db');
-const UPLOADS_PATH = join(PROJECT_ROOT, 'uploads');
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -41,22 +40,19 @@ async function runBackup() {
   const filename  = `hopstock-backup-${timestamp()}.tar.gz`;
   const dest      = join(BACKUP_DIR, filename);
 
-  // Build tar argument list — include db if it exists, uploads if dir exists
-  const includes = [];
-  if (existsSync(DB_PATH))      includes.push('hopstock.db');
-  if (existsSync(UPLOADS_PATH)) includes.push('uploads');
-
-  if (includes.length === 0) {
-    console.log('[backup] nothing to backup (no db or uploads yet)');
-    return;
-  }
-
+  const tmp = mkdtempSync(join(tmpdir(), 'hopstock-backup-'));
   try {
-    await execFileAsync('tar', ['-czf', dest, '-C', PROJECT_ROOT, ...includes]);
+    // Consistent snapshot of the live WAL database (a plain tar of the file may be torn)
+    await db.backup(join(tmp, 'hopstock.db'));
+    const args = ['-czf', dest, '-C', tmp, 'hopstock.db'];
+    if (existsSync(UPLOADS_DIR)) args.push('-C', dirname(UPLOADS_DIR), basename(UPLOADS_DIR));
+    await execFileAsync('tar', args);
     console.log(`[backup] created ${filename}`);
   } catch (err) {
-    console.error('[backup] tar failed:', err.message);
+    console.error('[backup] failed:', err.message);
     return;
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
   }
 
   // Prune old backups — keep most recent N
@@ -67,11 +63,11 @@ function pruneBackups() {
   try {
     const files = readdirSync(BACKUP_DIR)
       .filter((f) => f.startsWith('hopstock-backup-') && f.endsWith('.tar.gz'))
-      .map((f) => ({ f, mtime: new Date(f.replace(/^hopstock-backup-/, '').replace('.tar.gz', '').replace(/-/g, (m, i) => i === 16 ? 'T' : i > 10 ? ':' : m)) }))
-      .sort((a, b) => b.mtime - a.mtime);
+      .sort()
+      .reverse();
 
     const toDelete = files.slice(BACKUP_KEEP);
-    for (const { f } of toDelete) {
+    for (const f of toDelete) {
       rmSync(join(BACKUP_DIR, f));
       console.log(`[backup] pruned ${f}`);
     }
@@ -82,22 +78,19 @@ function pruneBackups() {
 
 // ── Scheduler ────────────────────────────────────────────
 
-let _timer = null;
-
 export function startBackupScheduler() {
   if (BACKUP_INTERVAL_MS <= 0) {
     console.log('[backup] scheduler disabled (BACKUP_INTERVAL_HOURS=0)');
     return;
   }
 
-  const intervalHours = parseInt(process.env.BACKUP_INTERVAL_HOURS, 10) || 24;
-  console.log(`[backup] scheduler started — interval ${intervalHours}h, dir: ${BACKUP_DIR}, keep: ${BACKUP_KEEP}`);
+  console.log(`[backup] scheduler started — interval ${BACKUP_INTERVAL_MS / 3_600_000}h, dir: ${BACKUP_DIR}, keep: ${BACKUP_KEEP}`);
 
   // Run once at startup delay (5 minutes), then on the interval
   const STARTUP_DELAY_MS = 5 * 60 * 1000;
   setTimeout(() => {
     runBackup();
-    _timer = setInterval(runBackup, BACKUP_INTERVAL_MS);
+    setInterval(runBackup, BACKUP_INTERVAL_MS);
   }, STARTUP_DELAY_MS);
 }
 

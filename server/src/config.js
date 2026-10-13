@@ -5,3 +5,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Uploads path: env override for Docker (/data/uploads), else server/uploads/
 export const UPLOADS_DIR = process.env.UPLOADS_DIR ?? join(__dirname, '../uploads');
+
+// DB path: env override for Docker (/data/hopstock.db), else project root
+export const DB_PATH = process.env.DB_PATH ?? join(__dirname, '../../hopstock.db');
