@@ -90,4 +90,43 @@ describe('Batch operations API', () => {
 
     expect(res.status).toBe(400);
   });
+
+  describe('validation', () => {
+    const post = (body) => request(app).post('/api/equipment/batch').send(body);
+    const idsMsg = 'ids must be an array of 1 to 500 positive integers';
+
+    it('rejects non-integer or non-positive ids', async () => {
+      for (const ids of [['x'], [1.5], [0], [-1], 'nope']) {
+        const res = await post({ ids, action: 'delete' });
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe(idsMsg);
+      }
+    });
+
+    it('rejects more than 500 ids', async () => {
+      const res = await post({ ids: Array.from({ length: 501 }, (_, i) => i + 1), action: 'delete' });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe(idsMsg);
+    });
+
+    it('rejects a tag that does not exist', async () => {
+      const a = seedEquipment(testDb);
+      const res = await post({ ids: [a.id], action: 'tag', value: 999999 });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('tag does not exist');
+    });
+
+    it('rejects a location that does not exist', async () => {
+      const a = seedEquipment(testDb);
+      const res = await post({ ids: [a.id], action: 'location', value: 999999 });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('location does not exist');
+    });
+
+    it('accepts a null location to unassign', async () => {
+      const a = seedEquipment(testDb);
+      const res = await post({ ids: [a.id], action: 'location', value: null });
+      expect(res.status).toBe(200);
+    });
+  });
 });

@@ -23,6 +23,26 @@ function validate(body) {
   return errors;
 }
 
+const isPositiveInt = (n) => Number.isInteger(n) && n > 0;
+const locationExists = (id) => !!db.prepare('SELECT 1 FROM locations WHERE id = ?').get(id);
+const tagExists = (id) => !!db.prepare('SELECT 1 FROM tags WHERE id = ?').get(id);
+
+// Checks only the reference fields the client actually sent
+function validateRefs(body) {
+  const errors = [];
+  if (body.location_id != null && !(isPositiveInt(body.location_id) && locationExists(body.location_id))) {
+    errors.push('location_id must reference an existing location');
+  }
+  if (body.tag_ids !== undefined) {
+    if (!Array.isArray(body.tag_ids)) {
+      errors.push('tag_ids must be an array');
+    } else if (!body.tag_ids.every((t) => isPositiveInt(t) && tagExists(t))) {
+      errors.push('tag_ids must be integers referencing existing tags');
+    }
+  }
+  return errors;
+}
+
 function withPhotos(item) {
   if (!item) return null;
   const photos = db
@@ -116,7 +136,7 @@ router.get('/:id', (req, res) => {
 
 // POST /api/equipment
 router.post('/', (req, res) => {
-  const errors = validate(req.body);
+  const errors = [...validate(req.body), ...validateRefs(req.body)];
   if (errors.length) return res.status(400).json({ errors });
 
   const {
@@ -162,7 +182,7 @@ router.put('/:id', (req, res) => {
   if (!existing) return res.status(404).json({ error: 'Not found' });
 
   const merged = { ...existing, ...req.body };
-  const errors = validate(merged);
+  const errors = [...validate(merged), ...validateRefs(req.body)];
   if (errors.length) return res.status(400).json({ errors });
 
   const { name, category, condition, notes = null, icon = null } = merged;
@@ -210,11 +230,17 @@ router.put('/:id', (req, res) => {
 // Body: { ids: number[], action: 'condition'|'tag'|'location'|'delete', value?: any }
 router.post('/batch', (req, res) => {
   const { ids, action, value } = req.body;
-  if (!Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ error: 'ids must be a non-empty array' });
+  if (!Array.isArray(ids) || ids.length === 0 || ids.length > 500 || !ids.every(isPositiveInt)) {
+    return res.status(400).json({ error: 'ids must be an array of 1 to 500 positive integers' });
   }
   if (!['condition', 'tag', 'location', 'delete'].includes(action)) {
     return res.status(400).json({ error: 'invalid action' });
+  }
+  if (action === 'tag' && !(isPositiveInt(value) && tagExists(value))) {
+    return res.status(400).json({ error: 'tag does not exist' });
+  }
+  if (action === 'location' && value != null && !(isPositiveInt(value) && locationExists(value))) {
+    return res.status(400).json({ error: 'location does not exist' });
   }
 
   const placeholders = ids.map(() => '?').join(',');
