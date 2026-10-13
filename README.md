@@ -108,7 +108,10 @@ curl -fsSL https://get.docker.com | sh
 
 ```bash
 mkdir -p /opt/hopstock/data
+chown -R 1000:1000 /opt/hopstock/data
 ```
+
+The container runs as the non-root `node` user (uid 1000), so a bind-mounted host directory must be owned by uid 1000. Alternatively, use a named volume, which inherits the correct ownership from the image.
 
 All persistent data (database, photos, backups) lives here. It survives image updates and is easy to back up with a standard `tar`.
 

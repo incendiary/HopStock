@@ -81,6 +81,7 @@ jobs:
       - name: Start container
         run: |
           mkdir -p /tmp/hopstock-data
+          sudo chown 1000:1000 /tmp/hopstock-data
           docker run -d \
             --name hopstock-ci \
             -p 3000:3000 \
