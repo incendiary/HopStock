@@ -5,13 +5,10 @@
   "engines": { "node": ">=22" },
   "workspaces": ["server", "client"],
   "scripts": {
-    "dev": "concurrently -n server,client -c cyan,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
+    "dev": "trap 'kill 0' EXIT; npm run dev -w server & npm run dev -w client; wait",
     "build": "npm run build -w client",
     "lint": "npm run lint -w client",
     "test": "npm test -w server && npm test -w client",
     "start": "npm run start -w server"
-  },
-  "devDependencies": {
-    "concurrently": "^9.0.0"
   }
 }
