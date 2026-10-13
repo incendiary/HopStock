@@ -1,7 +1,7 @@
 # ─── Stage 1: builder ─────────────────────────────────────────────────────────
 # Full install + client build. Needs native build tools for better-sqlite3.
 # node:22-alpine
-FROM node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS builder
+FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS builder
 
 # Build tools required to compile better-sqlite3 native addon
 RUN apk add --no-cache python3 make g++
@@ -25,7 +25,7 @@ RUN npm run build
 # ─── Stage 2: runtime ─────────────────────────────────────────────────────────
 # Lean production image — no devDeps, no client tooling, no build tools.
 # node:22-alpine
-FROM node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS runtime
+FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS runtime
 
 RUN apk add --no-cache python3 make g++
 
