@@ -23,7 +23,12 @@ const app = express();
 app.use(express.json());
 
 // Serve uploaded photos
-app.use('/uploads', express.static(UPLOADS_DIR));
+app.use('/uploads', express.static(UPLOADS_DIR, {
+  setHeaders: (res) => {
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.set('Content-Security-Policy', "default-src 'none'; img-src 'self'; sandbox");
+  },
+}));
 
 // Health check
 app.get('/api/health', (_req, res) => {

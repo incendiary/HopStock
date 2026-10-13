@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { extname } from 'path';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import db from '../db/index.js';
@@ -10,10 +9,19 @@ const router = Router({ mergeParams: true }); // gives access to :equipmentId
 
 // --- multer config ---
 
+// Server-chosen extensions; the client filename is never used. SVG is deliberately absent.
+const EXT_BY_MIME = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/gif': '.gif',
+  'image/heic': '.heic',
+};
+
 const storage = multer.diskStorage({
   destination: UPLOADS_DIR,
   filename: (_req, file, cb) => {
-    const ext = extname(file.originalname).toLowerCase();
+    const ext = EXT_BY_MIME[file.mimetype];
     const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     cb(null, `${unique}${ext}`);
   },
@@ -23,10 +31,10 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
   fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    if (file.mimetype in EXT_BY_MIME) {
       cb(null, true);
     } else {
-      cb(Object.assign(new Error('Only image files are accepted'), { status: 400 }));
+      cb(Object.assign(new Error('Only JPEG, PNG, WebP, GIF, or HEIC images are accepted'), { status: 400 }));
     }
   },
 });
