@@ -1,12 +1,14 @@
 services:
   hopstock:
-    image: ghcr.io/incendiary/hopstock:latest
+    image: ghcr.io/incendiary/hopstock:2.1.3
     ports:
       - "3000:3000"
     volumes:
       # Bind-mount a host directory so data survives image updates and is
       # easy to back up. Change the host path to suit your setup.
       # Proxmox recommended: /opt/hopstock/data
+      # The host directory must be owned by uid 1000 (the container's node user):
+      #   chown -R 1000:1000 /opt/hopstock/data
       - /opt/hopstock/data:/data
     environment:
       PORT: "3000"
@@ -15,4 +17,8 @@ services:
       # Backup settings (defaults shown):
       # BACKUP_INTERVAL_HOURS: "24"
       # BACKUP_KEEP: "7"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     restart: unless-stopped
