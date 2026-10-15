@@ -162,8 +162,9 @@ function validateRecord(rec) {
 const dedupeKey = (name, serial) => `${name.trim().toLowerCase()}\u0000${(serial ?? '').trim()}`;
 
 // ─── Import route ─────────────────────────────────────────
-// JSON restores every exported field except photos (image files are not in the export).
-// CSV carries name, category, condition and notes only.
+// Both formats read any field whose key (JSON) or header (CSV) matches a field name.
+// Tags are JSON-only (a CSV cell is a string, not an array); photos are never restored
+// (image files are not in the export); created_at and updated_at are not restored.
 router.post('/', upload.single('file'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded.' });

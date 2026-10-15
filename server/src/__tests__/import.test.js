@@ -163,4 +163,22 @@ describe('Import API', () => {
     const res = await upload('name,category\r\nA,pump\r\nB,nope\r\n', 'x.csv');
     expect(res.body.errors).toEqual([{ row: 3, message: 'unknown category "nope"' }]);
   });
+
+  it('reads any CSV column matching a field name, but tags are JSON-only', async () => {
+    const csv = 'name,category,serial_number,purchase_price,quantity,location\r\nDrum,keg,K-1,42.5,4,Cellar\r\n';
+    const res = await upload(csv, 'x.csv');
+    expect(res.body).toEqual({ imported: 1, duplicates: 0, skipped: 0, errors: [] });
+    expect(testDb.prepare(`
+      SELECT e.name, e.category, e.serial_number, e.purchase_price, e.quantity, l.name AS location
+      FROM equipment e JOIN locations l ON l.id = e.location_id
+    `).all()).toEqual([
+      { name: 'Drum', category: 'keg', serial_number: 'K-1', purchase_price: 42.5, quantity: 4, location: 'Cellar' },
+    ]);
+
+    const bad = await upload('name,category,tags\r\nHose,tubing,steel\r\n', 'y.csv');
+    expect(bad.status).toBe(422);
+    expect(bad.body.errors).toEqual([
+      { row: 2, message: 'tags must be an array of tag names (or {name, color} objects)' },
+    ]);
+  });
 });

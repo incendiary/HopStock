@@ -218,8 +218,9 @@ HopStock/
 ## Import and export
 
 - **JSON** is the full-fidelity format. Export includes every item field plus `tags` (`{name, color}`) and `location` (by name). Importing it restores name, category, condition, notes, icon, purchase date/price/currency, retailer, serial and model number, warranty expiry, quantity, tags and location. Tags and locations are matched by name (case-insensitive) and created if missing.
-- **CSV import** reads only `name`, `category`, `condition` and `notes`. The CSV exports are for reading in a spreadsheet and insurance records, not for round-tripping.
+- **CSV import** reads any column whose header matches a field name (for example `name`, `category`, `condition`, `notes`, `serial_number`, `purchase_price`, `quantity`, `location`), so the insurance CSV restores its purchase columns. `tags` are JSON-only: a `tags` cell is rejected as a row error. The plain CSV export is for spreadsheets and omits most fields.
 - **Photos are not restored.** The export lists them, but the image files are not part of it; back up the uploads directory separately.
+- **Timestamps are not restored.** `created_at` and `updated_at` are not imported; imported items get new timestamps.
 - **Duplicates are skipped**: a record is ignored when a non-deleted item with the same name (trimmed, case-insensitive) and serial number already exists, including earlier rows in the same file. Re-importing a file is therefore safe.
 - The response is `{ imported, duplicates, skipped, errors }`, where `skipped` counts rows with errors. Bad rows (non-objects, unknown category, non-numeric price, quantity that is not a positive integer, malformed tags) are reported and do not stop the valid rows. Status is 200 unless nothing was imported and there were errors (422).
 
