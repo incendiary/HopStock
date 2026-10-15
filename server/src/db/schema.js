@@ -160,6 +160,29 @@ export function runMigrations(db) {
     }
   }
 
+  // Link maintenance events to the routine run that created them. The one-time backfill
+  // converts legacy "[routine:N]" note tags and only runs when the column is first added,
+  // so a tag typed by hand later is never converted.
+  const maintCols = new Set(db.pragma('table_info(maintenance_events)').map((c) => c.name));
+  if (!maintCols.has('routine_id')) {
+    db.transaction(() => {
+      db.exec(
+        'ALTER TABLE maintenance_events ADD COLUMN routine_id INTEGER REFERENCES service_routines(id) ON DELETE SET NULL',
+      );
+      const tagged = db.prepare("SELECT id, notes FROM maintenance_events WHERE notes LIKE '%[routine:%]%'").all();
+      const routineExists = db.prepare('SELECT 1 FROM service_routines WHERE id = ?');
+      const update = db.prepare('UPDATE maintenance_events SET routine_id = ?, notes = ? WHERE id = ?');
+      for (const { id, notes } of tagged) {
+        const match = notes.match(/\[routine:(\d+)\]/);
+        if (!match) continue;
+        const routineId = routineExists.get(Number(match[1])) ? Number(match[1]) : null;
+        const stripped = notes.replace(/\s*\[routine:\d+\]\s*/g, ' ').trim();
+        update.run(routineId, stripped || null, id);
+      }
+    })();
+  }
+  db.exec('CREATE INDEX IF NOT EXISTS idx_maintenance_routine ON maintenance_events(routine_id)');
+
   // Rebuild FTS index to cover existing rows (safe to call repeatedly — it's a no-op if in sync)
   try {
     db.exec("INSERT INTO equipment_fts(equipment_fts) VALUES('rebuild')");

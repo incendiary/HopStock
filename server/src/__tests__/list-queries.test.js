@@ -96,8 +96,8 @@ describe('GET /api/routines list queries', () => {
       testDb.prepare('INSERT INTO routine_steps (routine_id, instruction) VALUES (?, ?)').run(id, 'step');
       const eq = seedEquipment(testDb, { name: `r-eq ${i}` });
       testDb.prepare('INSERT INTO routine_equipment (routine_id, equipment_id) VALUES (?, ?)').run(id, eq.id);
-      testDb.prepare('INSERT INTO maintenance_events (equipment_id, event_type, performed_at, notes) VALUES (?, ?, ?, ?)')
-        .run(eq.id, 'cleaning', '2024-05-01T00:00:00Z', `Ran it [routine:${id}]`);
+      testDb.prepare('INSERT INTO maintenance_events (equipment_id, event_type, performed_at, routine_id) VALUES (?, ?, ?, ?)')
+        .run(eq.id, 'cleaning', '2024-05-01T00:00:00Z', id);
     }
   }
 
