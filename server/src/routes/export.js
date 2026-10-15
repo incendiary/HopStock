@@ -50,6 +50,13 @@ router.get('/json', (_req, res) => {
     .prepare('SELECT * FROM equipment WHERE deleted = 0 ORDER BY name COLLATE NOCASE')
     .all();
 
+  const tagsFor = db.prepare(`
+    SELECT t.name, t.color FROM tags t
+    JOIN equipment_tags et ON et.tag_id = t.id
+    WHERE et.equipment_id = ? ORDER BY t.name COLLATE NOCASE
+  `);
+  const locationFor = db.prepare('SELECT name FROM locations WHERE id = ?');
+
   const full = items.map((item) => {
     const photos = db
       .prepare('SELECT id, filename, created_at FROM photos WHERE equipment_id = ? ORDER BY id')
@@ -59,6 +66,8 @@ router.get('/json', (_req, res) => {
       ...item,
       category_label: catLabelMap[item.category] ?? item.category ?? '',
       photos,
+      tags: tagsFor.all(item.id),
+      location: (item.location_id != null && locationFor.get(item.location_id)?.name) || null,
     };
   });
 

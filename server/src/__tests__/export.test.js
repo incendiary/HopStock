@@ -20,6 +20,12 @@ describe('Export API', () => {
       UPDATE equipment SET purchase_price = ?, purchase_currency = ? WHERE id = ?
     `).run(15.99, 'GBP', item1.id);
 
+    // Tag and location on the kettle, to cover the tags/location keys in the JSON export
+    const loc = testDb.prepare("INSERT INTO locations (name) VALUES ('Shed')").run().lastInsertRowid;
+    testDb.prepare('UPDATE equipment SET location_id = ? WHERE id = ?').run(loc, item1.id);
+    const tag = testDb.prepare("INSERT INTO tags (name, color) VALUES ('steel', '#112233')").run().lastInsertRowid;
+    testDb.prepare('INSERT INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)').run(item1.id, tag);
+
     // Fixture 2: item with comma, quote, newline in name (and add purchase info separately)
     const item2 = seedEquipment(testDb, {
       name: 'Blender, "deluxe"\nmodel',
@@ -50,97 +56,80 @@ describe('Export API', () => {
     `).run(99.00, 'EUR', '2024-01-15', item3.id);
   });
 
+  // Timestamps are the only non-deterministic content; ids depend on insertion order.
+  const stripTs = (text) => text.replace(/\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ/g, '<ts>');
+
   describe('GET /api/export/csv', () => {
-    it('exports items as CSV with exact format', async () => {
+    it('exports the exact CSV text', async () => {
       const res = await request(app).get('/api/export/csv');
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/text\/csv/);
-      expect(res.headers['content-disposition']).toMatch(/attachment.*hopstock-export\.csv/);
-
-      const lines = res.text.trim().split('\r\n');
-      expect(lines.length).toBe(4); // header + 3 items
-      expect(lines[0]).toBe('name,category,category_label,condition,notes,icon,created_at');
-
-      // Items sorted by name COLLATE NOCASE: Blender, Kettle, Mystery Box
-      // Check Blender row with special chars — should be quoted
-      const blenderRow = lines[1];
-      expect(blenderRow).toMatch(/"Blender, ""deluxe""\nmodel"/);
-
-      // Check Kettle row
-      const kettleRow = lines[2];
-      expect(kettleRow).toContain('Kettle');
-      expect(kettleRow).toContain('kettle');
-
-      // Check Mystery Box with unknown category
-      const mysteryRow = lines[3];
-      expect(mysteryRow).toContain('Mystery Box');
+      expect(res.headers['content-disposition']).toBe('attachment; filename="hopstock-export.csv"');
+      expect(stripTs(res.text)).toBe([
+        'name,category,category_label,condition,notes,icon,created_at',
+        '"Blender, ""deluxe""\nmodel",appliance,appliance,Fair,,,<ts>',
+        'Kettle,kettle,Kettle,Good,Works well,,<ts>',
+        'Mystery Box,unknown_cat,unknown_cat,Good,,,<ts>',
+        '',
+      ].join('\r\n'));
     });
   });
 
   describe('GET /api/export/insurance-csv', () => {
-    it('exports insurance report with exact format', async () => {
+    it('exports the exact insurance CSV text', async () => {
       const res = await request(app).get('/api/export/insurance-csv');
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/text\/csv/);
-      expect(res.headers['content-disposition']).toMatch(/attachment.*hopstock-insurance-report\.csv/);
-
-      const lines = res.text.trim().split('\r\n');
-      expect(lines.length).toBe(4); // header + 3 items
-      expect(lines[0]).toBe('name,category,condition,purchase_date,purchase_price,purchase_currency,retailer,serial_number,model_number,warranty_expires,quantity');
-
-      // Items sorted by name COLLATE NOCASE: Blender, Kettle, Mystery Box
-      // Check Blender row — special chars should be quoted
-      const blenderRow = lines[1];
-      expect(blenderRow).toMatch(/"Blender, ""deluxe""\nmodel"/);
-      expect(blenderRow).toContain('45.5');
-
-      // Check Kettle row includes purchase info
-      const kettleRow = lines[2];
-      expect(kettleRow).toContain('Kettle');
-      expect(kettleRow).toContain('15.99');
-      expect(kettleRow).toContain('GBP');
-
-      // Check Mystery Box row
-      const mysteryRow = lines[3];
-      expect(mysteryRow).toContain('Mystery Box');
-      expect(mysteryRow).toContain('99');
+      expect(res.headers['content-disposition']).toBe('attachment; filename="hopstock-insurance-report.csv"');
+      expect(res.text).toBe([
+        'name,category,condition,purchase_date,purchase_price,purchase_currency,retailer,serial_number,model_number,warranty_expires,quantity',
+        '"Blender, ""deluxe""\nmodel",appliance,Fair,,45.5,USD,,,,,1',
+        'Kettle,Kettle,Good,,15.99,GBP,,,,,1',
+        'Mystery Box,unknown_cat,Good,2024-01-15,99,EUR,,,,,1',
+        '',
+      ].join('\r\n'));
     });
   });
 
   describe('GET /api/export/json', () => {
-    it('exports items as JSON with correct headers and structure', async () => {
+    it('exports every item with all fields, tags, location and photos', async () => {
       const res = await request(app).get('/api/export/json');
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/application\/json/);
-      expect(res.headers['content-disposition']).toMatch(/attachment.*hopstock-export\.json/);
+      expect(res.headers['content-disposition']).toBe('attachment; filename="hopstock-export.json"');
 
-      const items = res.body;
-      expect(Array.isArray(items)).toBe(true);
-      expect(items.length).toBe(3);
-
-      // Items sorted by name COLLATE NOCASE: Blender, Kettle, Mystery Box
-      // Blender with photo
-      const blender = items[0];
-      expect(blender.name).toBe('Blender, "deluxe"\nmodel');
-      expect(blender.purchase_price).toBe(45.50);
-      expect(Array.isArray(blender.photos)).toBe(true);
-      expect(blender.photos.length).toBe(1);
-      expect(blender.photos[0]).toHaveProperty('url', expect.stringContaining('/uploads/'));
-
-      // Kettle
-      const kettle = items[1];
-      expect(kettle.name).toBe('Kettle');
-      expect(kettle.purchase_price).toBe(15.99);
-      expect(Array.isArray(kettle.photos)).toBe(true);
-
-      // Mystery Box with unknown category
-      const mystery = items[2];
-      expect(mystery.name).toBe('Mystery Box');
-      expect(mystery.category).toBe('unknown_cat');
-      expect(mystery.purchase_price).toBe(99);
+      const normalised = res.body.map(({ id, created_at, updated_at, location_id, photos, ...rest }) => ({
+        ...rest,
+        photos: photos.map(({ id: _id, created_at: _c, ...p }) => p),
+      }));
+      const base = {
+        icon: null, deleted: 0, purchase_date: null, retailer: null, serial_number: null,
+        model_number: null, warranty_expires: null, quantity: 1, tags: [], location: null, photos: [],
+      };
+      expect(normalised).toEqual([
+        {
+          ...base,
+          name: 'Blender, "deluxe"\nmodel', category: 'appliance', condition: 'Fair', notes: null,
+          purchase_price: 45.5, purchase_currency: 'USD', category_label: 'appliance',
+          photos: [{ filename: 'photo1.jpg', url: '/uploads/photo1.jpg' }],
+        },
+        {
+          ...base,
+          name: 'Kettle', category: 'kettle', condition: 'Good', notes: 'Works well',
+          purchase_price: 15.99, purchase_currency: 'GBP', category_label: 'Kettle',
+          tags: [{ name: 'steel', color: '#112233' }], location: 'Shed',
+        },
+        {
+          ...base,
+          name: 'Mystery Box', category: 'unknown_cat', condition: 'Good', notes: null,
+          purchase_price: 99, purchase_currency: 'EUR', purchase_date: '2024-01-15',
+          category_label: 'unknown_cat',
+        },
+      ]);
+      expect(res.body[1].location_id).toEqual(expect.any(Number));
     });
   });
 });
