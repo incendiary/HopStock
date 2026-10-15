@@ -85,6 +85,7 @@ import { getRoutines, deleteRoutine, getRoutine } from '../api.js';
 import AppModal from '../components/AppModal.vue';
 import RoutineForm from '../components/RoutineForm.vue';
 import RunRoutine from '../components/RunRoutine.vue';
+import { daysAgo } from '../utils/date.js';
 
 const routines = ref([]);
 const loading = ref(false);
@@ -132,14 +133,6 @@ async function onFormSaved() {
 async function onRunCompleted() {
   runningRoutine.value = null;
   await load();
-}
-
-function daysAgo(iso) {
-  if (!iso) return '';
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days === 0) return 'today';
-  if (days === 1) return '1d ago';
-  return `${days}d ago`;
 }
 </script>
 

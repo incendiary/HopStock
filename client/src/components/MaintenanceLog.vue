@@ -37,7 +37,7 @@
         <span class="mlog__type-badge" :class="`mlog__type-badge--${typeslug(event.event_type)}`">{{
           event.event_type
         }}</span>
-        <span class="mlog__date-text">{{ formatDate(event.performed_at) }}</span>
+        <span class="mlog__date-text">{{ formatDateShort(event.performed_at) }}</span>
         <span v-if="event.notes" class="mlog__item-notes">{{ event.notes }}</span>
         <button
           type="button"
@@ -60,6 +60,7 @@ import {
   deleteMaintenanceEvent,
   getMaintenanceEventTypes,
 } from '../api.js';
+import { formatDateShort } from '../utils/date.js';
 
 const props = defineProps({
   equipmentId: {
@@ -128,11 +129,6 @@ async function handleDelete(eventId) {
   } catch {
     // ignore
   }
-}
-
-function formatDate(iso) {
-  if (!iso) return '—';
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(iso));
 }
 
 function typeslug(type) {
