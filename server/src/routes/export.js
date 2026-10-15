@@ -15,12 +15,22 @@ function csvRow(values) {
   return values.map(csvEscape).join(',');
 }
 
-// GET /api/export/csv
-router.get('/csv', (_req, res) => {
-  const items = db
+function listItems() {
+  return db
     .prepare('SELECT * FROM equipment WHERE deleted = 0 ORDER BY name COLLATE NOCASE')
     .all();
+}
 
+function sendCsv(res, filename, header, rows) {
+  const csv = [header, ...rows].join('\r\n') + '\r\n';
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(csv);
+}
+
+// GET /api/export/csv
+router.get('/csv', (_req, res) => {
+  const items = listItems();
   const header = csvRow(['name', 'category', 'category_label', 'condition', 'notes', 'icon', 'created_at']);
   const rows   = items.map((item) => csvRow([
     item.name,
@@ -31,12 +41,7 @@ router.get('/csv', (_req, res) => {
     item.icon           ?? '',
     item.created_at     ?? '',
   ]));
-
-  const csv = [header, ...rows].join('\r\n') + '\r\n';
-
-  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', 'attachment; filename="hopstock-export.csv"');
-  res.send(csv);
+  sendCsv(res, 'hopstock-export.csv', header, rows);
 });
 
 // GET /api/export/json
@@ -64,17 +69,13 @@ router.get('/json', (_req, res) => {
 // GET /api/export/insurance-csv
 // Insurance-ready report: items with purchase info only (or all, for completeness)
 router.get('/insurance-csv', (_req, res) => {
-  const items = db
-    .prepare('SELECT * FROM equipment WHERE deleted = 0 ORDER BY name COLLATE NOCASE')
-    .all();
-
+  const items = listItems();
   const header = csvRow([
     'name', 'category', 'condition',
     'purchase_date', 'purchase_price', 'purchase_currency',
     'retailer', 'serial_number', 'model_number',
     'warranty_expires', 'quantity',
   ]);
-
   const rows = items.map((item) => csvRow([
     item.name,
     catLabelMap[item.category] ?? item.category ?? '',
@@ -88,12 +89,7 @@ router.get('/insurance-csv', (_req, res) => {
     item.warranty_expires       ?? '',
     item.quantity               ?? 1,
   ]));
-
-  const csv = [header, ...rows].join('\r\n') + '\r\n';
-
-  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', 'attachment; filename="hopstock-insurance-report.csv"');
-  res.send(csv);
+  sendCsv(res, 'hopstock-insurance-report.csv', header, rows);
 });
 
 export default router;

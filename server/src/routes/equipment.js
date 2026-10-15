@@ -7,6 +7,8 @@ const router = Router();
 const VALID_CATEGORY_IDS = new Set(CATEGORIES.map((c) => c.id));
 const VALID_CONDITIONS   = new Set(CONDITIONS);
 
+const addTag = db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)');
+
 // --- helpers ---
 
 function validate(body) {
@@ -236,7 +238,7 @@ router.post('/', (req, res) => {
       );
     const id = result.lastInsertRowid;
     for (const tagId of tag_ids) {
-      db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)').run(id, tagId);
+      addTag.run(id, tagId);
     }
     return id;
   });
@@ -289,7 +291,7 @@ router.put('/:id', (req, res) => {
     if (Array.isArray(tag_ids)) {
       db.prepare('DELETE FROM equipment_tags WHERE equipment_id = ?').run(req.params.id);
       for (const tagId of tag_ids) {
-        db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)').run(req.params.id, tagId);
+        addTag.run(req.params.id, tagId);
       }
     }
   });
@@ -339,7 +341,7 @@ router.post('/batch', (req, res) => {
       // value = tag id to add to all selected items
       if (!value) throw Object.assign(new Error('tag id required'), { status: 400 });
       for (const id of ids) {
-        db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)').run(id, value);
+        addTag.run(id, value);
       }
     }
   })();
