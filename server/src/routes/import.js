@@ -136,18 +136,18 @@ router.post('/', upload.single('file'), (req, res) => {
     let imported = 0;
     const errors = [];
 
-    for (const rec of recs) {
-      const row = rec._row ?? recs.indexOf(rec) + 1;
+    recs.forEach((rec, i) => {
+      const row = rec._row ?? i + 1;
       const result = validateRecord(rec);
 
       if (result.error) {
         errors.push({ row, message: result.error });
-        continue;
+        return;
       }
 
       insert.run(result.name, result.category, result.condition, result.notes, result.icon);
       imported++;
-    }
+    });
 
     return { imported, skipped: errors.length, errors };
   });

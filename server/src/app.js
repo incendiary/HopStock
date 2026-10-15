@@ -1,7 +1,6 @@
 import express from 'express';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { UPLOADS_DIR } from './config.js';
 import equipmentRouter   from './routes/equipment.js';
 import photosRouter      from './routes/photos.js';

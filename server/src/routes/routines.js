@@ -52,6 +52,17 @@ function validateFields({ interval_days, steps }) {
   return null;
 }
 
+// Insert steps for a routine; assumes the routine row already exists
+function insertSteps(routineId, steps) {
+  const stmt = db.prepare(`
+    INSERT INTO routine_steps (routine_id, sort_order, instruction, is_check)
+    VALUES (?, ?, ?, ?)
+  `);
+  steps.forEach((step, i) => {
+    stmt.run(routineId, i, step.instruction, step.is_check ? 1 : 0);
+  });
+}
+
 // ─── Routes ───────────────────────────────────────────────
 
 // GET /api/routines
@@ -97,13 +108,7 @@ router.post('/', (req, res) => {
       .run(name.trim(), description, interval_days ?? null);
 
     const routineId = result.lastInsertRowid;
-
-    steps.forEach((step, i) => {
-      db.prepare(`
-        INSERT INTO routine_steps (routine_id, sort_order, instruction, is_check)
-        VALUES (?, ?, ?, ?)
-      `).run(routineId, i, step.instruction, step.is_check ? 1 : 0);
-    });
+    insertSteps(routineId, steps);
 
     return routineId;
   });
@@ -141,12 +146,7 @@ router.put('/:id', (req, res) => {
 
     if (Array.isArray(steps)) {
       db.prepare('DELETE FROM routine_steps WHERE routine_id = ?').run(req.params.id);
-      steps.forEach((step, i) => {
-        db.prepare(`
-          INSERT INTO routine_steps (routine_id, sort_order, instruction, is_check)
-          VALUES (?, ?, ?, ?)
-        `).run(req.params.id, i, step.instruction, step.is_check ? 1 : 0);
-      });
+      insertSteps(req.params.id, steps);
     }
   });
 
