@@ -1,8 +1,14 @@
+// To add a migration: bump SCHEMA_VERSION and gate the new step on the previous value
+// (`if (version < N) { ... }`) read before the final user_version write. The DDL and
+// column additions below are idempotent and self-detecting, so they stay unnumbered.
+const SCHEMA_VERSION = 1;
+
 /**
  * Run all CREATE TABLE IF NOT EXISTS migrations on startup.
  * Safe to call on every boot — existing tables are left untouched.
  */
 export function runMigrations(db) {
+  const version = db.pragma('user_version', { simple: true });
   db.exec(`
     CREATE TABLE IF NOT EXISTS equipment (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -183,12 +189,11 @@ export function runMigrations(db) {
   }
   db.exec('CREATE INDEX IF NOT EXISTS idx_maintenance_routine ON maintenance_events(routine_id)');
 
-  // Rebuild FTS index to cover existing rows (safe to call repeatedly — it's a no-op if in sync)
-  try {
-    db.exec("INSERT INTO equipment_fts(equipment_fts) VALUES('rebuild')");
-  } catch {
-    // Ignore if already populated (external content rebuild is idempotent)
-  }
+  // The external-content FTS rebuild is O(n), so only legacy (version 0) and brand-new
+  // databases pay for it; later boots skip it.
+  const rebuildFts = version < SCHEMA_VERSION;
+  if (rebuildFts) db.exec("INSERT INTO equipment_fts(equipment_fts) VALUES('rebuild')");
+  db.pragma(`user_version = ${SCHEMA_VERSION}`);
 
-  console.log('[db] migrations applied');
+  console.log(`[db] migrations applied (schema v${SCHEMA_VERSION}, FTS ${rebuildFts ? 'rebuilt' : 'rebuild skipped'})`);
 }
