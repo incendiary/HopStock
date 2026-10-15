@@ -35,6 +35,14 @@ describe('schema versioning', () => {
     expect(version(db)).toBe(1);
   });
 
+  it('leaves a database at a newer version untouched', () => {
+    const db = newDb();
+    runMigrations(db);
+    db.pragma('user_version = 5');
+    expect(countRebuilds(db, () => runMigrations(db))).toBe(0);
+    expect(version(db)).toBe(5);
+  });
+
   it('repairs a legacy (version 0) database whose FTS index is empty', () => {
     const db = newDb();
     runMigrations(db);

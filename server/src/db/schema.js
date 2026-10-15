@@ -192,8 +192,10 @@ export function runMigrations(db) {
   // The external-content FTS rebuild is O(n), so only legacy (version 0) and brand-new
   // databases pay for it; later boots skip it.
   const rebuildFts = version < SCHEMA_VERSION;
-  if (rebuildFts) db.exec("INSERT INTO equipment_fts(equipment_fts) VALUES('rebuild')");
-  db.pragma(`user_version = ${SCHEMA_VERSION}`);
+  if (rebuildFts) {
+    db.exec("INSERT INTO equipment_fts(equipment_fts) VALUES('rebuild')");
+    db.pragma(`user_version = ${SCHEMA_VERSION}`);
+  }
 
   console.log(`[db] migrations applied (schema v${SCHEMA_VERSION}, FTS ${rebuildFts ? 'rebuilt' : 'rebuild skipped'})`);
 }
