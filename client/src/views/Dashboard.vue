@@ -234,7 +234,7 @@ import {
 
 const stats = ref(null);
 const categories = ref([]);
-const loading = ref(false);
+const loading = ref(true);
 const error = ref(null);
 
 const byCategory = computed(() => {
