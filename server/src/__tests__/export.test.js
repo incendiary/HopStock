@@ -101,8 +101,10 @@ describe('Export API', () => {
       expect(res.headers['content-type']).toMatch(/application\/json/);
       expect(res.headers['content-disposition']).toBe('attachment; filename="hopstock-export.json"');
 
+      // eslint-disable-next-line no-unused-vars
       const normalised = res.body.map(({ id, created_at, updated_at, location_id, photos, ...rest }) => ({
         ...rest,
+        // eslint-disable-next-line no-unused-vars
         photos: photos.map(({ id: _id, created_at: _c, ...p }) => p),
       }));
       const base = {

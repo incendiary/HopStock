@@ -24,7 +24,7 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        files: ^client/src/.*\.(js|vue|css)$
+        files: ^(client/src/.*\.(js|vue|css)|server/src/.*\.js)$
         additional_dependencies:
           - prettier@3.8.4
 
@@ -32,8 +32,8 @@ repos:
   - repo: local
     hooks:
       - id: eslint
-        name: ESLint (client)
+        name: ESLint
         language: node
-        entry: npm run lint -w client --
+        entry: npm run lint --
         pass_filenames: false
-        files: ^client/src/.*\.(js|vue)$
+        files: ^(client/src/.*\.(js|vue)|server/src/.*\.js)$

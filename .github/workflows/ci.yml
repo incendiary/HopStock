@@ -26,8 +26,8 @@ jobs:
       - name: ESLint (client)
         run: npm run lint
 
-      - name: Prettier format check (client)
-        run: npm run format:check -w client
+      - name: Prettier format check
+        run: npm run format:check
 
       - name: npm audit (production dependencies)
         run: npm audit --omit=dev --audit-level=high

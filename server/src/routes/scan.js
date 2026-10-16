@@ -112,7 +112,8 @@ router.post('/', upload.single('receipt'), async (req, res) => {
     let parsed;
     try {
       parsed = JSON.parse(text);
-    } catch (_parseErr) {
+      // eslint-disable-next-line no-unused-vars
+    } catch (_) {
       return res.status(502).json({
         error: 'Receipt scan returned invalid JSON. Please try another receipt.',
       });

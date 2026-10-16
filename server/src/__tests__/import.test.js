@@ -14,7 +14,9 @@ const exportJson = async () => (await request(app).get('/api/export/json')).body
 
 // Ids and timestamps legitimately differ between databases; everything else must match.
 const normalise = (items) => items.map((it) => {
+  // eslint-disable-next-line no-unused-vars
   const { id, created_at, updated_at, location_id, photos, ...rest } = it;
+  // eslint-disable-next-line no-unused-vars
   return { ...rest, photos: photos.map(({ id: _i, created_at: _c, ...p }) => p) };
 });
 
