@@ -22,17 +22,21 @@ export function makeTestDb() {
 /** Seed one valid equipment row and return it. */
 export function seedEquipment(db, overrides = {}) {
   const row = {
-    name:      'Test Kettle',
-    category:  'kettle',
+    name: 'Test Kettle',
+    category: 'kettle',
     condition: 'Good',
-    notes:     null,
-    icon:      null,
-    quantity:  1,
+    notes: null,
+    icon: null,
+    quantity: 1,
     ...overrides,
   };
-  const result = db.prepare(`
+  const result = db
+    .prepare(
+      `
     INSERT INTO equipment (name, category, condition, notes, icon, quantity)
     VALUES (@name, @category, @condition, @notes, @icon, @quantity)
-  `).run(row);
+  `,
+    )
+    .run(row);
   return db.prepare('SELECT * FROM equipment WHERE id = ?').get(result.lastInsertRowid);
 }

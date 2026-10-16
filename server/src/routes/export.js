@@ -16,9 +16,7 @@ function csvRow(values) {
 }
 
 function listItems() {
-  return db
-    .prepare('SELECT * FROM equipment WHERE deleted = 0 ORDER BY name COLLATE NOCASE')
-    .all();
+  return db.prepare('SELECT * FROM equipment WHERE deleted = 0 ORDER BY name COLLATE NOCASE').all();
 }
 
 function sendCsv(res, filename, header, rows) {
@@ -31,16 +29,26 @@ function sendCsv(res, filename, header, rows) {
 // GET /api/export/csv
 router.get('/csv', (_req, res) => {
   const items = listItems();
-  const header = csvRow(['name', 'category', 'category_label', 'condition', 'notes', 'icon', 'created_at']);
-  const rows   = items.map((item) => csvRow([
-    item.name,
-    item.category       ?? '',
-    catLabelMap[item.category] ?? item.category ?? '',
-    item.condition      ?? 'Good',
-    item.notes          ?? '',
-    item.icon           ?? '',
-    item.created_at     ?? '',
-  ]));
+  const header = csvRow([
+    'name',
+    'category',
+    'category_label',
+    'condition',
+    'notes',
+    'icon',
+    'created_at',
+  ]);
+  const rows = items.map((item) =>
+    csvRow([
+      item.name,
+      item.category ?? '',
+      catLabelMap[item.category] ?? item.category ?? '',
+      item.condition ?? 'Good',
+      item.notes ?? '',
+      item.icon ?? '',
+      item.created_at ?? '',
+    ]),
+  );
   sendCsv(res, 'hopstock-export.csv', header, rows);
 });
 
@@ -80,24 +88,33 @@ router.get('/json', (_req, res) => {
 router.get('/insurance-csv', (_req, res) => {
   const items = listItems();
   const header = csvRow([
-    'name', 'category', 'condition',
-    'purchase_date', 'purchase_price', 'purchase_currency',
-    'retailer', 'serial_number', 'model_number',
-    'warranty_expires', 'quantity',
+    'name',
+    'category',
+    'condition',
+    'purchase_date',
+    'purchase_price',
+    'purchase_currency',
+    'retailer',
+    'serial_number',
+    'model_number',
+    'warranty_expires',
+    'quantity',
   ]);
-  const rows = items.map((item) => csvRow([
-    item.name,
-    catLabelMap[item.category] ?? item.category ?? '',
-    item.condition              ?? 'Good',
-    item.purchase_date          ?? '',
-    item.purchase_price != null ? item.purchase_price : '',
-    item.purchase_currency      ?? 'GBP',
-    item.retailer               ?? '',
-    item.serial_number          ?? '',
-    item.model_number           ?? '',
-    item.warranty_expires       ?? '',
-    item.quantity               ?? 1,
-  ]));
+  const rows = items.map((item) =>
+    csvRow([
+      item.name,
+      catLabelMap[item.category] ?? item.category ?? '',
+      item.condition ?? 'Good',
+      item.purchase_date ?? '',
+      item.purchase_price != null ? item.purchase_price : '',
+      item.purchase_currency ?? 'GBP',
+      item.retailer ?? '',
+      item.serial_number ?? '',
+      item.model_number ?? '',
+      item.warranty_expires ?? '',
+      item.quantity ?? 1,
+    ]),
+  );
   sendCsv(res, 'hopstock-insurance-report.csv', header, rows);
 });
 

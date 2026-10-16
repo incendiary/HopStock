@@ -10,7 +10,9 @@ const { default: app } = await import('../app.js');
 const request = (await import('supertest')).default;
 
 const events = (routineId) =>
-  testDb.prepare('SELECT * FROM maintenance_events WHERE routine_id = ? ORDER BY id').all(routineId);
+  testDb
+    .prepare('SELECT * FROM maintenance_events WHERE routine_id = ? ORDER BY id')
+    .all(routineId);
 
 async function routineWith(equipCount = 2) {
   const { body } = await request(app).post('/api/routines').send({ name: 'Descale' });
@@ -51,7 +53,11 @@ describe('Routine runs link events by routine_id', () => {
     const { id, items } = await routineWith(1);
     const res = await request(app)
       .post(`/api/equipment/${items[0].id}/maintenance`)
-      .send({ event_type: 'Serviced', notes: `[routine:${id}]`, performed_at: '2026-04-01T00:00:00Z' });
+      .send({
+        event_type: 'Serviced',
+        notes: `[routine:${id}]`,
+        performed_at: '2026-04-01T00:00:00Z',
+      });
     expect(res.status).toBe(201);
     const detail = await request(app).get(`/api/routines/${id}`);
     expect(detail.body.last_run).toBeNull();
@@ -65,7 +71,9 @@ describe('Routine runs link events by routine_id', () => {
     const ids = events(id).map((r) => r.id);
     expect(ids).toHaveLength(2);
     await request(app).delete(`/api/routines/${id}`);
-    const after = testDb.prepare(`SELECT * FROM maintenance_events WHERE id IN (${ids.join(',')})`).all();
+    const after = testDb
+      .prepare(`SELECT * FROM maintenance_events WHERE id IN (${ids.join(',')})`)
+      .all();
     expect(after).toHaveLength(2);
     expect(after.every((r) => r.routine_id === null && r.notes === 'x')).toBe(true);
   });
@@ -81,13 +89,21 @@ describe('routine_id migration from the pre-RA-9 schema', () => {
       DROP INDEX idx_maintenance_routine;
       ALTER TABLE maintenance_events DROP COLUMN routine_id;
     `);
-    expect(db.pragma('table_info(maintenance_events)').map((c) => c.name)).not.toContain('routine_id');
+    expect(db.pragma('table_info(maintenance_events)').map((c) => c.name)).not.toContain(
+      'routine_id',
+    );
     db.prepare("INSERT INTO service_routines (id, name) VALUES (7, 'Existing')").run();
     const equip = seedEquipment(db);
     const ins = db.prepare(
       "INSERT INTO maintenance_events (equipment_id, event_type, notes, performed_at) VALUES (?, 'Serviced', ?, '2026-01-01T00:00:00Z')",
     );
-    for (const n of ['[routine:7]', '[routine:99]', 'wiped the lid [routine:7]', 'plain note', null]) {
+    for (const n of [
+      '[routine:7]',
+      '[routine:99]',
+      'wiped the lid [routine:7]',
+      'plain note',
+      null,
+    ]) {
       ins.run(equip.id, n);
     }
     return db;
@@ -115,7 +131,9 @@ describe('routine_id migration from the pre-RA-9 schema', () => {
       "INSERT INTO maintenance_events (equipment_id, event_type, notes) VALUES (?, 'Serviced', '[routine:7]')",
     ).run(equipId);
     runMigrations(db);
-    const typed = db.prepare('SELECT notes, routine_id FROM maintenance_events ORDER BY id DESC').get();
+    const typed = db
+      .prepare('SELECT notes, routine_id FROM maintenance_events ORDER BY id DESC')
+      .get();
     expect(typed).toEqual({ notes: '[routine:7]', routine_id: null });
   });
 });

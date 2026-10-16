@@ -37,7 +37,7 @@ describe('Loans API', () => {
   });
 
   it('onLoan filter returns only loaned items', async () => {
-    const loaned  = seedEquipment(testDb, { name: 'Loaned Keg' });
+    const loaned = seedEquipment(testDb, { name: 'Loaned Keg' });
     const present = seedEquipment(testDb, { name: 'Present Keg' });
 
     await request(app)
@@ -56,8 +56,7 @@ describe('Loans API', () => {
       .post(`/api/equipment/${item.id}/loans`)
       .send({ borrower: 'Dave', loaned_at: '2026-01-01' });
 
-    const del = await request(app)
-      .delete(`/api/equipment/${item.id}/loans/${loan.body.id}`);
+    const del = await request(app).delete(`/api/equipment/${item.id}/loans/${loan.body.id}`);
     expect(del.status).toBe(200);
 
     const list = await request(app).get(`/api/equipment/${item.id}/loans`);

@@ -7,13 +7,15 @@ const router = Router();
 
 function getTagsForEquipment(equipmentId) {
   return db
-    .prepare(`
+    .prepare(
+      `
       SELECT t.id, t.name, t.color
       FROM tags t
       JOIN equipment_tags et ON et.tag_id = t.id
       WHERE et.equipment_id = ?
       ORDER BY t.name COLLATE NOCASE
-    `)
+    `,
+    )
     .all(equipmentId);
 }
 
@@ -21,15 +23,12 @@ function getTagsForEquipment(equipmentId) {
 
 // GET /api/tags
 router.get('/', (_req, res) => {
-  const tags = db
-    .prepare('SELECT * FROM tags ORDER BY name COLLATE NOCASE')
-    .all();
+  const tags = db.prepare('SELECT * FROM tags ORDER BY name COLLATE NOCASE').all();
   // Attach usage count
   const result = tags.map((t) => ({
     ...t,
-    usage_count: db
-      .prepare('SELECT COUNT(*) as n FROM equipment_tags WHERE tag_id = ?')
-      .get(t.id).n,
+    usage_count: db.prepare('SELECT COUNT(*) as n FROM equipment_tags WHERE tag_id = ?').get(t.id)
+      .n,
   }));
   res.json(result);
 });
@@ -66,9 +65,11 @@ router.put('/:id', (req, res) => {
   }
 
   try {
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tags SET name = COALESCE(?, name), color = COALESCE(?, color) WHERE id = ?
-    `).run(name?.trim() ?? null, color ?? null, req.params.id);
+    `,
+    ).run(name?.trim() ?? null, color ?? null, req.params.id);
     res.json(db.prepare('SELECT * FROM tags WHERE id = ?').get(req.params.id));
   } catch (err) {
     if (err.message?.includes('UNIQUE')) {
@@ -105,8 +106,10 @@ router.put('/equipment/:id', (req, res) => {
   const sync = db.transaction(() => {
     db.prepare('DELETE FROM equipment_tags WHERE equipment_id = ?').run(req.params.id);
     for (const tagId of tag_ids) {
-      db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)')
-        .run(req.params.id, tagId);
+      db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)').run(
+        req.params.id,
+        tagId,
+      );
     }
   });
 

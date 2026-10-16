@@ -145,19 +145,20 @@ export function runMigrations(db) {
 
   // Idempotent photo column additions
   const photoCols = new Set(db.pragma('table_info(photos)').map((c) => c.name));
-  if (!photoCols.has('sort_order')) db.exec('ALTER TABLE photos ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0');
-  if (!photoCols.has('caption'))    db.exec('ALTER TABLE photos ADD COLUMN caption TEXT');
+  if (!photoCols.has('sort_order'))
+    db.exec('ALTER TABLE photos ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0');
+  if (!photoCols.has('caption')) db.exec('ALTER TABLE photos ADD COLUMN caption TEXT');
 
   const purchaseCols = [
-    ['purchase_date',     'TEXT'],
-    ['purchase_price',    'REAL'],
+    ['purchase_date', 'TEXT'],
+    ['purchase_price', 'REAL'],
     ['purchase_currency', "TEXT DEFAULT 'GBP'"],
-    ['retailer',          'TEXT'],
-    ['serial_number',     'TEXT'],
-    ['model_number',      'TEXT'],
-    ['warranty_expires',  'TEXT'],
-    ['quantity',          'INTEGER NOT NULL DEFAULT 1'],
-    ['location_id',       'INTEGER REFERENCES locations(id)'],
+    ['retailer', 'TEXT'],
+    ['serial_number', 'TEXT'],
+    ['model_number', 'TEXT'],
+    ['warranty_expires', 'TEXT'],
+    ['quantity', 'INTEGER NOT NULL DEFAULT 1'],
+    ['location_id', 'INTEGER REFERENCES locations(id)'],
   ];
 
   for (const [col, def] of purchaseCols) {
@@ -175,9 +176,13 @@ export function runMigrations(db) {
       db.exec(
         'ALTER TABLE maintenance_events ADD COLUMN routine_id INTEGER REFERENCES service_routines(id) ON DELETE SET NULL',
       );
-      const tagged = db.prepare("SELECT id, notes FROM maintenance_events WHERE notes LIKE '%[routine:%]%'").all();
+      const tagged = db
+        .prepare("SELECT id, notes FROM maintenance_events WHERE notes LIKE '%[routine:%]%'")
+        .all();
       const routineExists = db.prepare('SELECT 1 FROM service_routines WHERE id = ?');
-      const update = db.prepare('UPDATE maintenance_events SET routine_id = ?, notes = ? WHERE id = ?');
+      const update = db.prepare(
+        'UPDATE maintenance_events SET routine_id = ?, notes = ? WHERE id = ?',
+      );
       for (const { id, notes } of tagged) {
         const match = notes.match(/\[routine:(\d+)\]/);
         if (!match) continue;
@@ -197,5 +202,7 @@ export function runMigrations(db) {
     db.pragma(`user_version = ${SCHEMA_VERSION}`);
   }
 
-  console.log(`[db] migrations applied (schema v${SCHEMA_VERSION}, FTS ${rebuildFts ? 'rebuilt' : 'rebuild skipped'})`);
+  console.log(
+    `[db] migrations applied (schema v${SCHEMA_VERSION}, FTS ${rebuildFts ? 'rebuilt' : 'rebuild skipped'})`,
+  );
 }
