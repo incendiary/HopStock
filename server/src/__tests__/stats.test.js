@@ -10,15 +10,19 @@ const request = (await import('supertest')).default;
 describe('Stats API', () => {
   beforeAll(() => {
     // Seed known data
-    seedEquipment(testDb, { name: 'S1', category: 'kettle',    condition: 'Good',        quantity: 2 });
-    seedEquipment(testDb, { name: 'S2', category: 'fermenter', condition: 'Fair',        quantity: 1 });
-    seedEquipment(testDb, { name: 'S3', category: 'keg',       condition: 'Needs Repair', quantity: 1 });
+    seedEquipment(testDb, { name: 'S1', category: 'kettle', condition: 'Good', quantity: 2 });
+    seedEquipment(testDb, { name: 'S2', category: 'fermenter', condition: 'Fair', quantity: 1 });
+    seedEquipment(testDb, { name: 'S3', category: 'keg', condition: 'Needs Repair', quantity: 1 });
 
     // One with a purchase price
-    testDb.prepare(`
+    testDb
+      .prepare(
+        `
       INSERT INTO equipment (name, category, condition, quantity, purchase_price, purchase_currency)
       VALUES ('S4', 'kettle', 'Good', 1, 99.99, 'GBP')
-    `).run();
+    `,
+      )
+      .run();
   });
 
   it('returns total item count', async () => {

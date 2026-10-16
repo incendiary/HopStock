@@ -24,23 +24,17 @@ describe('Tags API', () => {
   });
 
   it('updates a tag', async () => {
-    const created = await request(app)
-      .post('/api/tags')
-      .send({ name: 'original', color: '#aaa' });
+    const created = await request(app).post('/api/tags').send({ name: 'original', color: '#aaa' });
     const id = created.body.id;
 
-    const res = await request(app)
-      .put(`/api/tags/${id}`)
-      .send({ name: 'renamed', color: '#bbb' });
+    const res = await request(app).put(`/api/tags/${id}`).send({ name: 'renamed', color: '#bbb' });
 
     expect(res.status).toBe(200);
     expect(res.body.name).toBe('renamed');
   });
 
   it('deletes a tag', async () => {
-    const created = await request(app)
-      .post('/api/tags')
-      .send({ name: 'to-delete', color: '#ccc' });
+    const created = await request(app).post('/api/tags').send({ name: 'to-delete', color: '#ccc' });
     const id = created.body.id;
 
     const del = await request(app).delete(`/api/tags/${id}`);
@@ -52,9 +46,7 @@ describe('Tags API', () => {
 
   it('assigned tag appears on equipment (batch uses tag id)', async () => {
     const item = seedEquipment(testDb);
-    const tag = await request(app)
-      .post('/api/tags')
-      .send({ name: 'keezer', color: '#10b981' });
+    const tag = await request(app).post('/api/tags').send({ name: 'keezer', color: '#10b981' });
 
     // batch action uses tag id (not name)
     await request(app)

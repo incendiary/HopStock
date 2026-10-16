@@ -21,7 +21,10 @@ describe('Maintenance validation', () => {
 
   it('accepts a valid performed_at and defaults when omitted', async () => {
     const item = seedEquipment(testDb);
-    const given = await post(item.id, { event_type: 'Serviced', performed_at: '2026-01-02T03:04:05Z' });
+    const given = await post(item.id, {
+      event_type: 'Serviced',
+      performed_at: '2026-01-02T03:04:05Z',
+    });
     expect(given.status).toBe(201);
     expect(given.body.performed_at).toBe('2026-01-02T03:04:05Z');
     const dflt = await post(item.id, { event_type: 'Serviced' });

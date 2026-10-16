@@ -7,7 +7,8 @@ vi.mock('../db/index.js', () => ({ default: testDb }));
 const { default: app } = await import('../app.js');
 const request = (await import('supertest')).default;
 
-const mkTag = async (name, color) => (await request(app).post('/api/tags').send({ name, color })).body;
+const mkTag = async (name, color) =>
+  (await request(app).post('/api/tags').send({ name, color })).body;
 
 describe('Tags CRUD edges', () => {
   it('POST defaults the colour and trims the name', async () => {
@@ -42,7 +43,9 @@ describe('Tags CRUD edges', () => {
     const res = await request(app).put(`/api/tags/${t.id}`).send({ name: 'taken' });
     expect(res.status).toBe(409);
     expect(res.body).toEqual({ error: 'Tag name already exists' });
-    expect((await request(app).get('/api/tags')).body.find((x) => x.id === t.id).name).toBe('other');
+    expect((await request(app).get('/api/tags')).body.find((x) => x.id === t.id).name).toBe(
+      'other',
+    );
   });
 
   it('PUT and DELETE return 404 for an unknown tag', async () => {
@@ -71,20 +74,27 @@ describe('Tag assignment and usage_count', () => {
     const a = await mkTag('a-tag', '#aaaaaa');
     const c = await mkTag('c-tag', '#cccccc');
 
-    const first = await request(app).put(`/api/tags/equipment/${e1.id}`).send({ tag_ids: [b.id, a.id, a.id] });
+    const first = await request(app)
+      .put(`/api/tags/equipment/${e1.id}`)
+      .send({ tag_ids: [b.id, a.id, a.id] });
     expect(first.status).toBe(200);
     expect(first.body).toEqual([
       { id: a.id, name: 'a-tag', color: '#aaaaaa' },
       { id: b.id, name: 'b-tag', color: '#bbbbbb' },
     ]);
-    await request(app).put(`/api/tags/equipment/${e2.id}`).send({ tag_ids: [a.id] });
+    await request(app)
+      .put(`/api/tags/equipment/${e2.id}`)
+      .send({ tag_ids: [a.id] });
 
-    const count = async (id) => (await request(app).get('/api/tags')).body.find((t) => t.id === id).usage_count;
+    const count = async (id) =>
+      (await request(app).get('/api/tags')).body.find((t) => t.id === id).usage_count;
     expect(await count(a.id)).toBe(2);
     expect(await count(b.id)).toBe(1);
     expect(await count(c.id)).toBe(0);
 
-    const replaced = await request(app).put(`/api/tags/equipment/${e1.id}`).send({ tag_ids: [c.id] });
+    const replaced = await request(app)
+      .put(`/api/tags/equipment/${e1.id}`)
+      .send({ tag_ids: [c.id] });
     expect(replaced.body).toEqual([{ id: c.id, name: 'c-tag', color: '#cccccc' }]);
     expect(await count(a.id)).toBe(1);
     expect(await count(b.id)).toBe(0);
@@ -107,17 +117,25 @@ describe('Tag assignment and usage_count', () => {
   it('PUT /equipment/:id with an unknown tag id is rejected and keeps the existing tags', async () => {
     const e = seedEquipment(testDb);
     const t = await mkTag('stays');
-    await request(app).put(`/api/tags/equipment/${e.id}`).send({ tag_ids: [t.id] });
-    const res = await request(app).put(`/api/tags/equipment/${e.id}`).send({ tag_ids: [99999] });
+    await request(app)
+      .put(`/api/tags/equipment/${e.id}`)
+      .send({ tag_ids: [t.id] });
+    const res = await request(app)
+      .put(`/api/tags/equipment/${e.id}`)
+      .send({ tag_ids: [99999] });
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ error: 'Referenced record does not exist' });
-    expect((await request(app).get(`/api/tags/equipment/${e.id}`)).body.map((x) => x.id)).toEqual([t.id]);
+    expect((await request(app).get(`/api/tags/equipment/${e.id}`)).body.map((x) => x.id)).toEqual([
+      t.id,
+    ]);
   });
 
   it('deleting a tag removes its assignments', async () => {
     const e = seedEquipment(testDb);
     const t = await mkTag('vanish');
-    await request(app).put(`/api/tags/equipment/${e.id}`).send({ tag_ids: [t.id] });
+    await request(app)
+      .put(`/api/tags/equipment/${e.id}`)
+      .send({ tag_ids: [t.id] });
     await request(app).delete(`/api/tags/${t.id}`);
     expect((await request(app).get(`/api/tags/equipment/${e.id}`)).body).toEqual([]);
   });

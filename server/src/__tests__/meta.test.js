@@ -14,7 +14,11 @@ describe('Meta constants endpoints', () => {
     const res = await request(app).get('/api/categories');
     expect(res.status).toBe(200);
     expect(res.body).toEqual(CATEGORIES);
-    expect(res.body.find((c) => c.id === 'kettle')).toEqual({ id: 'kettle', label: 'Kettle', group: 'Vessels' });
+    expect(res.body.find((c) => c.id === 'kettle')).toEqual({
+      id: 'kettle',
+      label: 'Kettle',
+      group: 'Vessels',
+    });
   });
 
   it('GET /api/conditions returns the four conditions in order', async () => {
@@ -49,8 +53,15 @@ describe('GET /api/stats', () => {
   });
 
   it('computes exact values on a seeded set and ignores soft-deleted items', async () => {
-    const loc = testDb.prepare("INSERT INTO locations (name) VALUES ('Shed')").run().lastInsertRowid;
-    const a = seedEquipment(testDb, { name: 'A', category: 'kettle', condition: 'Good', quantity: 3 });
+    const loc = testDb
+      .prepare("INSERT INTO locations (name) VALUES ('Shed')")
+      .run().lastInsertRowid;
+    const a = seedEquipment(testDb, {
+      name: 'A',
+      category: 'kettle',
+      condition: 'Good',
+      quantity: 3,
+    });
     const b = seedEquipment(testDb, { name: 'B', category: 'kettle', condition: 'Fair' });
     const c = seedEquipment(testDb, { name: 'C', category: 'keg', condition: 'Good' });
     const d = seedEquipment(testDb, { name: 'Deleted', category: 'pump', condition: 'Retired' });
@@ -62,7 +73,9 @@ describe('GET /api/stats', () => {
     photo.run(a.id, 'a1.jpg');
     photo.run(a.id, 'a2.jpg');
     photo.run(d.id, 'd.jpg');
-    const loan = testDb.prepare('INSERT INTO loans (equipment_id, borrower, returned_at) VALUES (?, ?, ?)');
+    const loan = testDb.prepare(
+      'INSERT INTO loans (equipment_id, borrower, returned_at) VALUES (?, ?, ?)',
+    );
     loan.run(a.id, 'Ann', null);
     loan.run(a.id, 'Ben', null);
     loan.run(b.id, 'Cat', '2026-01-01');
@@ -84,7 +97,11 @@ describe('GET /api/stats', () => {
       { category: 'kettle', count: 2 },
       { category: 'keg', count: 1 },
     ]);
-    expect(res.body.valueSummary).toEqual({ priced_count: 2, unpriced_count: 1, total_value: 14.75 });
+    expect(res.body.valueSummary).toEqual({
+      priced_count: 2,
+      unpriced_count: 1,
+      total_value: 14.75,
+    });
     expect(res.body.byLocation).toEqual([
       { name: 'Shed', id: Number(loc), count: 2 },
       { name: 'Unassigned', id: null, count: 1 },

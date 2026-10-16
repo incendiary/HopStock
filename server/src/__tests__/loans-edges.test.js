@@ -62,7 +62,9 @@ describe('Loans edges', () => {
   it('return stores the given returned_at and returns the updated loan', async () => {
     const e = seedEquipment(testDb);
     const loan = await lend(e.id, { borrower: 'Fay', loaned_at: '2026-01-01' });
-    const res = await request(app).put(`${url(e.id)}/${loan.id}/return`).send({ returned_at: '2026-02-02' });
+    const res = await request(app)
+      .put(`${url(e.id)}/${loan.id}/return`)
+      .send({ returned_at: '2026-02-02' });
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ id: loan.id, borrower: 'Fay', returned_at: '2026-02-02' });
   });
@@ -70,7 +72,9 @@ describe('Loans edges', () => {
   it('return defaults returned_at to now when none is given', async () => {
     const e = seedEquipment(testDb);
     const loan = await lend(e.id, { borrower: 'Gus' });
-    const res = await request(app).put(`${url(e.id)}/${loan.id}/return`).send({});
+    const res = await request(app)
+      .put(`${url(e.id)}/${loan.id}/return`)
+      .send({});
     expect(res.status).toBe(200);
     expect(res.body.returned_at).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/);
   });
@@ -78,8 +82,12 @@ describe('Loans edges', () => {
   it('returning twice is rejected and keeps the first returned_at', async () => {
     const e = seedEquipment(testDb);
     const loan = await lend(e.id, { borrower: 'Hal' });
-    await request(app).put(`${url(e.id)}/${loan.id}/return`).send({ returned_at: '2026-02-02' });
-    const res = await request(app).put(`${url(e.id)}/${loan.id}/return`).send({ returned_at: '2026-09-09' });
+    await request(app)
+      .put(`${url(e.id)}/${loan.id}/return`)
+      .send({ returned_at: '2026-02-02' });
+    const res = await request(app)
+      .put(`${url(e.id)}/${loan.id}/return`)
+      .send({ returned_at: '2026-09-09' });
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ error: 'Already returned' });
     const row = testDb.prepare('SELECT returned_at FROM loans WHERE id = ?').get(loan.id);
@@ -100,7 +108,9 @@ describe('Loans edges', () => {
       expect(res.status).toBe(404);
       expect(res.body).toEqual({ error: 'Not found' });
     }
-    expect(testDb.prepare('SELECT returned_at FROM loans WHERE id = ?').get(loan.id).returned_at).toBeNull();
+    expect(
+      testDb.prepare('SELECT returned_at FROM loans WHERE id = ?').get(loan.id).returned_at,
+    ).toBeNull();
   });
 
   it('delete returns { success: true } and removes only that loan', async () => {

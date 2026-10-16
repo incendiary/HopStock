@@ -6,9 +6,7 @@ const router = Router();
 // ─── Helpers ──────────────────────────────────────────────
 
 function getRoutineWithDetails(id) {
-  const routine = db
-    .prepare('SELECT * FROM service_routines WHERE id = ?')
-    .get(id);
+  const routine = db.prepare('SELECT * FROM service_routines WHERE id = ?').get(id);
   if (!routine) return null;
 
   const steps = db
@@ -16,13 +14,15 @@ function getRoutineWithDetails(id) {
     .all(id);
 
   const equipment = db
-    .prepare(`
+    .prepare(
+      `
       SELECT e.id, e.name, e.icon, e.category, e.condition
       FROM equipment e
       JOIN routine_equipment re ON re.equipment_id = e.id
       WHERE re.routine_id = ? AND e.deleted = 0
       ORDER BY e.name COLLATE NOCASE
-    `)
+    `,
+    )
     .all(id);
 
   // Last run: most recent maintenance event created by running this routine
@@ -68,7 +68,8 @@ function insertSteps(routineId, steps) {
 // GET /api/routines
 router.get('/', (_req, res) => {
   const result = db
-    .prepare(`
+    .prepare(
+      `
       SELECT r.*,
         (SELECT COUNT(*) FROM routine_steps s WHERE s.routine_id = r.id) AS step_count,
         (SELECT COUNT(*) FROM routine_equipment re WHERE re.routine_id = r.id) AS equipment_count,
@@ -76,7 +77,8 @@ router.get('/', (_req, res) => {
           WHERE m.routine_id = r.id) AS last_run
       FROM service_routines r
       ORDER BY r.name COLLATE NOCASE
-    `)
+    `,
+    )
     .all();
 
   res.json(result);
@@ -101,10 +103,12 @@ router.post('/', (req, res) => {
 
   const createRoutine = db.transaction(() => {
     const result = db
-      .prepare(`
+      .prepare(
+        `
         INSERT INTO service_routines (name, description, interval_days)
         VALUES (?, ?, ?)
-      `)
+      `,
+      )
       .run(name.trim(), description, interval_days ?? null);
 
     const routineId = result.lastInsertRowid;
@@ -119,9 +123,7 @@ router.post('/', (req, res) => {
 
 // PUT /api/routines/:id
 router.put('/:id', (req, res) => {
-  const existing = db
-    .prepare('SELECT id FROM service_routines WHERE id = ?')
-    .get(req.params.id);
+  const existing = db.prepare('SELECT id FROM service_routines WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Not found' });
 
   const { name, description = null, interval_days = null, steps } = req.body;
@@ -134,14 +136,16 @@ router.put('/:id', (req, res) => {
 
   const update = db.transaction(() => {
     if (name !== undefined || description !== undefined || interval_days !== undefined) {
-      db.prepare(`
+      db.prepare(
+        `
         UPDATE service_routines
         SET name = COALESCE(?, name),
             description = ?,
             interval_days = ?,
             updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
         WHERE id = ?
-      `).run(name?.trim() ?? null, description, interval_days ?? null, req.params.id);
+      `,
+      ).run(name?.trim() ?? null, description, interval_days ?? null, req.params.id);
     }
 
     if (Array.isArray(steps)) {
@@ -156,9 +160,7 @@ router.put('/:id', (req, res) => {
 
 // DELETE /api/routines/:id
 router.delete('/:id', (req, res) => {
-  const existing = db
-    .prepare('SELECT id FROM service_routines WHERE id = ?')
-    .get(req.params.id);
+  const existing = db.prepare('SELECT id FROM service_routines WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Not found' });
 
   db.prepare('DELETE FROM service_routines WHERE id = ?').run(req.params.id);
@@ -167,9 +169,7 @@ router.delete('/:id', (req, res) => {
 
 // POST /api/routines/:id/equipment  — attach an item
 router.post('/:id/equipment', (req, res) => {
-  const routine = db
-    .prepare('SELECT id FROM service_routines WHERE id = ?')
-    .get(req.params.id);
+  const routine = db.prepare('SELECT id FROM service_routines WHERE id = ?').get(req.params.id);
   if (!routine) return res.status(404).json({ error: 'Routine not found' });
 
   const { equipment_id } = req.body;
@@ -178,18 +178,21 @@ router.post('/:id/equipment', (req, res) => {
     .get(equipment_id);
   if (!equip) return res.status(404).json({ error: 'Equipment not found' });
 
-  db.prepare(`
+  db.prepare(
+    `
     INSERT OR IGNORE INTO routine_equipment (routine_id, equipment_id) VALUES (?, ?)
-  `).run(req.params.id, equipment_id);
+  `,
+  ).run(req.params.id, equipment_id);
 
   res.status(201).json(getRoutineWithDetails(req.params.id));
 });
 
 // DELETE /api/routines/:id/equipment/:equipmentId  — detach an item
 router.delete('/:id/equipment/:equipmentId', (req, res) => {
-  db.prepare(
-    'DELETE FROM routine_equipment WHERE routine_id = ? AND equipment_id = ?',
-  ).run(req.params.id, req.params.equipmentId);
+  db.prepare('DELETE FROM routine_equipment WHERE routine_id = ? AND equipment_id = ?').run(
+    req.params.id,
+    req.params.equipmentId,
+  );
   res.json({ success: true });
 });
 
@@ -207,10 +210,12 @@ router.post('/:id/run', (req, res) => {
 
   const runRoutine = db.transaction(() => {
     routine.equipment.forEach((equip) => {
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO maintenance_events (equipment_id, event_type, notes, performed_at, routine_id)
         VALUES (?, 'Serviced', ?, ?, ?)
-      `).run(equip.id, notes.trim() || null, performedAt, routine.id);
+      `,
+      ).run(equip.id, notes.trim() || null, performedAt, routine.id);
     });
   });
 

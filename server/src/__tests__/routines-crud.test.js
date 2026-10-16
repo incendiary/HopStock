@@ -8,7 +8,8 @@ const { default: app } = await import('../app.js');
 const request = (await import('supertest')).default;
 
 const mk = async (body) => (await request(app).post('/api/routines').send(body)).body;
-const attach = (id, equipment_id) => request(app).post(`/api/routines/${id}/equipment`).send({ equipment_id });
+const attach = (id, equipment_id) =>
+  request(app).post(`/api/routines/${id}/equipment`).send({ equipment_id });
 
 describe('Routines CRUD', () => {
   it('GET /:id returns 404 for an unknown routine', async () => {
@@ -26,7 +27,13 @@ describe('Routines CRUD', () => {
     });
     const res = await request(app).get(`/api/routines/${r.id}`);
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ name: 'Full', description: 'd', interval_days: 14, last_run: null, equipment: [] });
+    expect(res.body).toMatchObject({
+      name: 'Full',
+      description: 'd',
+      interval_days: 14,
+      last_run: null,
+      equipment: [],
+    });
     expect(res.body.steps.map((s) => [s.sort_order, s.instruction, s.is_check])).toEqual([
       [0, 'one', 0],
       [1, 'two', 1],
@@ -34,14 +41,24 @@ describe('Routines CRUD', () => {
   });
 
   it('PUT updates fields and replaces steps wholesale', async () => {
-    const r = await mk({ name: 'Old', steps: [{ instruction: 'a' }, { instruction: 'b' }, { instruction: 'c' }] });
+    const r = await mk({
+      name: 'Old',
+      steps: [{ instruction: 'a' }, { instruction: 'b' }, { instruction: 'c' }],
+    });
     const res = await request(app)
       .put(`/api/routines/${r.id}`)
-      .send({ name: '  New  ', description: 'desc', interval_days: 7, steps: [{ instruction: 'z' }] });
+      .send({
+        name: '  New  ',
+        description: 'desc',
+        interval_days: 7,
+        steps: [{ instruction: 'z' }],
+      });
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ name: 'New', description: 'desc', interval_days: 7 });
     expect(res.body.steps.map((s) => s.instruction)).toEqual(['z']);
-    expect(testDb.prepare('SELECT COUNT(*) n FROM routine_steps WHERE routine_id = ?').get(r.id).n).toBe(1);
+    expect(
+      testDb.prepare('SELECT COUNT(*) n FROM routine_steps WHERE routine_id = ?').get(r.id).n,
+    ).toBe(1);
   });
 
   it('PUT without steps leaves the steps untouched and keeps the name', async () => {
@@ -80,8 +97,12 @@ describe('Routines CRUD', () => {
     const res = await request(app).delete(`/api/routines/${r.id}`);
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ success: true });
-    expect(testDb.prepare('SELECT COUNT(*) n FROM routine_steps WHERE routine_id = ?').get(r.id).n).toBe(0);
-    expect(testDb.prepare('SELECT COUNT(*) n FROM routine_equipment WHERE routine_id = ?').get(r.id).n).toBe(0);
+    expect(
+      testDb.prepare('SELECT COUNT(*) n FROM routine_steps WHERE routine_id = ?').get(r.id).n,
+    ).toBe(0);
+    expect(
+      testDb.prepare('SELECT COUNT(*) n FROM routine_equipment WHERE routine_id = ?').get(r.id).n,
+    ).toBe(0);
     expect(testDb.prepare('SELECT COUNT(*) n FROM equipment WHERE id = ?').get(e.id).n).toBe(1);
     expect((await request(app).get(`/api/routines/${r.id}`)).status).toBe(404);
   });
@@ -95,11 +116,18 @@ describe('Routines CRUD', () => {
 
 describe('Routine equipment attach and detach', () => {
   it('attaches equipment and returns the routine with it listed', async () => {
-    const e = seedEquipment(testDb, { name: 'Attach Me', category: 'keg', condition: 'Fair', icon: 'K' });
+    const e = seedEquipment(testDb, {
+      name: 'Attach Me',
+      category: 'keg',
+      condition: 'Fair',
+      icon: 'K',
+    });
     const r = await mk({ name: 'Att' });
     const res = await attach(r.id, e.id);
     expect(res.status).toBe(201);
-    expect(res.body.equipment).toEqual([{ id: e.id, name: 'Attach Me', icon: 'K', category: 'keg', condition: 'Fair' }]);
+    expect(res.body.equipment).toEqual([
+      { id: e.id, name: 'Attach Me', icon: 'K', category: 'keg', condition: 'Fair' },
+    ]);
   });
 
   it('attaching twice is idempotent', async () => {
@@ -109,7 +137,9 @@ describe('Routine equipment attach and detach', () => {
     const res = await attach(r.id, e.id);
     expect(res.status).toBe(201);
     expect(res.body.equipment).toHaveLength(1);
-    expect(testDb.prepare('SELECT COUNT(*) n FROM routine_equipment WHERE routine_id = ?').get(r.id).n).toBe(1);
+    expect(
+      testDb.prepare('SELECT COUNT(*) n FROM routine_equipment WHERE routine_id = ?').get(r.id).n,
+    ).toBe(1);
   });
 
   it('404s for an unknown routine', async () => {
@@ -149,7 +179,9 @@ describe('Routine equipment attach and detach', () => {
     await attach(r.id, e.id);
     testDb.prepare('UPDATE equipment SET deleted = 1 WHERE id = ?').run(e.id);
     expect((await request(app).get(`/api/routines/${r.id}`)).body.equipment).toEqual([]);
-    expect((await request(app).get('/api/routines')).body.find((x) => x.id === r.id).equipment_count).toBe(1);
+    expect(
+      (await request(app).get('/api/routines')).body.find((x) => x.id === r.id).equipment_count,
+    ).toBe(1);
   });
 });
 
@@ -165,7 +197,9 @@ describe('Routine run', () => {
     const res = await request(app).post(`/api/routines/${r.id}/run`).send({});
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ error: 'No equipment attached to this routine' });
-    expect(testDb.prepare('SELECT COUNT(*) n FROM maintenance_events WHERE routine_id = ?').get(r.id).n).toBe(0);
+    expect(
+      testDb.prepare('SELECT COUNT(*) n FROM maintenance_events WHERE routine_id = ?').get(r.id).n,
+    ).toBe(0);
   });
 
   it('logs one Serviced event per attached item at the chosen performed_at', async () => {
@@ -179,13 +213,22 @@ describe('Routine run', () => {
       .post(`/api/routines/${r.id}/run`)
       .send({ performed_at: '2026-03-04T05:06:07Z', notes: '  all good  ' });
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ success: true, logged_count: 2, performed_at: '2026-03-04T05:06:07Z' });
-    const rows = testDb.prepare('SELECT * FROM maintenance_events WHERE routine_id = ? ORDER BY equipment_id').all(r.id);
+    expect(res.body).toEqual({
+      success: true,
+      logged_count: 2,
+      performed_at: '2026-03-04T05:06:07Z',
+    });
+    const rows = testDb
+      .prepare('SELECT * FROM maintenance_events WHERE routine_id = ? ORDER BY equipment_id')
+      .all(r.id);
     expect(rows.map((x) => [x.equipment_id, x.event_type, x.notes, x.performed_at])).toEqual([
       [a.id, 'Serviced', 'all good', '2026-03-04T05:06:07Z'],
       [b.id, 'Serviced', 'all good', '2026-03-04T05:06:07Z'],
     ]);
-    expect(testDb.prepare('SELECT COUNT(*) n FROM maintenance_events WHERE equipment_id = ?').get(c.id).n).toBe(0);
+    expect(
+      testDb.prepare('SELECT COUNT(*) n FROM maintenance_events WHERE equipment_id = ?').get(c.id)
+        .n,
+    ).toBe(0);
   });
 
   it('stores null notes when none are given', async () => {
@@ -193,6 +236,8 @@ describe('Routine run', () => {
     const r = await mk({ name: 'NoNotes' });
     await attach(r.id, e.id);
     await request(app).post(`/api/routines/${r.id}/run`).send({});
-    expect(testDb.prepare('SELECT notes FROM maintenance_events WHERE routine_id = ?').get(r.id).notes).toBeNull();
+    expect(
+      testDb.prepare('SELECT notes FROM maintenance_events WHERE routine_id = ?').get(r.id).notes,
+    ).toBeNull();
   });
 });
