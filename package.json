@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "trap 'kill 0' EXIT; npm run dev -w server & npm run dev -w client; wait",
     "build": "npm run build -w client",
-    "lint": "npm run lint -w client",
+    "lint": "npm run lint -w server -w client",
+    "format:check": "npm run format:check -w server -w client",
     "test": "npm test -w server && npm test -w client",
     "start": "npm run start -w server"
   }

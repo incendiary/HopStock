@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { describe, it, expect, vi } from 'vitest';
-import { makeTestDb, seedEquipment } from './helpers.js';
+import { makeTestDb } from './helpers.js';
 
 const testDb = makeTestDb();
 vi.mock('../db/index.js', () => ({ default: testDb }));
