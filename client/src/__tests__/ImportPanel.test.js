@@ -65,17 +65,38 @@ describe('ImportPanel', () => {
     expect(w.find('.import-result__hint').text()).toBe('View inventory →');
   });
 
-  it('uses singular and plural wording and ignores a duplicates count', () => {
-    const w = mountPanel({ result: { imported: 1, skipped: 2, duplicates: 4, errors: [] } });
+  it('uses singular and plural wording for imported and skipped', () => {
+    const w = mountPanel({ result: { imported: 1, skipped: 2, duplicates: 0, errors: [] } });
     expect(w.find('.import-result__ok').text()).toBe('✓ Imported 1 item');
     expect(w.find('.import-result__warn').text()).toBe('⚠ Skipped 2 rows');
     expect(w.find('.import-result__errors').exists()).toBe(false);
-    expect(w.text()).not.toContain('uplicate');
   });
 
-  it('renders an empty result box when nothing was imported or skipped', () => {
-    const w = mountPanel({ result: { imported: 0, skipped: 0, duplicates: 1, errors: [] } });
-    expect(w.find('.import-result').text()).toBe('');
+  it('shows a plural duplicates line when every row was a duplicate', () => {
+    const w = mountPanel({ result: { imported: 0, duplicates: 3, skipped: 0, errors: [] } });
+    expect(w.find('.import-result').text()).toBe('⚠ 3 duplicates skipped');
+    expect(w.find('.import-result__hint').exists()).toBe(false);
+  });
+
+  it('shows a singular duplicate line', () => {
+    const w = mountPanel({ result: { imported: 0, duplicates: 1, skipped: 0, errors: [] } });
+    expect(w.find('.import-result').text()).toBe('⚠ 1 duplicate skipped');
+  });
+
+  it('shows imported, duplicates, skipped and error rows together', () => {
+    const w = mountPanel({
+      result: { imported: 2, duplicates: 3, skipped: 1, errors: [{ row: 5, message: 'bad' }] },
+    });
+    expect(w.find('.import-result__ok').text()).toBe('✓ Imported 2 items');
+    expect(w.find('.import-result__dup').text()).toBe('⚠ 3 duplicates skipped');
+    expect(w.find('.import-result__warn').text()).toBe('⚠ Skipped 1 row');
+    expect(w.findAll('.import-result__errors li').map((l) => l.text())).toEqual(['Row 5: bad']);
+  });
+
+  it('omits the duplicates line when there are none', () => {
+    const w = mountPanel({ result: { imported: 2, duplicates: 0, skipped: 0, errors: [] } });
+    expect(w.find('.import-result__dup').exists()).toBe(false);
+    expect(w.text()).not.toContain('uplicate');
   });
 
   it('shows an import error message', () => {
