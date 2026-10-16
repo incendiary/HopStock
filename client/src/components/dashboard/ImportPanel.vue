@@ -30,6 +30,9 @@
         ✓ Imported {{ result.imported }}
         {{ result.imported === 1 ? 'item' : 'items' }}
       </p>
+      <p v-if="result.duplicates" class="import-result__dup">
+        ⚠ {{ result.duplicates }} {{ result.duplicates === 1 ? 'duplicate' : 'duplicates' }} skipped
+      </p>
       <p v-if="result.skipped" class="import-result__warn">
         ⚠ Skipped {{ result.skipped }} {{ result.skipped === 1 ? 'row' : 'rows' }}
       </p>
@@ -53,7 +56,7 @@ import DashboardSection from './DashboardSection.vue';
 defineProps({
   file: { type: File, default: null },
   importing: { type: Boolean, default: false },
-  // { imported, skipped, errors: [{ row, message }] } from /import
+  // { imported, duplicates, skipped, errors: [{ row, message }] } from /import
   result: { type: Object, default: null },
   error: { type: String, default: null },
 });
@@ -93,6 +96,7 @@ const emit = defineEmits(['select', 'submit']);
 .import-result__ok {
   color: var(--color-accent);
 }
+.import-result__dup,
 .import-result__warn {
   color: var(--color-primary);
 }
