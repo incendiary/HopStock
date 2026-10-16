@@ -1,6 +1,6 @@
 services:
   hopstock:
-    image: ghcr.io/incendiary/hopstock:2.1.3
+    image: ghcr.io/incendiary/hopstock:2.2.0
     ports:
       - "3000:3000"
     volumes:
