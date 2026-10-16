@@ -14,12 +14,22 @@ import importRouter      from './routes/import.js';
 import locationsRouter   from './routes/locations.js';
 import loansRouter       from './routes/loans.js';
 import { triggerBackupNow } from './backup.js';
+import { authRouter, requireAuth, rateLimit } from './auth.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
 app.use(express.json());
+
+// Health check
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', project: 'hopstock' });
+});
+
+// Optional shared-token auth: everything below needs it when HOPSTOCK_TOKEN is set
+app.use('/api/auth', authRouter);
+app.use(['/api', '/uploads'], requireAuth);
 
 // Serve uploaded photos
 app.use('/uploads', express.static(UPLOADS_DIR, {
@@ -29,17 +39,14 @@ app.use('/uploads', express.static(UPLOADS_DIR, {
   },
 }));
 
-// Health check
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', project: 'hopstock' });
-});
-
 app.use('/api/equipment', equipmentRouter);
 app.use('/api/equipment/:equipmentId/photos', photosRouter);
 app.use('/api/equipment/:equipmentId/maintenance', maintenanceRouter);
 app.use('/api/equipment/:equipmentId/loans', loansRouter);
 app.use('/api/routines', routinesRouter);
 app.use('/api/tags', tagsRouter);
+// Receipt scans spend the owner's Anthropic credit: 20 per hour per IP, token or not
+app.post('/api/scan-receipt', rateLimit(20, 60 * 60 * 1000));
 app.use('/api/scan-receipt', scanRouter);
 app.use('/api/export', exportRouter);
 app.use('/api/import', importRouter);

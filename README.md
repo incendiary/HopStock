@@ -162,10 +162,28 @@ tar czf hopstock-backup-$(date +%Y%m%d).tar.gz -C /opt/hopstock data
 | `PORT` | `3000` | Server listen port |
 | `ANTHROPIC_API_KEY` | — | Enables receipt scanning |
 | `RECEIPT_MODEL` | `claude-sonnet-5-5` | Claude model for receipt extraction. Set only if you have a different model available (e.g. `claude-opus-5-5` for higher accuracy). |
+| `HOPSTOCK_TOKEN` | — | Optional shared access token. When set, `/api` and `/uploads` require it (see [Access token](#access-token)) |
 | `BACKUP_INTERVAL_HOURS` | `24` | How often to auto-backup (`0` = disabled) |
 | `BACKUP_KEEP` | `7` | Number of backup archives to retain |
 
 Set variables in `docker-compose.yml` under `environment:`.
+
+### Access token
+
+HopStock has no user accounts. By default anyone who can reach the port can read and change data, trigger backups and spend your Anthropic credit through receipt scanning. Set `HOPSTOCK_TOKEN` to require one shared secret instead:
+
+```yaml
+environment:
+  HOPSTOCK_TOKEN: "change-me"
+```
+
+- **What it protects:** every `/api` and `/uploads` request, including exports, backups and photos. `GET /api/health` (the Docker healthcheck) and the login/logout/status endpoints stay open, as does the web app shell so the login screen can load.
+- **Browser:** a login screen asks for the token and stores it in an HttpOnly, SameSite=Strict cookie for 30 days, so photos and export links work without any script access to the token.
+- **Scripts:** send `Authorization: Bearer <token>`, for example `curl -H "Authorization: Bearer $HOPSTOCK_TOKEN" http://host:3000/api/export/json`.
+- **Rotating:** change the value and restart the container. Existing cookies stop working immediately.
+- **Not user accounts:** everyone shares one secret and there is no per-person audit trail or revocation. Use a long random value (for example `openssl rand -hex 32`).
+- **Use HTTPS:** the token travels in every request. Serve HopStock behind a TLS reverse proxy or over a VPN; the cookie gains the `Secure` flag when the request arrives over HTTPS (directly or via `X-Forwarded-Proto: https`).
+- **Rate limits:** login allows 10 attempts per 15 minutes and `POST /api/scan-receipt` 20 per hour, per client IP, held in memory (a restart resets them). The scan limit applies even when no token is set. Behind a reverse proxy every request appears to come from the proxy, so configure Express to trust it, for example `app.set('trust proxy', 1)` in `server/src/app.js` with a value that matches your proxy chain, otherwise all clients share one limit.
 
 ---
 
