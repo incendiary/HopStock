@@ -66,6 +66,9 @@ app.post('/api/backup/now', async (_req, res) => {
   }
 });
 
+// Missing uploads and unknown API paths are real 404s, not the SPA shell
+app.use(['/uploads', '/api'], (_req, res) => res.status(404).json({ error: 'Not found' }));
+
 // SPA fallback — serves built Vue client in production
 app.use(express.static(join(__dirname, '../public')));
 app.get('*', (_req, res) => {

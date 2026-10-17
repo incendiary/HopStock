@@ -37,8 +37,14 @@ describe('App routes', () => {
     },
   );
 
-  it.skipIf(hasClient)('unknown /api path also returns the JSON 404', async () => {
+  it('unknown /api path returns the JSON 404 whether or not the client is built', async () => {
     const res = await request(app).get('/api/no-such-endpoint');
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: 'Not found' });
+  });
+
+  it('missing upload returns the JSON 404 whether or not the client is built', async () => {
+    const res = await request(app).get('/uploads/no-such-photo.png');
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ error: 'Not found' });
   });
