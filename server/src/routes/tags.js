@@ -60,6 +60,9 @@ router.put('/:id', (req, res) => {
   if (!tag) return res.status(404).json({ error: 'Not found' });
 
   const { name, color } = req.body;
+  if (name !== undefined && (typeof name !== 'string' || !name.trim())) {
+    return res.status(400).json({ error: 'name is required' });
+  }
 
   try {
     db.prepare(

@@ -76,12 +76,21 @@ describe('Routines CRUD', () => {
     expect(res.body.steps).toEqual([]);
   });
 
-  // Characterises current behaviour: omitted description/interval_days default to null in
-  // the handler, so a partial PUT wipes them. Reported in the PR as a likely bug.
-  it('PUT with only a name resets description and interval_days to null (current behaviour)', async () => {
-    const r = await mk({ name: 'Wipe', description: 'keep me?', interval_days: 30 });
-    const res = await request(app).put(`/api/routines/${r.id}`).send({ name: 'Wiped' });
-    expect(res.body).toMatchObject({ name: 'Wiped', description: null, interval_days: null });
+  it('PUT with only a name keeps description and interval_days', async () => {
+    const r = await mk({ name: 'Keep', description: 'keep me', interval_days: 30 });
+    const res = await request(app).put(`/api/routines/${r.id}`).send({ name: 'Kept' });
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ name: 'Kept', description: 'keep me', interval_days: 30 });
+  });
+
+  it('PUT with explicit null clears description and interval_days independently', async () => {
+    const r = await mk({ name: 'Clear', description: 'd', interval_days: 7 });
+    const a = await request(app).put(`/api/routines/${r.id}`).send({ description: null });
+    expect(a.body).toMatchObject({ name: 'Clear', description: null, interval_days: 7 });
+    const b = await request(app)
+      .put(`/api/routines/${r.id}`)
+      .send({ description: 'back', interval_days: null });
+    expect(b.body).toMatchObject({ name: 'Clear', description: 'back', interval_days: null });
   });
 
   it('PUT returns 404 for an unknown routine', async () => {

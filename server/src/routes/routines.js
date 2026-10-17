@@ -123,10 +123,10 @@ router.post('/', (req, res) => {
 
 // PUT /api/routines/:id
 router.put('/:id', (req, res) => {
-  const existing = db.prepare('SELECT id FROM service_routines WHERE id = ?').get(req.params.id);
+  const existing = db.prepare('SELECT * FROM service_routines WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Not found' });
 
-  const { name, description = null, interval_days = null, steps } = req.body;
+  const { name, description, interval_days, steps } = req.body;
 
   if (name !== undefined && (typeof name !== 'string' || !name.trim())) {
     return res.status(400).json({ error: 'name cannot be empty' });
@@ -139,13 +139,18 @@ router.put('/:id', (req, res) => {
       db.prepare(
         `
         UPDATE service_routines
-        SET name = COALESCE(?, name),
+        SET name = ?,
             description = ?,
             interval_days = ?,
             updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
         WHERE id = ?
       `,
-      ).run(name?.trim() ?? null, description, interval_days ?? null, req.params.id);
+      ).run(
+        name?.trim() ?? existing.name,
+        description === undefined ? existing.description : description,
+        interval_days === undefined ? existing.interval_days : interval_days,
+        req.params.id,
+      );
     }
 
     if (Array.isArray(steps)) {

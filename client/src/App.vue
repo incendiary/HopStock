@@ -13,6 +13,9 @@
       </nav>
 
       <div class="navbar__actions">
+        <button v-if="authRequired && !locked" class="btn btn--sm" type="button" @click="signOut">
+          Log out
+        </button>
         <span class="theme-label" aria-hidden="true">🎨</span>
         <select
           class="theme-select"
@@ -28,13 +31,16 @@
     </header>
 
     <main class="main-content">
-      <RouterView />
+      <LoginGate v-if="locked" @authenticated="onAuthenticated" />
+      <RouterView v-else :key="reloadKey" />
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import LoginGate from './components/LoginGate.vue';
+import { getAuthStatus, logout, UNAUTHORIZED_EVENT } from './api.js';
 
 const THEMES = [
   { id: '', label: 'Oxidised Copper (default)' },
@@ -43,6 +49,38 @@ const THEMES = [
   { id: 'cold-side', label: 'Cold Side' },
   { id: 'mash-tun', label: 'Mash Tun' },
 ];
+
+// Unauthenticated installs never lock: the gate only appears once the server says so
+const authRequired = ref(false);
+const locked = ref(false);
+const reloadKey = ref(0);
+
+const lock = () => {
+  locked.value = true;
+};
+
+function onAuthenticated() {
+  locked.value = false;
+  authRequired.value = true;
+  reloadKey.value += 1; // remount the current view so it refetches its data
+}
+
+async function signOut() {
+  await logout().catch(() => {});
+  locked.value = true;
+}
+
+onMounted(async () => {
+  window.addEventListener(UNAUTHORIZED_EVENT, lock);
+  try {
+    const status = await getAuthStatus();
+    authRequired.value = status.required;
+    if (status.required && !status.authenticated) locked.value = true;
+  } catch {
+    // Status unavailable: fall back to the per-request 401 handling
+  }
+});
+onUnmounted(() => window.removeEventListener(UNAUTHORIZED_EVENT, lock));
 
 const themes = THEMES;
 const currentTheme = ref(localStorage.getItem('hopstock-theme') ?? '');

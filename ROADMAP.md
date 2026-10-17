@@ -12,6 +12,34 @@ Scope: server (2.4k lines, fully read), CI/Docker (fully read), client (structur
 
 **Summary.** Healthy for a single-user LAN app, but three things matter before anyone else relies on it: (1) backup pruning deletes the newest backups, and in Docker the backup archives nothing; (2) uploaded files are served from the app origin with a client-controlled extension (stored XSS via `.html` or `.svg`); (3) there is no authentication, and `/api/scan-receipt` spends Anthropic credit for anyone who can reach port 3000. Production dependencies carry a critical (`proxy-addr` via Express) and highs (`multer`, `vue`); all have non-breaking fixes.
 
+### Status (2026-10-16)
+
+| Done (PR) | Item |
+|---|---|
+| #39 | RA-1 backups |
+| #38 | RA-2 upload hardening |
+| #44 | RA-3 dependency fixes |
+| #45 | RA-5 error middleware |
+| #60 | RA-6 input validation |
+| #41 | RA-7 receipt scan |
+| #61 | RA-8 list queries |
+| #62 | RA-9 routine_id link |
+| #63 | RA-10 schema versioning |
+| #66 | RA-11 import/export round trip |
+| #65 | RA-12 server tests |
+| #46 | RA-13 CI hardening |
+| #47 | RA-14 Docker hardening |
+| #40 | RA-15 repo hygiene |
+| #67, #68, #70, #69 | RA-16 stages 1 to 4 (EquipmentDetail, EquipmentForm, EquipmentList, Dashboard) |
+| #43 | RA-18 gitleaks only |
+| #42 | RA-19 api.js helper |
+| #48 | RA-20 drop concurrently |
+| #64 | RA-21 server de-duplication |
+
+Open: RA-4 (shared-token auth, decided), RA-12 client unit tests, RA-17 server lint and format, RA-22, RA-23, client view smoke tests (after RA-16), triage of the Dependabot PRs.
+
+Found during delivery: `Dashboard.vue` threw on first render (`stats` null while `loading` false), so the dashboard was blank in v2.1.3 and earlier; fixed in #69.
+
 ### Architecture
 
 | Path | Responsibility | Concerns |
@@ -339,6 +367,30 @@ Sequence and parallelism: groups that touch the same files must not run concurre
 **Success criteria:** all existing server tests pass unchanged; exported CSV and JSON bytes are identical before and after (diff a fixture export); no behaviour change; about 25 lines removed.
 
 **Files:** `server/src/routes/export.js`, `routines.js`, `equipment.js`, `import.js`, `server/src/app.js`.
+
+### RA-22: Fix two bugs found by the server test pass
+
+**Model:** Sonnet 5.5. **Effort:** S.
+
+**Context:** the characterisation tests in `routines-crud.test.js` and `tags-crud.test.js` (named "current behaviour") pin two bugs. (1) `PUT /api/routines/:id` with a partial body sets `description` and `interval_days` to null because the destructured defaults are `null` and the UPDATE writes them unconditionally. (2) `PUT /api/tags/:id` accepts a whitespace-only name and stores an empty string, while POST rejects it.
+
+**Do:** (1) update only the routine fields present in the body (`undefined` keeps the stored value; an explicit `null` clears it); (2) validate the tag name on PUT exactly as POST does (trimmed, non-empty string, same message and 400). Check `client/src/components/RoutineForm.vue` and the tag editing UI still send what the server now expects. Update the two characterisation tests to assert the correct behaviour.
+
+**Success criteria:** partial PUT leaves untouched fields unchanged; explicit null clears; whitespace tag name returns 400 with the POST message; all other tests unchanged; proved by breaking each fix once.
+
+**Files:** `server/src/routes/routines.js`, `server/src/routes/tags.js`, `server/src/__tests__/routines-crud.test.js`, `server/src/__tests__/tags-crud.test.js`.
+
+### RA-23: Show duplicates in the import result
+
+**Model:** Haiku 4.5. **Effort:** XS.
+
+**Context:** the import endpoint returns `{ imported, duplicates, skipped, errors }` (RA-11) but `client/src/components/dashboard/ImportPanel.vue` reads only `imported`, `skipped` and `errors`, so a file whose rows are all duplicates renders an empty result box. `ImportPanel.test.js` pins that quirk.
+
+**Do:** show a duplicates line (for example "3 duplicates skipped") when `result.duplicates > 0`, using the existing result styling and pluralisation style; update the pinned test.
+
+**Success criteria:** all-duplicates import shows the line; mixed results show imported, duplicates, skipped and error rows; mount tests assert exact text; lint and format checks pass.
+
+**Files:** `client/src/components/dashboard/ImportPanel.vue`, `client/src/__tests__/ImportPanel.test.js`.
 
 ### Ponytail review (complexity only; none applied)
 

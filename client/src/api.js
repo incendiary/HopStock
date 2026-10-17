@@ -1,8 +1,13 @@
 export const BASE = '/api';
+export const UNAUTHORIZED_EVENT = 'hopstock:unauthorized';
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, options);
   if (!res.ok) {
+    // Any 401 outside the auth endpoints means the session is gone: show the login gate
+    if (res.status === 401 && !path.startsWith('/auth/')) {
+      window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+    }
     const body = await res.json().catch(() => ({}));
     throw Object.assign(new Error(body.error ?? `HTTP ${res.status}`), { status: res.status });
   }
@@ -14,6 +19,11 @@ const json = (method, body) => ({
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(body),
 });
+
+// Auth (optional shared token, see README)
+export const getAuthStatus = () => request('/auth/status');
+export const login = (token) => request('/auth/login', json('POST', { token }));
+export const logout = () => request('/auth/logout', { method: 'POST' });
 
 // Equipment
 export const getEquipment = (params = {}) => {

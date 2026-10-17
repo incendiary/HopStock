@@ -57,12 +57,13 @@ describe('Tags CRUD edges', () => {
     expect(del.body).toEqual({ error: 'Not found' });
   });
 
-  // Characterises current behaviour: unlike POST, PUT does not reject a blank name.
-  it('PUT with a whitespace-only name stores an empty name (current behaviour)', async () => {
+  it('PUT with a whitespace-only name returns 400 and keeps the stored name', async () => {
     const t = await mkTag('blankme');
     const res = await request(app).put(`/api/tags/${t.id}`).send({ name: '   ' });
-    expect(res.status).toBe(200);
-    expect(res.body.name).toBe('');
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'name is required' });
+    const list = (await request(app).get('/api/tags')).body;
+    expect(list.find((x) => x.id === t.id).name).toBe('blankme');
   });
 });
 
