@@ -18,14 +18,15 @@ describe('Locations API', () => {
   });
 
   it('lists locations with item_count', async () => {
-    const loc = await request(app)
-      .post('/api/locations')
-      .send({ name: 'Keezer' });
+    const loc = await request(app).post('/api/locations').send({ name: 'Keezer' });
 
     const item = seedEquipment(testDb);
-    await request(app)
-      .put(`/api/equipment/${item.id}`)
-      .send({ name: item.name, category: item.category, condition: item.condition, location_id: loc.body.id });
+    await request(app).put(`/api/equipment/${item.id}`).send({
+      name: item.name,
+      category: item.category,
+      condition: item.condition,
+      location_id: loc.body.id,
+    });
 
     const list = await request(app).get('/api/locations');
     expect(list.status).toBe(200);
@@ -34,23 +35,22 @@ describe('Locations API', () => {
   });
 
   it('filters equipment by location', async () => {
-    const loc = await request(app)
-      .post('/api/locations')
-      .send({ name: 'Under Stairs' });
+    const loc = await request(app).post('/api/locations').send({ name: 'Under Stairs' });
 
     const item = seedEquipment(testDb, { name: 'Stair Item' });
-    await request(app)
-      .put(`/api/equipment/${item.id}`)
-      .send({ name: item.name, category: item.category, condition: item.condition, location_id: loc.body.id });
+    await request(app).put(`/api/equipment/${item.id}`).send({
+      name: item.name,
+      category: item.category,
+      condition: item.condition,
+      location_id: loc.body.id,
+    });
 
     const res = await request(app).get(`/api/equipment?location=${loc.body.id}`);
     expect(res.body.items.every((i) => i.location?.id === loc.body.id)).toBe(true);
   });
 
   it('updates a location', async () => {
-    const created = await request(app)
-      .post('/api/locations')
-      .send({ name: 'Old Name' });
+    const created = await request(app).post('/api/locations').send({ name: 'Old Name' });
 
     const res = await request(app)
       .put(`/api/locations/${created.body.id}`)
@@ -61,9 +61,7 @@ describe('Locations API', () => {
   });
 
   it('deletes a location and nullifies equipment FK', async () => {
-    const loc = await request(app)
-      .post('/api/locations')
-      .send({ name: 'To Delete' });
+    const loc = await request(app).post('/api/locations').send({ name: 'To Delete' });
 
     const item = seedEquipment(testDb);
     testDb.prepare('UPDATE equipment SET location_id = ? WHERE id = ?').run(loc.body.id, item.id);

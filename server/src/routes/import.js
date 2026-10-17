@@ -3,16 +3,14 @@ import multer from 'multer';
 import db from '../db/index.js';
 import { CATEGORIES, CONDITIONS } from '../db/constants.js';
 
-const router  = Router();
-const upload  = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+const router = Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 const VALID_CATEGORY_IDS = new Set(CATEGORIES.map((c) => c.id));
-const VALID_CONDITIONS   = new Set(CONDITIONS);
+const VALID_CONDITIONS = new Set(CONDITIONS);
 
 // Build a label → id lookup for flexible CSV import (case-insensitive)
-const catLabelToId = Object.fromEntries(
-  CATEGORIES.map((c) => [c.label.toLowerCase(), c.id]),
-);
+const catLabelToId = Object.fromEntries(CATEGORIES.map((c) => [c.label.toLowerCase(), c.id]));
 
 // ─── CSV parser ───────────────────────────────────────────
 // Handles quoted fields (embedded commas, escaped double-quotes).
@@ -32,8 +30,13 @@ function parseCSVLine(line) {
       pos++; // skip opening quote
       while (pos < line.length) {
         if (line[pos] === '"') {
-          if (line[pos + 1] === '"') { val += '"'; pos += 2; }
-          else                        { pos++; break; }
+          if (line[pos + 1] === '"') {
+            val += '"';
+            pos += 2;
+          } else {
+            pos++;
+            break;
+          }
         } else {
           val += line[pos++];
         }
@@ -42,8 +45,13 @@ function parseCSVLine(line) {
       if (line[pos] === ',') pos++;
     } else {
       const comma = line.indexOf(',', pos);
-      if (comma === -1) { fields.push(line.slice(pos)); pos = line.length; }
-      else              { fields.push(line.slice(pos, comma)); pos = comma + 1; }
+      if (comma === -1) {
+        fields.push(line.slice(pos));
+        pos = line.length;
+      } else {
+        fields.push(line.slice(pos, comma));
+        pos = comma + 1;
+      }
     }
   }
 
@@ -63,8 +71,10 @@ function parseCSV(text) {
   const headers = parseCSVLine(lines[0]).map((h) => h.trim().toLowerCase());
   return lines.slice(1).map((line, i) => {
     const values = parseCSVLine(line);
-    const obj    = { _row: i + 2 }; // 1-indexed, +1 for header row
-    headers.forEach((h, idx) => { obj[h] = values[idx] ?? ''; });
+    const obj = { _row: i + 2 }; // 1-indexed, +1 for header row
+    headers.forEach((h, idx) => {
+      obj[h] = values[idx] ?? '';
+    });
     return obj;
   });
 }
@@ -73,13 +83,19 @@ function parseCSV(text) {
 function resolveCategory(raw) {
   if (!raw) return null;
   const trimmed = raw.trim();
-  if (VALID_CATEGORY_IDS.has(trimmed))                return trimmed;
+  if (VALID_CATEGORY_IDS.has(trimmed)) return trimmed;
   const byLabel = catLabelToId[trimmed.toLowerCase()];
-  if (byLabel)                                         return byLabel;
+  if (byLabel) return byLabel;
   return null; // unknown — will be treated as error if name requires one
 }
 
-const TEXT_FIELDS = ['purchase_date', 'retailer', 'serial_number', 'model_number', 'warranty_expires'];
+const TEXT_FIELDS = [
+  'purchase_date',
+  'retailer',
+  'serial_number',
+  'model_number',
+  'warranty_expires',
+];
 
 // Trimmed string, or null when absent/empty. Throws on values that are not text-like.
 function text(rec, field) {
@@ -97,7 +113,8 @@ function validateRecord(rec) {
     const name = text(rec, 'name');
     if (!name) return { error: 'name is required' };
 
-    const condition = typeof (rec.condition ?? 'Good') === 'string' ? (rec.condition ?? 'Good').trim() : null;
+    const condition =
+      typeof (rec.condition ?? 'Good') === 'string' ? (rec.condition ?? 'Good').trim() : null;
     if (!VALID_CONDITIONS.has(condition)) {
       return { error: `invalid condition "${rec.condition}"` };
     }
@@ -125,14 +142,22 @@ function validateRecord(rec) {
 
     let tags = [];
     if (rec.tags != null) {
-      const ok = Array.isArray(rec.tags) && rec.tags.every((t) => (
-        (typeof t === 'string' && t.trim())
-        || (t && typeof t === 'object' && typeof t.name === 'string' && t.name.trim())
-      ));
+      const ok =
+        Array.isArray(rec.tags) &&
+        rec.tags.every(
+          (t) =>
+            (typeof t === 'string' && t.trim()) ||
+            (t && typeof t === 'object' && typeof t.name === 'string' && t.name.trim()),
+        );
       if (!ok) return { error: 'tags must be an array of tag names (or {name, color} objects)' };
-      tags = rec.tags.map((t) => (typeof t === 'string'
-        ? { name: t.trim() }
-        : { name: t.name.trim(), color: typeof t.color === 'string' && t.color.trim() ? t.color.trim() : undefined }));
+      tags = rec.tags.map((t) =>
+        typeof t === 'string'
+          ? { name: t.trim() }
+          : {
+              name: t.name.trim(),
+              color: typeof t.color === 'string' && t.color.trim() ? t.color.trim() : undefined,
+            },
+      );
     }
 
     if (rec.location != null && typeof rec.location !== 'string') {
@@ -147,7 +172,8 @@ function validateRecord(rec) {
       icon: text(rec, 'icon'),
       purchase_price: price,
       // The column defaults to GBP, so an absent key keeps that; an explicit null is preserved.
-      purchase_currency: rec.purchase_currency === undefined ? 'GBP' : text(rec, 'purchase_currency'),
+      purchase_currency:
+        rec.purchase_currency === undefined ? 'GBP' : text(rec, 'purchase_currency'),
       quantity,
       tags,
       location: rec.location?.trim() || null,
@@ -171,8 +197,8 @@ router.post('/', upload.single('file'), (req, res) => {
   }
 
   const { mimetype, originalname, buffer } = req.file;
-  const raw  = buffer.toString('utf-8');
-  const ext  = originalname.split('.').pop().toLowerCase();
+  const raw = buffer.toString('utf-8');
+  const ext = originalname.split('.').pop().toLowerCase();
 
   let records;
   try {
@@ -202,18 +228,22 @@ router.post('/', upload.single('file'), (req, res) => {
       @serial_number, @model_number, @warranty_expires, @quantity, @location_id
     )
   `);
-  const findTag     = db.prepare('SELECT id FROM tags WHERE name = ? COLLATE NOCASE');
-  const insertTag   = db.prepare('INSERT INTO tags (name, color) VALUES (?, COALESCE(?, \'#6366f1\'))');
-  const linkTag     = db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)');
-  const findLoc     = db.prepare('SELECT id FROM locations WHERE name = ? COLLATE NOCASE');
-  const insertLoc   = db.prepare('INSERT INTO locations (name) VALUES (?)');
+  const findTag = db.prepare('SELECT id FROM tags WHERE name = ? COLLATE NOCASE');
+  const insertTag = db.prepare("INSERT INTO tags (name, color) VALUES (?, COALESCE(?, '#6366f1'))");
+  const linkTag = db.prepare(
+    'INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)',
+  );
+  const findLoc = db.prepare('SELECT id FROM locations WHERE name = ? COLLATE NOCASE');
+  const insertLoc = db.prepare('INSERT INTO locations (name) VALUES (?)');
 
   const importMany = db.transaction((recs) => {
     let imported = 0;
     let duplicates = 0;
     const errors = [];
     const seen = new Set(
-      db.prepare('SELECT name, serial_number FROM equipment WHERE deleted = 0').all()
+      db
+        .prepare('SELECT name, serial_number FROM equipment WHERE deleted = 0')
+        .all()
         .map((r) => dedupeKey(r.name, r.serial_number)),
     );
 
@@ -240,7 +270,8 @@ router.post('/', upload.single('file'), (req, res) => {
       const equipmentId = insert.run({ ...result, location_id: locationId }).lastInsertRowid;
 
       for (const tag of result.tags) {
-        const tagId = findTag.get(tag.name)?.id ?? insertTag.run(tag.name, tag.color ?? null).lastInsertRowid;
+        const tagId =
+          findTag.get(tag.name)?.id ?? insertTag.run(tag.name, tag.color ?? null).lastInsertRowid;
         linkTag.run(equipmentId, tagId);
       }
       imported++;

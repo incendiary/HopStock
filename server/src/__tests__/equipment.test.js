@@ -25,9 +25,7 @@ describe('Equipment API', () => {
     });
 
     it('rejects missing name', async () => {
-      const res = await request(app)
-        .post('/api/equipment')
-        .send({ category: 'kettle' });
+      const res = await request(app).post('/api/equipment').send({ category: 'kettle' });
 
       expect(res.status).toBe(400);
       expect(res.body.errors).toBeDefined();
@@ -136,7 +134,9 @@ describe('Equipment API', () => {
     const base = { name: 'Ref Kettle', category: 'kettle' };
 
     it('rejects an unknown location_id on create', async () => {
-      const res = await request(app).post('/api/equipment').send({ ...base, location_id: 999999 });
+      const res = await request(app)
+        .post('/api/equipment')
+        .send({ ...base, location_id: 999999 });
       expect(res.status).toBe(400);
       expect(res.body.errors).toContain('location_id must reference an existing location');
     });
@@ -149,13 +149,17 @@ describe('Equipment API', () => {
     });
 
     it('accepts a null location_id', async () => {
-      const res = await request(app).post('/api/equipment').send({ ...base, location_id: null });
+      const res = await request(app)
+        .post('/api/equipment')
+        .send({ ...base, location_id: null });
       expect(res.status).toBe(201);
     });
 
     it('rejects non-integer or unknown tag_ids on create', async () => {
       for (const tag_ids of [['x'], [999999], 'nope']) {
-        const res = await request(app).post('/api/equipment').send({ ...base, tag_ids });
+        const res = await request(app)
+          .post('/api/equipment')
+          .send({ ...base, tag_ids });
         expect(res.status).toBe(400);
         expect(res.body.errors.join(' ')).toMatch(/^tag_ids must be/);
       }
@@ -163,7 +167,9 @@ describe('Equipment API', () => {
 
     it('rejects unknown tag_ids on update', async () => {
       const item = seedEquipment(testDb);
-      const res = await request(app).put(`/api/equipment/${item.id}`).send({ tag_ids: [999999] });
+      const res = await request(app)
+        .put(`/api/equipment/${item.id}`)
+        .send({ tag_ids: [999999] });
       expect(res.status).toBe(400);
       expect(res.body.errors).toContain('tag_ids must be integers referencing existing tags');
     });

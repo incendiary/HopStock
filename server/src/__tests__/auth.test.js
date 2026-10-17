@@ -88,11 +88,18 @@ describe('token set', () => {
   });
 
   it('grants access with the cookie, including exports and uploads', async () => {
-    for (const path of ['/api/equipment', '/api/export/csv', '/api/export/json', '/uploads/a.txt']) {
+    for (const path of [
+      '/api/equipment',
+      '/api/export/csv',
+      '/api/export/json',
+      '/uploads/a.txt',
+    ]) {
       const res = await request(app).get(path).set('Cookie', `other=1; hopstock_token=${TOKEN}`);
       expect(res.status).toBe(200);
     }
-    const status = await request(app).get('/api/auth/status').set('Cookie', `hopstock_token=${TOKEN}`);
+    const status = await request(app)
+      .get('/api/auth/status')
+      .set('Cookie', `hopstock_token=${TOKEN}`);
     expect(status.body).toEqual({ required: true, authenticated: true });
   });
 
@@ -100,10 +107,14 @@ describe('token set', () => {
     for (const bad of ['x', 'x'.repeat(5000), TOKEN + 'x', TOKEN.slice(1)]) {
       const bearer = await request(app).get('/api/equipment').set('Authorization', `Bearer ${bad}`);
       expect(bearer.status).toBe(401);
-      const cookie = await request(app).get('/api/equipment').set('Cookie', `hopstock_token=${bad}`);
+      const cookie = await request(app)
+        .get('/api/equipment')
+        .set('Cookie', `hopstock_token=${bad}`);
       expect(cookie.status).toBe(401);
     }
-    const malformed = await request(app).get('/api/equipment').set('Cookie', 'hopstock_token=%E0%A4%A');
+    const malformed = await request(app)
+      .get('/api/equipment')
+      .set('Cookie', 'hopstock_token=%E0%A4%A');
     expect(malformed.status).toBe(401);
   });
 
@@ -189,7 +200,9 @@ describe('POST /api/scan-receipt limiter', () => {
   it('does not let unauthenticated requests consume the owner quota', async () => {
     process.env.HOPSTOCK_TOKEN = TOKEN;
     for (let i = 0; i < 25; i++) await request(app).post('/api/scan-receipt');
-    const res = await request(app).post('/api/scan-receipt').set('Authorization', `Bearer ${TOKEN}`);
+    const res = await request(app)
+      .post('/api/scan-receipt')
+      .set('Authorization', `Bearer ${TOKEN}`);
     expect(res.status).toBe(501);
   });
 });

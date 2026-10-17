@@ -12,13 +12,13 @@
  * Any field that could not be determined is null.
  */
 
-import { Router }  from 'express';
-import multer      from 'multer';
+import { Router } from 'express';
+import multer from 'multer';
 
 const router = Router();
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits:  { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
   fileFilter(_req, file, cb) {
     const ok = /^(image\/(jpeg|png|webp|gif)|application\/pdf)$/.test(file.mimetype);
     cb(ok ? null : new Error('Only images and PDF files are supported'), ok);
@@ -64,12 +64,12 @@ router.post('/', upload.single('receipt'), async (req, res) => {
   let contentBlock;
   if (mimetype === 'application/pdf') {
     contentBlock = {
-      type:   'document',
+      type: 'document',
       source: { type: 'base64', media_type: 'application/pdf', data: base64 },
     };
   } else {
     contentBlock = {
-      type:   'image',
+      type: 'image',
       source: { type: 'base64', media_type: mimetype, data: base64 },
     };
   }
@@ -77,18 +77,18 @@ router.post('/', upload.single('receipt'), async (req, res) => {
   try {
     const model = process.env.RECEIPT_MODEL ?? 'claude-sonnet-5-5';
     const response = await fetch(ANTHROPIC_API, {
-      method:  'POST',
-      signal:  AbortSignal.timeout(30000),
+      method: 'POST',
+      signal: AbortSignal.timeout(30000),
       headers: {
-        'x-api-key':         process.env.ANTHROPIC_API_KEY,
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
-        'content-type':      'application/json',
+        'content-type': 'application/json',
       },
       body: JSON.stringify({
         model,
         max_tokens: 512,
-        system:     SYSTEM_PROMPT,
-        messages:   [{ role: 'user', content: [contentBlock] }],
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: [contentBlock] }],
       }),
     });
 
@@ -99,8 +99,8 @@ router.post('/', upload.single('receipt'), async (req, res) => {
       });
     }
 
-    const data   = await response.json();
-    let text     = data.content?.[0]?.text ?? '{}';
+    const data = await response.json();
+    let text = data.content?.[0]?.text ?? '{}';
 
     // Strip leading prose before the first '{' and trailing content after the last '}'
     const firstBrace = text.indexOf('{');
@@ -120,13 +120,13 @@ router.post('/', upload.single('receipt'), async (req, res) => {
 
     // Sanitise — only return known keys
     const result = {
-      purchase_date:     parsed.purchase_date     ?? null,
-      purchase_price:    parsed.purchase_price    ?? null,
+      purchase_date: parsed.purchase_date ?? null,
+      purchase_price: parsed.purchase_price ?? null,
       purchase_currency: parsed.purchase_currency ?? null,
-      retailer:          parsed.retailer          ?? null,
-      serial_number:     parsed.serial_number     ?? null,
-      model_number:      parsed.model_number      ?? null,
-      warranty_expires:  parsed.warranty_expires  ?? null,
+      retailer: parsed.retailer ?? null,
+      serial_number: parsed.serial_number ?? null,
+      model_number: parsed.model_number ?? null,
+      warranty_expires: parsed.warranty_expires ?? null,
     };
 
     res.json(result);

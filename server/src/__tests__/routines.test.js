@@ -11,7 +11,11 @@ describe('Routines validation', () => {
   const create = (body) => request(app).post('/api/routines').send(body);
 
   it('creates a valid routine', async () => {
-    const res = await create({ name: 'Descale', interval_days: 30, steps: [{ instruction: 'Rinse' }] });
+    const res = await create({
+      name: 'Descale',
+      interval_days: 30,
+      steps: [{ instruction: 'Rinse' }],
+    });
     expect(res.status).toBe(201);
     expect(res.body.steps).toHaveLength(1);
   });
@@ -39,7 +43,9 @@ describe('Routines validation', () => {
 
   it('rejects an empty step instruction on update', async () => {
     const { body } = await create({ name: 'Upd' });
-    const res = await request(app).put(`/api/routines/${body.id}`).send({ steps: [{ instruction: '' }] });
+    const res = await request(app)
+      .put(`/api/routines/${body.id}`)
+      .send({ steps: [{ instruction: '' }] });
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('each step needs a non-empty instruction');
   });

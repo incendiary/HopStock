@@ -34,7 +34,11 @@ const upload = multer({
     if (file.mimetype in EXT_BY_MIME) {
       cb(null, true);
     } else {
-      cb(Object.assign(new Error('Only JPEG, PNG, WebP, GIF, or HEIC images are accepted'), { status: 400 }));
+      cb(
+        Object.assign(new Error('Only JPEG, PNG, WebP, GIF, or HEIC images are accepted'), {
+          status: 400,
+        }),
+      );
     }
   },
 });
@@ -71,16 +75,14 @@ router.post('/', upload.array('photos', 10), (req, res) => {
     .get(equipment.id);
 
   const insert = db.prepare(
-    'INSERT INTO photos (equipment_id, filename, sort_order) VALUES (?, ?, ?)'
+    'INSERT INTO photos (equipment_id, filename, sort_order) VALUES (?, ?, ?)',
   );
 
   const created = db.transaction(() =>
     req.files.map((f, i) => {
       const result = insert.run(equipment.id, f.filename, maxOrder + 1 + i);
-      return db
-        .prepare('SELECT * FROM photos WHERE id = ?')
-        .get(result.lastInsertRowid);
-    })
+      return db.prepare('SELECT * FROM photos WHERE id = ?').get(result.lastInsertRowid);
+    }),
   )();
 
   res.status(201).json(created.map(toPhotoResponse));
@@ -100,18 +102,27 @@ router.patch('/:photoId', (req, res) => {
   db.transaction(() => {
     if (set_primary) {
       // Shift all other photos up by 1 then set this one to 0
-      db.prepare('UPDATE photos SET sort_order = sort_order + 1 WHERE equipment_id = ? AND id != ?')
-        .run(req.params.equipmentId, req.params.photoId);
+      db.prepare(
+        'UPDATE photos SET sort_order = sort_order + 1 WHERE equipment_id = ? AND id != ?',
+      ).run(req.params.equipmentId, req.params.photoId);
       db.prepare('UPDATE photos SET sort_order = 0 WHERE id = ?').run(req.params.photoId);
     } else if (sort_order !== undefined) {
-      db.prepare('UPDATE photos SET sort_order = ? WHERE id = ?').run(sort_order, req.params.photoId);
+      db.prepare('UPDATE photos SET sort_order = ? WHERE id = ?').run(
+        sort_order,
+        req.params.photoId,
+      );
     }
     if (caption !== undefined) {
-      db.prepare('UPDATE photos SET caption = ? WHERE id = ?').run(caption ?? null, req.params.photoId);
+      db.prepare('UPDATE photos SET caption = ? WHERE id = ?').run(
+        caption ?? null,
+        req.params.photoId,
+      );
     }
   })();
 
-  res.json(toPhotoResponse(db.prepare('SELECT * FROM photos WHERE id = ?').get(req.params.photoId)));
+  res.json(
+    toPhotoResponse(db.prepare('SELECT * FROM photos WHERE id = ?').get(req.params.photoId)),
+  );
 });
 
 // DELETE /api/equipment/:equipmentId/photos/:photoId

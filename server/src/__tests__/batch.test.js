@@ -58,9 +58,7 @@ describe('Batch operations API', () => {
   });
 
   it('bulk assigns a location', async () => {
-    const loc = await request(app)
-      .post('/api/locations')
-      .send({ name: 'Batch Location' });
+    const loc = await request(app).post('/api/locations').send({ name: 'Batch Location' });
     const a = seedEquipment(testDb, { name: 'Loc A' });
     const b = seedEquipment(testDb, { name: 'Loc B' });
 
@@ -84,9 +82,7 @@ describe('Batch operations API', () => {
   });
 
   it('rejects empty ids array', async () => {
-    const res = await request(app)
-      .post('/api/equipment/batch')
-      .send({ ids: [], action: 'delete' });
+    const res = await request(app).post('/api/equipment/batch').send({ ids: [], action: 'delete' });
 
     expect(res.status).toBe(400);
   });
@@ -104,7 +100,10 @@ describe('Batch operations API', () => {
     });
 
     it('rejects more than 500 ids', async () => {
-      const res = await post({ ids: Array.from({ length: 501 }, (_, i) => i + 1), action: 'delete' });
+      const res = await post({
+        ids: Array.from({ length: 501 }, (_, i) => i + 1),
+        action: 'delete',
+      });
       expect(res.status).toBe(400);
       expect(res.body.error).toBe(idsMsg);
     });

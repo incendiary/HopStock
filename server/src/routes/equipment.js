@@ -5,9 +5,11 @@ import { CATEGORIES, CONDITIONS } from '../db/constants.js';
 const router = Router();
 
 const VALID_CATEGORY_IDS = new Set(CATEGORIES.map((c) => c.id));
-const VALID_CONDITIONS   = new Set(CONDITIONS);
+const VALID_CONDITIONS = new Set(CONDITIONS);
 
-const addTag = db.prepare('INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)');
+const addTag = db.prepare(
+  'INSERT OR IGNORE INTO equipment_tags (equipment_id, tag_id) VALUES (?, ?)',
+);
 
 // --- helpers ---
 
@@ -32,7 +34,10 @@ const tagExists = (id) => !!db.prepare('SELECT 1 FROM tags WHERE id = ?').get(id
 // Checks only the reference fields the client actually sent
 function validateRefs(body) {
   const errors = [];
-  if (body.location_id != null && !(isPositiveInt(body.location_id) && locationExists(body.location_id))) {
+  if (
+    body.location_id != null &&
+    !(isPositiveInt(body.location_id) && locationExists(body.location_id))
+  ) {
     errors.push('location_id must reference an existing location');
   }
   if (body.tag_ids !== undefined) {
@@ -48,25 +53,34 @@ function validateRefs(body) {
 function withPhotos(item) {
   if (!item) return null;
   const photos = db
-    .prepare('SELECT id, filename, sort_order, caption, created_at FROM photos WHERE equipment_id = ? ORDER BY sort_order, id')
+    .prepare(
+      'SELECT id, filename, sort_order, caption, created_at FROM photos WHERE equipment_id = ? ORDER BY sort_order, id',
+    )
     .all(item.id)
     .map((p) => ({ ...p, url: `/uploads/${p.filename}` }));
   const tags = db
-    .prepare(`
+    .prepare(
+      `
       SELECT t.id, t.name, t.color
       FROM tags t JOIN equipment_tags et ON et.tag_id = t.id
       WHERE et.equipment_id = ?
       ORDER BY t.name COLLATE NOCASE
-    `)
+    `,
+    )
     .all(item.id);
   const location = item.location_id
     ? db.prepare('SELECT id, name FROM locations WHERE id = ?').get(item.location_id)
     : null;
-  const activeLoan = db.prepare(`
+  const activeLoan =
+    db
+      .prepare(
+        `
     SELECT id, borrower, loaned_at, expected_return
     FROM loans WHERE equipment_id = ? AND returned_at IS NULL
     ORDER BY loaned_at DESC LIMIT 1
-  `).get(item.id) ?? null;
+  `,
+      )
+      .get(item.id) ?? null;
   return { ...item, photos, tags, location, activeLoan };
 }
 
@@ -79,45 +93,56 @@ function withRelations(items) {
   const ids = [...byEquipment.keys()];
   const locIds = [...new Set(items.map((i) => i.location_id).filter(Boolean))];
   const locations = new Map();
-  const chunks = (list) => Array.from({ length: Math.ceil(list.length / CHUNK) }, (_, i) => list.slice(i * CHUNK, (i + 1) * CHUNK));
+  const chunks = (list) =>
+    Array.from({ length: Math.ceil(list.length / CHUNK) }, (_, i) =>
+      list.slice(i * CHUNK, (i + 1) * CHUNK),
+    );
   const marks = (list) => list.map(() => '?').join(',');
 
   for (const c of chunks(ids)) {
     for (const { equipment_id, ...photo } of db
-      .prepare(`SELECT id, equipment_id, filename, sort_order, caption, created_at FROM photos WHERE equipment_id IN (${marks(c)}) ORDER BY sort_order, id`)
+      .prepare(
+        `SELECT id, equipment_id, filename, sort_order, caption, created_at FROM photos WHERE equipment_id IN (${marks(c)}) ORDER BY sort_order, id`,
+      )
       .all(...c)) {
       byEquipment.get(equipment_id).photos.push({ ...photo, url: `/uploads/${photo.filename}` });
     }
     for (const { equipment_id, ...tag } of db
-      .prepare(`
+      .prepare(
+        `
         SELECT et.equipment_id, t.id, t.name, t.color
         FROM tags t JOIN equipment_tags et ON et.tag_id = t.id
         WHERE et.equipment_id IN (${marks(c)})
         ORDER BY t.name COLLATE NOCASE
-      `)
+      `,
+      )
       .all(...c)) {
       byEquipment.get(equipment_id).tags.push(tag);
     }
     for (const { equipment_id, ...loan } of db
-      .prepare(`
+      .prepare(
+        `
         SELECT id, equipment_id, borrower, loaned_at, expected_return
         FROM loans WHERE equipment_id IN (${marks(c)}) AND returned_at IS NULL
         ORDER BY loaned_at DESC
-      `)
+      `,
+      )
       .all(...c)) {
       const entry = byEquipment.get(equipment_id);
       entry.activeLoan ??= loan; // rows arrive newest first
     }
   }
   for (const c of chunks(locIds)) {
-    for (const l of db.prepare(`SELECT id, name FROM locations WHERE id IN (${marks(c)})`).all(...c)) {
+    for (const l of db
+      .prepare(`SELECT id, name FROM locations WHERE id IN (${marks(c)})`)
+      .all(...c)) {
       locations.set(l.id, l);
     }
   }
   return items.map((item) => ({
     ...item,
     ...byEquipment.get(item.id),
-    location: item.location_id ? locations.get(item.location_id) ?? null : null,
+    location: item.location_id ? (locations.get(item.location_id) ?? null) : null,
   }));
 }
 
@@ -139,7 +164,7 @@ router.get('/', (req, res) => {
     return res.status(400).json({ error: 'limit and offset must be non-negative integers' });
   }
 
-  let sql    = 'SELECT DISTINCT e.* FROM equipment e';
+  let sql = 'SELECT DISTINCT e.* FROM equipment e';
   const params = [];
 
   if (tag) {
@@ -214,25 +239,47 @@ router.post('/', (req, res) => {
   if (errors.length) return res.status(400).json({ errors });
 
   const {
-    name, category, condition = 'Good', notes = null, icon = null, tag_ids = [],
-    purchase_date = null, purchase_price = null, purchase_currency = null,
-    retailer = null, serial_number = null, model_number = null, warranty_expires = null,
-    quantity = 1, location_id = null,
+    name,
+    category,
+    condition = 'Good',
+    notes = null,
+    icon = null,
+    tag_ids = [],
+    purchase_date = null,
+    purchase_price = null,
+    purchase_currency = null,
+    retailer = null,
+    serial_number = null,
+    model_number = null,
+    warranty_expires = null,
+    quantity = 1,
+    location_id = null,
   } = req.body;
 
   const create = db.transaction(() => {
     const result = db
-      .prepare(`
+      .prepare(
+        `
         INSERT INTO equipment
           (name, category, condition, notes, icon,
            purchase_date, purchase_price, purchase_currency,
            retailer, serial_number, model_number, warranty_expires, quantity, location_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `)
+      `,
+      )
       .run(
-        name.trim(), category, condition, notes, icon,
-        purchase_date, purchase_price, purchase_currency || 'GBP',
-        retailer, serial_number, model_number, warranty_expires,
+        name.trim(),
+        category,
+        condition,
+        notes,
+        icon,
+        purchase_date,
+        purchase_price,
+        purchase_currency || 'GBP',
+        retailer,
+        serial_number,
+        model_number,
+        warranty_expires,
         Math.max(1, parseInt(quantity, 10) || 1),
         location_id ?? null,
       );
@@ -264,9 +311,15 @@ router.put('/:id', (req, res) => {
 
   // Purchase fields + quantity + location — only update if explicitly sent (don't wipe on partial updates)
   const purchaseFields = [
-    'purchase_date', 'purchase_price', 'purchase_currency',
-    'retailer', 'serial_number', 'model_number', 'warranty_expires',
-    'quantity', 'location_id',
+    'purchase_date',
+    'purchase_price',
+    'purchase_currency',
+    'retailer',
+    'serial_number',
+    'model_number',
+    'warranty_expires',
+    'quantity',
+    'location_id',
   ];
   const purchaseUpdates = purchaseFields.filter((f) => f in req.body);
 
@@ -321,22 +374,29 @@ router.post('/batch', (req, res) => {
 
   db.transaction(() => {
     if (action === 'delete') {
-      db.prepare(`
+      db.prepare(
+        `
         UPDATE equipment SET deleted = 1, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
         WHERE id IN (${placeholders}) AND deleted = 0
-      `).run(...ids);
+      `,
+      ).run(...ids);
     } else if (action === 'condition') {
-      if (!VALID_CONDITIONS.has(value)) throw Object.assign(new Error('invalid condition'), { status: 400 });
-      db.prepare(`
+      if (!VALID_CONDITIONS.has(value))
+        throw Object.assign(new Error('invalid condition'), { status: 400 });
+      db.prepare(
+        `
         UPDATE equipment SET condition = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
         WHERE id IN (${placeholders}) AND deleted = 0
-      `).run(value, ...ids);
+      `,
+      ).run(value, ...ids);
     } else if (action === 'location') {
       // value = location id (number) or null to unassign
-      db.prepare(`
+      db.prepare(
+        `
         UPDATE equipment SET location_id = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
         WHERE id IN (${placeholders}) AND deleted = 0
-      `).run(value ?? null, ...ids);
+      `,
+      ).run(value ?? null, ...ids);
     } else if (action === 'tag') {
       // value = tag id to add to all selected items
       if (!value) throw Object.assign(new Error('tag id required'), { status: 400 });
@@ -357,11 +417,13 @@ router.delete('/:id', (req, res) => {
 
   if (!existing) return res.status(404).json({ error: 'Not found' });
 
-  db.prepare(`
+  db.prepare(
+    `
     UPDATE equipment
     SET deleted = 1, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
     WHERE id = ?
-  `).run(req.params.id);
+  `,
+  ).run(req.params.id);
 
   res.json({ success: true });
 });

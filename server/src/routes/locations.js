@@ -5,13 +5,17 @@ const router = Router();
 
 // GET /api/locations
 router.get('/', (_req, res) => {
-  const rows = db.prepare(`
+  const rows = db
+    .prepare(
+      `
     SELECT l.*, COUNT(e.id) as item_count
     FROM locations l
     LEFT JOIN equipment e ON e.location_id = l.id AND e.deleted = 0
     GROUP BY l.id
     ORDER BY l.name COLLATE NOCASE
-  `).all();
+  `,
+    )
+    .all();
   res.json(rows);
 });
 
@@ -30,7 +34,7 @@ router.post('/', (req, res) => {
   }
   try {
     const result = db
-      .prepare("INSERT INTO locations (name, notes) VALUES (?, ?)")
+      .prepare('INSERT INTO locations (name, notes) VALUES (?, ?)')
       .run(name.trim(), notes);
     const created = db.prepare('SELECT * FROM locations WHERE id = ?').get(result.lastInsertRowid);
     res.status(201).json(created);
@@ -52,8 +56,11 @@ router.put('/:id', (req, res) => {
     return res.status(400).json({ error: 'name is required' });
   }
   try {
-    db.prepare('UPDATE locations SET name = ?, notes = ? WHERE id = ?')
-      .run(name.trim(), notes ?? null, req.params.id);
+    db.prepare('UPDATE locations SET name = ?, notes = ? WHERE id = ?').run(
+      name.trim(),
+      notes ?? null,
+      req.params.id,
+    );
     res.json(db.prepare('SELECT * FROM locations WHERE id = ?').get(req.params.id));
   } catch (err) {
     if (err.message?.includes('UNIQUE')) {

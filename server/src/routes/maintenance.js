@@ -7,9 +7,7 @@ const router = Router({ mergeParams: true }); // gives access to :equipmentId fr
 const VALID_TYPES = new Set(MAINTENANCE_EVENT_TYPES);
 
 function getEquipment(id) {
-  return db
-    .prepare('SELECT id FROM equipment WHERE id = ? AND deleted = 0')
-    .get(id);
+  return db.prepare('SELECT id FROM equipment WHERE id = ? AND deleted = 0').get(id);
 }
 
 // GET /api/equipment/:equipmentId/maintenance
@@ -39,7 +37,10 @@ router.post('/', (req, res) => {
     });
   }
 
-  if (performed_at != null && (typeof performed_at !== 'string' || Number.isNaN(Date.parse(performed_at)))) {
+  if (
+    performed_at != null &&
+    (typeof performed_at !== 'string' || Number.isNaN(Date.parse(performed_at)))
+  ) {
     return res.status(400).json({ error: 'performed_at must be a valid date' });
   }
 
@@ -62,9 +63,7 @@ router.post('/', (req, res) => {
 // DELETE /api/equipment/:equipmentId/maintenance/:eventId
 router.delete('/:eventId', (req, res) => {
   const event = db
-    .prepare(
-      'SELECT id FROM maintenance_events WHERE id = ? AND equipment_id = ?',
-    )
+    .prepare('SELECT id FROM maintenance_events WHERE id = ? AND equipment_id = ?')
     .get(req.params.eventId, req.params.equipmentId);
 
   if (!event) return res.status(404).json({ error: 'Event not found' });

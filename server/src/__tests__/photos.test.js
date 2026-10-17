@@ -17,13 +17,11 @@ afterAll(() => rmSync(uploadsDir, { recursive: true, force: true }));
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-  'base64'
+  'base64',
 );
 
 const upload = (id, buf, filename, contentType) =>
-  request(app)
-    .post(`/api/equipment/${id}/photos`)
-    .attach('photos', buf, { filename, contentType });
+  request(app).post(`/api/equipment/${id}/photos`).attach('photos', buf, { filename, contentType });
 
 describe('Photos API', () => {
   it('stores a valid PNG, serves it with hardening headers', async () => {
@@ -35,7 +33,7 @@ describe('Photos API', () => {
     expect(file.status).toBe(200);
     expect(file.headers['x-content-type-options']).toBe('nosniff');
     expect(file.headers['content-security-policy']).toBe(
-      "default-src 'none'; img-src 'self'; sandbox"
+      "default-src 'none'; img-src 'self'; sandbox",
     );
   });
 
@@ -49,7 +47,11 @@ describe('Photos API', () => {
   it('rejects SVG and other non-allowlisted types', async () => {
     const item = seedEquipment(testDb);
     const before = readdirSync(uploadsDir).length;
-    for (const [name, type] of [['x.svg', 'image/svg+xml'], ['x.bmp', 'image/bmp'], ['x.html', 'text/html']]) {
+    for (const [name, type] of [
+      ['x.svg', 'image/svg+xml'],
+      ['x.bmp', 'image/bmp'],
+      ['x.html', 'text/html'],
+    ]) {
       const res = await upload(item.id, Buffer.from('<svg/>'), name, type);
       expect(res.status).toBe(400);
     }
@@ -59,7 +61,7 @@ describe('Photos API', () => {
   it('sets primary and deletes a photo', async () => {
     const item = seedEquipment(testDb);
     const [a, b] = (await upload(item.id, PNG, 'a.png', 'image/png')).body.concat(
-      (await upload(item.id, PNG, 'b.png', 'image/png')).body
+      (await upload(item.id, PNG, 'b.png', 'image/png')).body,
     );
 
     const patch = await request(app)

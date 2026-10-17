@@ -2,17 +2,17 @@ import express from 'express';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { UPLOADS_DIR } from './config.js';
-import equipmentRouter   from './routes/equipment.js';
-import photosRouter      from './routes/photos.js';
+import equipmentRouter from './routes/equipment.js';
+import photosRouter from './routes/photos.js';
 import maintenanceRouter from './routes/maintenance.js';
-import routinesRouter    from './routes/routines.js';
-import tagsRouter        from './routes/tags.js';
-import scanRouter        from './routes/scan.js';
-import metaRouter        from './routes/meta.js';
-import exportRouter      from './routes/export.js';
-import importRouter      from './routes/import.js';
-import locationsRouter   from './routes/locations.js';
-import loansRouter       from './routes/loans.js';
+import routinesRouter from './routes/routines.js';
+import tagsRouter from './routes/tags.js';
+import scanRouter from './routes/scan.js';
+import metaRouter from './routes/meta.js';
+import exportRouter from './routes/export.js';
+import importRouter from './routes/import.js';
+import locationsRouter from './routes/locations.js';
+import loansRouter from './routes/loans.js';
 import { triggerBackupNow } from './backup.js';
 import { authRouter, requireAuth, rateLimit } from './auth.js';
 
@@ -32,12 +32,15 @@ app.use('/api/auth', authRouter);
 app.use(['/api', '/uploads'], requireAuth);
 
 // Serve uploaded photos
-app.use('/uploads', express.static(UPLOADS_DIR, {
-  setHeaders: (res) => {
-    res.set('X-Content-Type-Options', 'nosniff');
-    res.set('Content-Security-Policy', "default-src 'none'; img-src 'self'; sandbox");
-  },
-}));
+app.use(
+  '/uploads',
+  express.static(UPLOADS_DIR, {
+    setHeaders: (res) => {
+      res.set('X-Content-Type-Options', 'nosniff');
+      res.set('Content-Security-Policy', "default-src 'none'; img-src 'self'; sandbox");
+    },
+  }),
+);
 
 app.use('/api/equipment', equipmentRouter);
 app.use('/api/equipment/:equipmentId/photos', photosRouter);
@@ -73,12 +76,12 @@ app.get('*', (_req, res) => {
 });
 
 // Final error handler: JSON only, never the stack
-// eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   if (err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
     return res.status(400).json({ error: 'Referenced record does not exist' });
   }
-  const status = err.status ?? (err.code === 'LIMIT_FILE_SIZE' ? 413 : err.name === 'MulterError' ? 400 : 500);
+  const status =
+    err.status ?? (err.code === 'LIMIT_FILE_SIZE' ? 413 : err.name === 'MulterError' ? 400 : 500);
   if (status >= 500) console.error(err.stack ?? err);
   res.status(status).json({ error: status >= 500 ? 'Internal server error' : err.message });
 });

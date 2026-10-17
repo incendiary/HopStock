@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { describe, it, expect, vi } from 'vitest';
-import { makeTestDb, seedEquipment } from './helpers.js';
+import { makeTestDb } from './helpers.js';
 
 const testDb = makeTestDb();
 vi.mock('../db/index.js', () => ({ default: testDb }));
@@ -19,17 +19,23 @@ describe('App routes', () => {
 
   // server/public only exists after a client build, so in a clean checkout the SPA
   // fallback has no index.html and answers with a JSON 404.
-  it.skipIf(hasClient)('unknown non-API path returns JSON 404 when no built client exists', async () => {
-    const res = await request(app).get('/no/such/page');
-    expect(res.status).toBe(404);
-    expect(res.body).toEqual({ error: 'Not found' });
-  });
+  it.skipIf(hasClient)(
+    'unknown non-API path returns JSON 404 when no built client exists',
+    async () => {
+      const res = await request(app).get('/no/such/page');
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({ error: 'Not found' });
+    },
+  );
 
-  it.skipIf(!hasClient)('unknown non-API path serves index.html when the client is built', async () => {
-    const res = await request(app).get('/no/such/page');
-    expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toMatch(/text\/html/);
-  });
+  it.skipIf(!hasClient)(
+    'unknown non-API path serves index.html when the client is built',
+    async () => {
+      const res = await request(app).get('/no/such/page');
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toMatch(/text\/html/);
+    },
+  );
 
   it.skipIf(hasClient)('unknown /api path also returns the JSON 404', async () => {
     const res = await request(app).get('/api/no-such-endpoint');

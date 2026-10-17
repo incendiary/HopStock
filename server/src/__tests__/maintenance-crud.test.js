@@ -12,7 +12,8 @@ const url = (id) => `/api/equipment/${id}/maintenance`;
 describe('Maintenance list, delete and event types', () => {
   it('lists events by performed_at DESC then id DESC', async () => {
     const e = seedEquipment(testDb);
-    const post = (event_type, performed_at) => request(app).post(url(e.id)).send({ event_type, performed_at });
+    const post = (event_type, performed_at) =>
+      request(app).post(url(e.id)).send({ event_type, performed_at });
     const a = (await post('Cleaned', '2026-01-01T00:00:00Z')).body;
     const b = (await post('Serviced', '2026-03-01T00:00:00Z')).body;
     const c = (await post('Repaired', '2026-03-01T00:00:00Z')).body;
@@ -51,14 +52,23 @@ describe('Maintenance list, delete and event types', () => {
       expect(res.status).toBe(400);
       expect(res.body).toEqual({ error: msg });
     }
-    expect(testDb.prepare('SELECT COUNT(*) n FROM maintenance_events WHERE equipment_id = ?').get(e.id).n).toBe(0);
+    expect(
+      testDb.prepare('SELECT COUNT(*) n FROM maintenance_events WHERE equipment_id = ?').get(e.id)
+        .n,
+    ).toBe(0);
   });
 
   it('stores notes on create', async () => {
     const e = seedEquipment(testDb);
-    const res = await request(app).post(url(e.id)).send({ event_type: 'Cleaned', notes: 'PBW soak' });
+    const res = await request(app)
+      .post(url(e.id))
+      .send({ event_type: 'Cleaned', notes: 'PBW soak' });
     expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({ equipment_id: e.id, event_type: 'Cleaned', notes: 'PBW soak' });
+    expect(res.body).toMatchObject({
+      equipment_id: e.id,
+      event_type: 'Cleaned',
+      notes: 'PBW soak',
+    });
   });
 
   it('deletes an event', async () => {

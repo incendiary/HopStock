@@ -9,7 +9,10 @@ const newDb = () => {
 };
 const version = (db) => db.pragma('user_version', { simple: true });
 const ftsHits = (db, term) =>
-  db.prepare('SELECT rowid FROM equipment_fts WHERE equipment_fts MATCH ? ORDER BY rowid').all(term).map((r) => r.rowid);
+  db
+    .prepare('SELECT rowid FROM equipment_fts WHERE equipment_fts MATCH ? ORDER BY rowid')
+    .all(term)
+    .map((r) => r.rowid);
 
 function countRebuilds(db, fn) {
   let n = 0;
@@ -46,7 +49,9 @@ describe('schema versioning', () => {
   it('repairs a legacy (version 0) database whose FTS index is empty', () => {
     const db = newDb();
     runMigrations(db);
-    db.prepare("INSERT INTO equipment (name, category) VALUES ('Zebrakettle', 'kettle'), ('Zebragrinder', 'grinder')").run();
+    db.prepare(
+      "INSERT INTO equipment (name, category) VALUES ('Zebrakettle', 'kettle'), ('Zebragrinder', 'grinder')",
+    ).run();
     db.exec("INSERT INTO equipment_fts(equipment_fts) VALUES('delete-all')");
     db.pragma('user_version = 0');
     expect(ftsHits(db, 'Zebrakettle')).toEqual([]);
@@ -64,14 +69,22 @@ describe('schema versioning', () => {
 
     const old = newDb();
     runMigrations(old);
-    old.exec('DROP INDEX idx_maintenance_routine; ALTER TABLE maintenance_events DROP COLUMN routine_id;');
+    old.exec(
+      'DROP INDEX idx_maintenance_routine; ALTER TABLE maintenance_events DROP COLUMN routine_id;',
+    );
     old.pragma('user_version = 0');
     runMigrations(old);
 
     const tables = (db) =>
-      db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").all().map((r) => r.name);
+      db
+        .prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
+        .all()
+        .map((r) => r.name);
     const indexes = (db) =>
-      db.prepare("SELECT name FROM sqlite_master WHERE type = 'index' ORDER BY name").all().map((r) => r.name);
+      db
+        .prepare("SELECT name FROM sqlite_master WHERE type = 'index' ORDER BY name")
+        .all()
+        .map((r) => r.name);
     expect(tables(old)).toEqual(tables(fresh));
     expect(tables(fresh)).toContain('maintenance_events');
     for (const t of tables(fresh)) {

@@ -7,7 +7,8 @@ vi.mock('../db/index.js', () => ({ default: testDb }));
 const { default: app } = await import('../app.js');
 const request = (await import('supertest')).default;
 
-const mk = async (name, notes) => (await request(app).post('/api/locations').send({ name, notes })).body;
+const mk = async (name, notes) =>
+  (await request(app).post('/api/locations').send({ name, notes })).body;
 
 describe('Locations edges', () => {
   it('POST stores notes, trims the name and defaults notes to null', async () => {
@@ -81,7 +82,9 @@ describe('Locations edges', () => {
     const empty = await mk('Empty');
     const live = seedEquipment(testDb);
     const gone = seedEquipment(testDb);
-    testDb.prepare('UPDATE equipment SET location_id = ? WHERE id IN (?, ?)').run(l.id, live.id, gone.id);
+    testDb
+      .prepare('UPDATE equipment SET location_id = ? WHERE id IN (?, ?)')
+      .run(l.id, live.id, gone.id);
     testDb.prepare('UPDATE equipment SET deleted = 1 WHERE id = ?').run(gone.id);
     const list = (await request(app).get('/api/locations')).body;
     expect(list.find((x) => x.id === l.id).item_count).toBe(1);

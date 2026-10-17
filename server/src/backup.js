@@ -9,23 +9,23 @@
  * Uses only Node.js built-ins (child_process, fs, path) + system `tar` — no npm packages needed.
  */
 
-import { execFile }  from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { mkdirSync, mkdtempSync, readdirSync, rmSync, existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, resolve, dirname, basename } from 'path';
-import { fileURLToPath }          from 'url';
+import { fileURLToPath } from 'url';
 
 import db from './db/index.js';
 import { UPLOADS_DIR } from './config.js';
 
 const execFileAsync = promisify(execFile);
-const __dirname     = dirname(fileURLToPath(import.meta.url));
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ── Config ────────────────────────────────────────────────
 const BACKUP_INTERVAL_MS = (parseInt(process.env.BACKUP_INTERVAL_HOURS, 10) || 24) * 60 * 60 * 1000;
-const BACKUP_DIR         = resolve(process.env.BACKUP_DIR || join(__dirname, '../../backups'));
-const BACKUP_KEEP        = parseInt(process.env.BACKUP_KEEP, 10) || 7;
+const BACKUP_DIR = resolve(process.env.BACKUP_DIR || join(__dirname, '../../backups'));
+const BACKUP_KEEP = parseInt(process.env.BACKUP_KEEP, 10) || 7;
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -37,8 +37,8 @@ function timestamp() {
 async function runBackup() {
   mkdirSync(BACKUP_DIR, { recursive: true });
 
-  const filename  = `hopstock-backup-${timestamp()}.tar.gz`;
-  const dest      = join(BACKUP_DIR, filename);
+  const filename = `hopstock-backup-${timestamp()}.tar.gz`;
+  const dest = join(BACKUP_DIR, filename);
 
   const tmp = mkdtempSync(join(tmpdir(), 'hopstock-backup-'));
   try {
@@ -84,7 +84,9 @@ export function startBackupScheduler() {
     return;
   }
 
-  console.log(`[backup] scheduler started — interval ${BACKUP_INTERVAL_MS / 3_600_000}h, dir: ${BACKUP_DIR}, keep: ${BACKUP_KEEP}`);
+  console.log(
+    `[backup] scheduler started — interval ${BACKUP_INTERVAL_MS / 3_600_000}h, dir: ${BACKUP_DIR}, keep: ${BACKUP_KEEP}`,
+  );
 
   // Run once at startup delay (5 minutes), then on the interval
   const STARTUP_DELAY_MS = 5 * 60 * 1000;
