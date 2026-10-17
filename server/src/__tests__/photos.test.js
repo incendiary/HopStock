@@ -71,6 +71,8 @@ describe('Photos API', () => {
 
     const del = await request(app).delete(`/api/equipment/${item.id}/photos/${a.id}`);
     expect(del.body).toEqual({ success: true });
-    expect((await request(app).get(a.url)).status).not.toBe(200);
+    const gone = await request(app).get(a.url);
+    expect(gone.status).toBe(404);
+    expect(gone.body).toEqual({ error: 'Not found' });
   });
 });
